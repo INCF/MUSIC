@@ -36,3 +36,20 @@ before_script:
   - chmod +x build.sh 
   
 script: ./build.sh      
+
+notifications:
+  email:
+    recipients:
+      - r.deepu@fz-juelich.de
+    on_success: change
+    on_failure: always
+    #on_start: false
+
+after_failure:
+  - cd $TRAVIS_BUILD_DIR/build
+  - |
+    for i in $(find reports -type f); do
+      echo "###########################"
+      echo "File: $i"
+      cat $i
+    done
