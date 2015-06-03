@@ -1,0 +1,36 @@
+language: cpp
+compiler:
+  - gcc
+
+env:
+  matrix:
+    - xMPI=0 
+    - xMPI=1 
+    
+matrix:
+ # do notify immediately about it when a job of a build fails.
+  fast_finish: true
+branches:
+ only:
+  - master
+cache:
+  apt: true 
+  ccache: true
+  
+before_install:
+  - echo $LANG
+  - echo $LC_ALL
+
+  
+  # update repository status (-qq is more quiet)
+  - sudo apt-get update -qq
+  - sudo apt-get install -y  coreutils gawk mawk original-awk
+  # some basic package build tools:
+  - sudo apt-get install -y devscripts build-essential
+  # remove any obsolete libraries
+  - sudo apt-get autoremove
+
+before_script:
+  - chmod +x build.sh 
+  
+script: ./build.sh      
