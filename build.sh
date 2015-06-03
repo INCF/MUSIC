@@ -18,14 +18,16 @@ fi
 if [ "$xInSource" = "InSource+" ] ; then
     CONFIGURE="./configure"
 else
-    MUSIC_VPATH=$WORKSPACE/build
+    MUSIC_VPATH=build
     mkdir "$MUSIC_VPATH"
     cd "$MUSIC_VPATH"
     CONFIGURE="../configure"
 fi
 
-MUSIC_RESULT=$WORKSPACE/result
+MUSIC_RESULT=result
 mkdir "$MUSIC_RESULT"
+
+MUSIC_RESULT=$(readlink -f $MUSIC_RESULT)
 
 $CONFIGURE \
     --prefix="$MUSIC_RESULT" \
