@@ -1,0 +1,105 @@
+Things to do in preparation for the music-1.2.0 release:
+--- Start music-1.2.0
+
+* E: Make testsuite
+
+* E: (If sufficient time): Better multiconnector communicator creation
+  algorithm
+
+* M: Complete multiconnector implementation (support for abitrary
+  number of apps)
+
+* M: Complete Python bindings
+
+* Test that continuous ports work as expected
+
+** Interpolation/non-interpolated case, also with different buffering
+   and different ITI (inter-tick-interval) for the communication
+   applications.
+
+* Better README
+
+* Update NEWS
+
+* Update manual (/doc) with new configuration file syntax
+
+--- End music-1.2.0
+
+* OrderedIList should be made more generic and handle insertion of
+  indices which already exist in the ilist
+
+* remove ProxyConnector?
+
+* remove multiComm member?
+
+* remove leader and nProcs info in scheduler Nodes:s?
+
+* checkpointing
+
+* use duplicate of MPI::COMM_WORLD for setting up inter-communicators
+
+* report error if index maps overlap on the sender side
+
+* for the event router only: join intervals also over "holes" in the
+  local index map
+
+* duplicate COMM_WORLD and use that throughout library?
+
+* error handling (call MPI error handler)
+
+* revise timing algorithm to allow for loops with 1 tick acceptable
+  latency where this is theoretically possible.
+
+* connector signature checking when connecting to peers (cont ports:
+  common MPI data types + unknown + size)
+
+* Check that all administrative objects get deallocated at start of runtime
+  (for example the objects assoicated with configuration)
+
+* lift out as much as possible of the negotiation stuff from
+  connectors and move to connections, for example ConnectorInfo and
+  createIntercomm
+
+* rename Runtime::schedule
+
+* report port name if missing
+
+* alternative implementation for clockstate (not long long)
+
+* Code duplication sampler - distributor - collector - kommentarer
+
+* optional arguments when mapping ports: maxbuffered but not latency
+   
+* error message if latency => > maxBuffered
+   
+* indexinterval::local --> offset
+
+* Use pass-by-reference instead of pass-by-value where possible
+  (especially for some strings)
+
+* cleanup constructor arguments in subconnector.cc
+
+* marshalling, for example in temporal.cc, subconnector.cc
+
+* Documentation strings
+
+Optional
+  
+* Improve all error reporting (giving more informative messages with names etc)
+
+* Set flags with options to the music utility and transmit them to the
+  applications so that library behavior can be controlled.  E.g.,
+  print out run statistics, such as part of time spent in tick() when
+  deleting runtime.
+
+* Join intervals in PermutationIndex and IndexMapFactory
+
+* Th mpidep directory should contain a test binary which is
+  built and run before anything else is being compiled
+
+* Write piecewise_linear_index and derive linear_index and
+  permutation_index from it.
+
+* Communicate between ticks using non-blocking communication.
+  Possible to have two kinds of subconnectors, keeping the current
+  ones for cases with short acceptable latency,

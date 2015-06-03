@@ -1,0 +1,20 @@
+np=1
+stoptime=1.1
+[A]
+  binary=./eventdelay
+  args=-d 0.1 -L 1 -b 2
+[B]
+  binary=./eventdelay
+  args=-d 0.1 -L 2 -b 2
+[from]
+  binary=./eventsource
+  args=-b 5 10 spikes
+[to]
+  binary=./eventlogger
+  args=-b 5
+
+
+from.out -> A.in [10]
+A.out -> B.in [10]
+B.out -> A.aux [10]
+B.out -> to.in [10]

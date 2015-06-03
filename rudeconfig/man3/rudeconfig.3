@@ -1,0 +1,276 @@
+.\" Process this file with 
+.\" groff -man -Tascii rudeconfig.3
+.\"
+.TH rudeconfig 3  "January 19, 2006" "Version 5.0" "User Manuals"
+.SH NAME
+rudeconfig \- read and manipulate .ini and config files
+.SH SYNOPSIS
+.B #include <rude/config.h>
+
+.BI	"rude::Config myconfig;"
+
+.PP	
+STATIC METHODS
+.nf
+.BI	"static const char *rude::version();"
+
+.BI	"static void rude::setDefaultConfigFile(const char *" "filepath" ");"
+
+.BI	"static const char *rude::getDefaultConfigFile();"
+
+.BI	"static void rude::setDefaultCommentCharacter(char " "c" ");"
+
+.BI	"static char rude::getDefaultCommentCharacter();"
+
+.BI	"static void rude::setDefaultDelimiter(char " "c" ");"
+
+.BI	"static char rude::getDefaultDelimiter();"
+
+.BI	"static void rude::setDefaultPreserveDeleted(bool " "shouldPreserve" ");"
+
+.BI	"static void rude::setDefaultPreserveDeleted(bool " "shouldPreserve" ");"
+.fi
+
+.PP	
+REDEFINING INSTANCE BEHAVIOR
+.nf
+.BI	"void setConfigFile(const char *" "filepath" ");"
+
+.BI	"const char * getConfigFile();"
+
+.BI	"void preserveDeletedData(bool " "shouldPreserve" ");"
+
+.BI	"void setCommentCharacter(char " "commentchar" ");"
+
+.BI	"void setDelimiter(char " "keyvaluedelimiter" ");"
+.fi
+
+.PP	
+LOADING AND SAVING FILES
+.nf
+.BI	"bool save();"
+
+.BI	"bool save(const char *" "filepath" ");"
+
+.BI	"void clear();"
+
+.BI	"bool load();"
+
+.BI	"bool load(const char *" "filename" ");"
+
+.BI	"const char *getError();"
+.fi
+
+.PP	
+SECTION METHODS
+.nf
+.BI	"int getNumSections() const;"
+
+.BI	"const char *getSectionNameAt(int " "index" ") const;"
+
+.BI	"bool setSection(const char *" "sectionname" ", bool shouldCreate" ");"
+
+.BI	"bool setSection(const char *" "sectionname" ");"
+
+.BI	"bool deleteSection(const char *" "sectionname" ");"
+.fi
+
+.PP	
+KEY/VALUE DISCOVERY METHODS
+.nf
+.BI	"int getNumDataMembers() const;"
+
+.BI	"const char *getDataNameAt(int " "index" ") const;"
+
+.BI	"bool exists(const char *" "name" ") const;"
+.fi
+
+.PP	
+DATA ACCESSORS
+.nf
+.BI	"bool getBoolValue(const char *" "name" ") const;"
+
+.BI	"int getIntValue(const char *" "name" ") const;"
+
+.BI	"double getDoubleValue(const char *" "name" ") const;"
+
+.BI	"const char * getValue(const char *" "name" ") const;"
+
+.BI	"const char * getStringValue(const char *" "name" ") const;"
+.fi
+
+.PP	
+DATA MUTATORS
+.nf
+.BI "void setBoolValue(const char *" "name" ", bool " "value" ");"
+
+.BI "void setIntValue(const char *" "name" ", int " "value" ");"
+
+.BI "void setDoubleValue(const char *" "name" ", double "value" ");"
+
+.BI "void setValue(const char *" "name" ", const char *" "value" ");"
+
+.BI "void setStringValue(const char *" "name" ", const char *" "value" ");"
+.fi
+
+.PP	
+KEY/VALUE DELETION
+.nf
+.BI	"bool deleteData(const char *" "name" ");"
+.fi
+
+DESTRUCTOR
+.nf
+.BI	~Config();
+.fi
+
+.SH DESCRIPTION
+
+The rudeConfig library is used to read and manipulate .ini and configuration files.
+
+.SH CONFIGURATION/.INI FILE FORMAT
+
+Configuration and .ini files have the following structure:
+
+A configuration file contains one or more "sections". 
+Each "section" contains 0 or more "key=value" pairs. 
+Sections can also contain blank lines and comments
+
+.PP
+Sections are identified by the section name surrounded by square brackets - like \fB[example section]\fP.
+The unnamed, or default section, is represented by empty square brackets - as in \fB[]\fP.
+The beginning of the configuration file, up to the first named section, is also considered part of the unnamed/default section.
+White space surrounding the section name is ignored.  Quotes can be used in section names if desired.  As such, the following section names
+are identical: 
+
+.nf
+.B [State Codes]
+.B [\ \ State Codes\ \ ]
+.B [ \&"State Codes\&" ]
+.fi
+
+.PP
+The default delimiter for key/value pairs is the equals (\fB=\fP) sign.  
+The default comment character is the hash (\fB#\fP).  
+These can be changed via the API to any character, with a few restrictions: 
+The key/value delimiter cannot be '\fB\\\fP' (escape), '\fB[\fP' (left square bracket), or any end of line character.  
+The comment character cannot be '\fB\\\fP' (escape), '\fB[\fP' (left square bracket) or '\fB"\fP' (double quote).  
+Furthermore, the key/value delimiter cannot be set to the same value as the comment character.
+
+.PP
+The key of each key/value pair within a section must be unique.
+If the same key appears more than once within a given section, all but the last key will be ignored.
+If more than one configuration file is are loaded into the same rude::Config object, duplicate key/value pairs will replace
+existing ones. 
+
+Although sections of a given name can be repeated in a physical configuration file, they are logically combined when the rude:Config object parses the file.
+If the rude:Config object is subsequently saved, then the sections will be merged- with all key/value pairs occurring one section. 
+An example of multiple sections with the same name is given here:
+
+.nf
+.B # beginning of example .ini file
+.B [State Codes]
+.B  AZ = Arizona
+.B  CO = Colorado
+.B [State Codes]
+.B  NY = New York
+.B  CA = California
+.B [State Codes]
+.B  PA = Pennsylvania
+.B  IL = Illinios
+.B #end of example .ini file
+.fi
+
+.PP
+Comments do not have to start at the beginning of a line. 
+They can appear after section declarations (on the same line) and they can appear after key=value pairs.
+
+.nf
+.B # -- first line of config file --
+.B #  this is in the default section
+.B # this is a comment
+.B # the following line is a key=value pair
+.B color=blue
+.B
+.B [contact information]
+.B # this is a new section
+.B first name=Matthew
+.B last name = Flood 	# comments are allowed after key=value pairs
+.B 
+.B []
+.B # since there is no section name, this is the default section again
+.B size=large
+.B
+.B [login info]
+.B username=scruffy
+.B password=$$324reeWrew65456
+.B 
+.B [contact information]
+.B # this section is a continuation of "contact information" section listed earlier
+.B #
+.B # the following key=value pair demonstrates using quotes for multi-line values
+.B address="111 example street
+.B apartment Z"
+.B
+.B city=boulder
+.B
+.B # -- end of config file --
+.fi
+
+
+.SH EXAMPLES
+
+Examples, how-to's and tutorials can also be found at the rudeserver.com website
+
+.B Basic Usage
+
+ #include <rude/config.h>
+
+ int main(void)
+ {
+    // Create config object
+    //
+    rude::Config config;
+
+    // load a configuration/.ini file
+    config.load("myfile.ini");
+
+
+    // read information
+    //
+    config.setSection("General Info");
+    double cost = config.getDoubleValue("Cost");
+    const char *company = config.getStringValue("Company Name");
+
+
+    // create information
+    //
+    config.setSection("new section");
+    config.setStringValue("animal type", "giraffe");
+    config.setBoolValue("mammal", true);
+
+    // save changes
+    //
+    config.save();
+    return 0;
+ }
+	
+.SH SEE ALSO
+.BR rudecgiparser(3),
+.BR rudedatabase(3),
+.BR rudesocket(3),
+.BR rudesession(3)
+
+.SH REPORTING PROBLEMS
+
+Before reporting a problem, please check the rudeserver.com web site to verify that you have the latest version of rudeconfig; otherwise, obtain the latest version and see if the problem still exists.  Please read the  FAQ at:
+
+              http://www.rudeserver.com/
+
+before asking for help.  Send questions and/or comments to  matt@rudeserver.com
+
+.SH AUTHORS
+Copyright (C) 2000 Matthew Flood (matt@rudeserver.com)
+
+This  software is provided "as-is," without any express or implied warranty.  In no event will the authors be held liable for any damages arising from the use of this software.  See the distribution directory with respect  to  requirements  governing  redistribution. Thanks to all the people who reported problems and suggested various improvements in rudeconfig; who are too numerous to cite here.
+

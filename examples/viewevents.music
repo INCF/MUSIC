@@ -1,0 +1,9 @@
+np=1
+stoptime=1.0
+[from]
+  binary=eventsource
+  args=-t 1e-4 27 spikes
+[to]
+  binary=viewevents
+  from.out -> to.plot [27]
+  args=-t 1e-4 -s 10.0 neuronGrid.data

@@ -1,0 +1,13 @@
+np = 2
+stoptime = 5.0
+timestep = 0.5
+
+buffer = 1
+events = 20
+
+[from]
+  binary = ./testsource.py
+
+[to]
+  binary = ./testsink.py
+  from.out -> to.in [10]

@@ -1,0 +1,82 @@
+#!/bin/sh
+
+NP=4
+music_conf="$( echo "${0##*/}" | sed 's/\.test//'  ).music"
+
+abspath="$(cd "${0%/*}" 2>/dev/null; echo "$PWD"/"${0##*/}")"
+path="`dirname $abspath`"
+
+. ${path}/run_test
+ 
+write_configuration ()
+{
+
+method=$1
+echo "Communication method: ${method}"
+
+# this is music configuration file
+cat <<EOF > "${MUSIC_DATA_PATH}/${music_conf}"
+np=2
+stoptime=1.0
+[from]
+  binary=${TEST_BINDIR}/eventsource
+  args=-b 1 10 ${MUSIC_DATA_PATH}/spikes
+[to]
+  binary=${TEST_BINDIR}/eventlogger
+  args=-b 2
+  from.out -> to.in [10, ${method}]
+EOF
+
+}
+
+
+# this is input data
+cat <<\EOF > "${MUSIC_DATA_PATH}/spikes0.dat"
+# spikes
+0.0	0
+0.1	1
+0.2	2
+0.3	3
+0.4	4
+EOF
+
+cat <<\EOF > "${MUSIC_DATA_PATH}/spikes1.dat"
+# spikes
+0.0	9
+0.6	5
+0.7	6
+0.8	7
+0.9	8
+EOF
+
+# this is the output we should expect to see
+cat <<\EOF > "${MUSIC_DATA_PATH}/ok"
+Rank 0: Event (0, 0) detected at 0
+Rank 0: Event (1, 0.1) detected at 0.09
+Rank 0: Event (2, 0.2) detected at 0.19
+Rank 0: Event (3, 0.3) detected at 0.28
+Rank 0: Event (4, 0.4) detected at 0.39
+Rank 1: Event (5, 0.6) detected at 0.58
+Rank 1: Event (6, 0.7) detected at 0.68
+Rank 1: Event (7, 0.8) detected at 0.79
+Rank 1: Event (8, 0.9) detected at 0.89
+Rank 1: Event (9, 0) detected at 0
+EOF
+# sort the file using locale specified by current environment
+sort "${MUSIC_DATA_PATH}/ok" -o "${MUSIC_DATA_PATH}/ok"
+
+cat <<\EOF > "${MUSIC_DATA_PATH}/errok"
+EOF
+   
+for method in point-to-point collective ; do
+    write_configuration "${method}"
+    
+    run_test "${NP}" "${music_conf}"
+    exit_code=$?
+    
+    if test "${exit_code}" -gt 0 ; then
+	exit "${exit_code}"
+    fi
+done
+
+exit 0

@@ -1,0 +1,353 @@
+#!/bin/sh
+#
+# This script runs all tests that are located in the testsuite directory
+#
+
+usage ()
+{
+    if test $1 -ne 0 ; then
+	echo "Unknown option: $2"
+    fi
+    
+    cat <<EOF
+Usage: music_tests.sh [options ...]
+
+Options:
+
+    --help              Print program options and exit
+    --showme-tests      Print test names and exit
+    --output-dir=/path  Output directory (default: ./reports)
+
+EOF
+
+    exit $1
+}
+#
+# ask_results
+#
+ask_results ()
+{
+    echo "***"
+    echo "*** Please send the archived content of these directories:"
+    echo "***"
+    echo "***     - '${TEST_OUTDIR}'"
+    echo "***     - '${TEST_TMPDIR}'"
+    echo "***"
+    echo "*** to mikael@djurfeldt.com."
+    echo "***"
+    echo
+}
+
+requestedTest() 
+{
+    tn=""
+    if test -n "${TEST_NAME}" ; then
+	tn="${TEST_NAME%%*${1}*}"
+    fi
+    if test -z "${tn}" ; then
+	return 0
+    else
+	return 1
+    fi
+}
+
+list_test()
+{
+    TEST_TOTAL=$(( ${TEST_TOTAL} + 1 ))
+    echo "Test #${TEST_TOTAL} '${test_name}'"
+}
+
+# arguments: message
+bail_out ()
+{
+    echo "$1"
+    exit 1
+}
+
+# arguments: file_name expression
+portable_inplace_sed ()
+{
+    cp -f "$1" "$1.XXX"
+    sed -e "$2" "$1.XXX" > "$1"
+    rm -f "$1.XXX"
+}
+
+JUNIT_FILE=
+JUNIT_TESTS=
+JUNIT_FAILURES=
+JUNIT_CLASSNAME='core'
+
+junit_open ()
+{
+    JUNIT_FILE="${TEST_OUTDIR}/music_test_results.xml"
+    JUNIT_TESTS=0
+    JUNIT_FAILURES=0
+
+    TIME_TOTAL=0
+
+    # Be compatible with BSD date; no --rfc-3339 and :z modifier
+    timestamp="$( date -u '+%FT%T+00:00' )"
+
+    echo '<?xml version="1.0" encoding="UTF-8" ?>' > "${JUNIT_FILE}"
+
+    echo "<testsuite errors=\"0\" failures=XXX hostname=\"${INFO_HOST}\" name=\"music_test_results\" tests=XXX time=XXX timestamp=\"${timestamp}\">" >> "${JUNIT_FILE}"
+    echo '  <properties>' >> "${JUNIT_FILE}"
+    echo "    <property name=\"os.arch\" value=\"${INFO_ARCH}\" />" >> "${JUNIT_FILE}"
+    echo "    <property name=\"os.name\" value=\"${INFO_OS}\" />" >> "${JUNIT_FILE}"
+    echo "    <property name=\"os.version\" value=\"${INFO_VER}\" />" >> "${JUNIT_FILE}"
+    echo "    <property name=\"user.home\" value=\"${INFO_HOME}\" />" >> "${JUNIT_FILE}"
+    echo "    <property name=\"user.name\" value=\"${INFO_USER}\" />" >> "${JUNIT_FILE}"
+    echo '  </properties>' >> "${JUNIT_FILE}"
+}
+
+
+# arguments: classname testname [fail_message fail_trace]
+junit_write ()
+{
+    if test "x${JUNIT_FILE}" = x ; then
+        bail_out 'junit_write: report file not open, call junit_open first!'
+    fi
+
+    if test "x$1" = x || test "x$2" = x ; then
+        bail_out 'junit_write: classname and testname arguments are mandatory!'
+    fi
+
+    JUNIT_TESTS=$(( ${JUNIT_TESTS} + 1 ))
+
+    printf '%s' "  <testcase classname=\"$1\" name=\"$2\" time=\"${TIME_ELAPSED}\"" >> "${JUNIT_FILE}"
+
+    if test "x$3" != x ; then
+        echo '>' >> "${JUNIT_FILE}"
+        echo "    <failure message=\"$3\" type=\"\"><![CDATA[" >> "${JUNIT_FILE}"
+        echo "$4" | sed 's/]]>/]]>]]\&gt;<![CDATA[/' >> "${JUNIT_FILE}"
+        echo "]]></failure>" >> "${JUNIT_FILE}"
+        echo "  </testcase>" >> "${JUNIT_FILE}"
+    else
+        echo ' />' >> "${JUNIT_FILE}"
+    fi
+}
+
+junit_close ()
+{
+    if test "x${JUNIT_FILE}" = x ; then
+        bail_out 'junit_close: report file not open, call junit_open first!'
+    fi
+
+    portable_inplace_sed "${JUNIT_FILE}" "s/time=XXX/time=\"${TIME_TOTAL}\"/"
+    portable_inplace_sed "${JUNIT_FILE}" "s/tests=XXX/tests=\"${JUNIT_TESTS}\"/"
+    portable_inplace_sed "${JUNIT_FILE}" "s/failures=XXX/failures=\"${JUNIT_FAILURES}\"/"
+
+    echo '  <system-out><![CDATA[]]></system-out>' >> "${JUNIT_FILE}"
+    echo '  <system-err><![CDATA[]]></system-err>' >> "${JUNIT_FILE}"
+    echo '</testsuite>' >> "${JUNIT_FILE}"
+
+    JUNIT_FILE=
+}
+
+#arguments: run_test script_name codes_success codes_failure
+run_test()
+{
+    TEST_TOTAL=$(( ${TEST_TOTAL} + 1 ))
+
+    test_name="$1"
+    param_success="$2"
+    param_failure="$3"
+
+    msg_error=
+
+    junit_class="$( echo "${test_name}" | sed 's/.[^.]\+$//' | sed 's/\/[^/]\+$//' | sed 's/\//./' )"
+    junit_name="$( echo "${test_name}" | sed 's/^.*\/\([^/]\+\)$/\1/' )"
+
+    TEST_OUTFILE="${TEST_OUTDIR}/$( echo "${test_name##*/}" | sed 's/\.test//'  ).log"
+   
+    echo "Running test '${test_name}'..."
+    echo  >> "${TEST_LOGFILE}" "Running test '${test_name}'..."
+
+    # Generating script on fly due to possible command 
+    # incompatibility with different subshells (dash, bash, etc.)
+    
+    echo "#!/bin/sh" > "${TEST_RUNFILE}"
+    echo "set +e" >> "${TEST_RUNFILE}"
+    
+    command="'${TEST_BASEDIR}/${test_name}' > '${TEST_OUTFILE}' 2>&1"
+
+    echo "${command}" >> "${TEST_RUNFILE}"
+    echo "echo \$? > '${TEST_RETFILE}' ; exit 0" >> "${TEST_RUNFILE}"
+
+    chmod 755 "${TEST_RUNFILE}"
+    
+    time_dirty="$( /bin/sh -c "time ${TIME_PARAM} '${TEST_RUNFILE}' " 2>&1 )"
+    rm -f "${TEST_RUNFILE}"
+
+    TIME_ELAPSED="$( echo "${time_dirty}" | awk 'NR == 1 { print $2 ; }' )"
+    TIME_TOTAL="$( awk "BEGIN { print (${TIME_TOTAL} + ${TIME_ELAPSED}) ; }" )"
+
+    exit_code="$(cat "${TEST_RETFILE}")"
+    
+    sed 's/^/   > /g' "${TEST_OUTFILE}" >> "${TEST_LOGFILE}"
+
+    msg_dirty=${param_success##* ${exit_code} }
+    msg_clean=${msg_dirty%%,*}
+    if test "${msg_dirty}" != "${param_success}" ; then
+        TEST_PASSED=$(( ${TEST_PASSED} + 1 ))
+        explanation="${msg_clean}"
+        junit_failure=
+    else
+        TEST_FAILED=$(( ${TEST_FAILED} + 1 ))
+        JUNIT_FAILURES=$(( ${JUNIT_FAILURES} + 1 ))
+
+        msg_dirty=${param_failure##* ${exit_code} }
+        msg_clean=${msg_dirty%%,*}
+        if test "${msg_dirty}" != "${param_failure}" ; then
+            explanation="${msg_clean}"
+        else
+            explanation="Failed: unexpected exit code ${exit_code}"
+            msg_error="$( cat "${TEST_OUTFILE}" )"
+        fi
+
+        junit_failure="${exit_code} (${explanation})"
+    fi
+    
+    echo "...${explanation}"
+
+    echo >> "${TEST_LOGFILE}" "-> ${exit_code} (${explanation})"
+    echo >> "${TEST_LOGFILE}" "----------------------------------------"
+
+    junit_write "${JUNIT_CLASSNAME}.${junit_class}" "${junit_name}" "${junit_failure}" "$(cat "${TEST_OUTFILE}")"
+
+    # Panic on "unexpected" exit code
+    if test "x${msg_error}" != x ; then
+        echo "${msg_error}"
+        echo
+        echo "***"
+        echo "*** An unexpected exit code usually hints at a bug in the test suite!"
+        ask_results
+        exit 2
+    fi
+
+    rm -f "${TEST_OUTFILE}" "${TEST_RETFILE}"
+}
+
+while test $# -gt 0 ; do
+    case "$1" in
+	--help)
+	    usage 0
+	    ;;
+	--output-dir=*)
+	    TEST_OUTDIR="$( echo "$1" | sed 's/^--output-dir=//' )"
+	    ;;
+	--showme-tests)
+	    EXEC=list_test
+	    ;;
+	*)
+	    TEST_NAME="${TEST_NAME} $1"
+#	    usage 1 "$1"
+	    ;;
+	esac
+        shift
+done
+
+# Gather some information about the host
+INFO_ARCH="$(uname -m)"
+INFO_HOME="$(/bin/sh -c 'echo ~')"
+INFO_HOST="$(hostname -f)"
+INFO_OS="$(uname -s)"
+INFO_USER="$(whoami)"
+INFO_VER="$(uname -r)"
+
+TIME_PARAM="-p"
+/bin/sh -c "time ${TIME_PARAM} uname" >/dev/null 2>&1 || TIME_PARAM=""
+
+TIMEFORMAT=$'real %2R\nuser %2U\nsys %2S'
+export TIMEFORMAT
+
+TEST_OUTDIR=${TEST_OUTDIR:-"$( pwd )/reports"}
+TEST_NAME=${TEST_NAME:-""}
+EXEC=${EXEC:-"run_test"}
+TEST_LOGFILE="${TEST_OUTDIR}/output.log"
+TEST_RETFILE="${TEST_OUTDIR}/output.ret"
+TEST_RUNFILE="${TEST_OUTDIR}/runtest.sh"
+
+if test -d "${TEST_OUTDIR}" ; then
+    rm -rf "${TEST_OUTDIR}"
+fi
+
+mkdir "${TEST_OUTDIR}"
+
+TMPDIR=${TMPDIR:-${TEST_OUTDIR}}
+TEST_TMPDIR="$(mktemp -d "${TMPDIR:-/tmp}/music.XXXXX")"
+MUSIC_DATA_PATH="${TEST_TMPDIR}"
+export MUSIC_DATA_PATH
+
+TEST_TOTAL=0
+TEST_PASSED=0
+TEST_FAILED=0
+
+junit_open
+
+echo > "${TEST_LOGFILE}" "MUSIC v. @PACKAGE_VERSION@"
+echo >> "${TEST_LOGFILE}" "======================="
+echo >> "${TEST_LOGFILE}" "Host information:"
+echo >> "${TEST_LOGFILE}" "architeture\t:\t${INFO_ARCH}"
+echo >> "${TEST_LOGFILE}" "home directory\t:\t${INFO_HOME}"
+echo >> "${TEST_LOGFILE}" "host name\t:\t${INFO_HOST}"
+echo >> "${TEST_LOGFILE}" "system\t\t:\t${INFO_OS}"
+echo >> "${TEST_LOGFILE}" "user name\t:\t${INFO_USER}"
+echo >> "${TEST_LOGFILE}" "kernel version\t:\t${INFO_VER}"
+echo >> "${TEST_LOGFILE}" "======================="
+
+TEST_BASEDIR="@PKGEXTRABINDIR@"
+echo >> "${TEST_LOGFILE}" "Running tests from ${TEST_BASEDIR}" 
+
+CODES_SUCCESS=' 0 Success'
+CODES_FAILURE=\
+' 1 Failed: missed assertion,'
+for test_prefix in test_ launchtest ; do
+    for test_name in $(ls "${TEST_BASEDIR}" | grep "${test_prefix}") ; do
+	if requestedTest "${test_name}" ; then
+	    "$EXEC" "${test_name}" "${CODES_SUCCESS}" "${CODES_FAILURE}"
+	fi
+    done
+done
+
+TEST_BASEDIR="@PKGDATADIR@/tests"
+echo >> "${TEST_LOGFILE}" "Running tests from ${TEST_BASEDIR}" 
+
+TEST_BINDIR="@prefix@/@bindir@"
+export TEST_BINDIR
+
+TEST_EXTRABINDIR="@PKGEXTRABINDIR@"
+export TEST_EXTRABINDIR
+
+CMP="${CMP-cmp}"
+export CMP
+
+MUSIC_BINARY="@prefix@/@bindir@/MUSIC"
+export MUSIC_BINARY
+
+
+CODES_SUCCESS=' 0 Success'
+CODES_FAILURE=\
+' 2 Failed: error in tested code block,'\
+' 10 Failed: unknown error,'\
+' 15 Failed: timeout,'
+for test_ext in test ; do
+    for test_name in $(ls "${TEST_BASEDIR}" | grep ".*\.${test_ext}\$") ; do
+	if requestedTest "${test_name}"  ; then
+	    "$EXEC" "${test_name}" "${CODES_SUCCESS}" "${CODES_FAILURE}"
+	fi
+    done
+done
+
+junit_close
+
+if test ${TEST_FAILED} -gt 0 ; then
+    echo "***"
+    echo "*** There were errors detected during the run of the MUSIC test suite!"
+    ask_results
+else
+    rm -rf "${TEST_TMPDIR}"
+fi
+
+exit 0
+

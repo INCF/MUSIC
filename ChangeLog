@@ -1,0 +1,205 @@
+2014-07-22  Ekaterina Brocke  <brocke@kth.se>
+
+	* Version 1.1.15
+
+2014-07-21  Mikael Djurfeldt  <mdj@jessie.pdc.kth.se>
+
+	* Version 1.1.14
+
+2014-07-21  Mikael Djurfeldt  <mdj@vm-xubuntu-12.04.4>
+
+	* Version 1.1.13
+
+2014-07-17  Mikael Djurfeldt  <mdj@jessie.pdc.kth.se>
+
+	* Version 1.1.12
+
+2014-07-16  Mikael Djurfeldt  <mdj@jessie.pdc.kth.se>
+
+	* Version 1.1.11
+
+2013-07-11  Mikael Djurfeldt  <mdj@wand.pdc.kth.se>
+
+	* Version 1.1.9
+
+2012-09-20  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Version 1.1.8
+
+	* configure.ac: New configuration options --enable-isend,
+	--enable-anysource.
+
+2012-08-24  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* PORTING: New file.
+
+2012-08-23  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Version 1.1.7
+
+2012-08-22  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Version 1.1.6
+
+2012-08-21  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Version 1.1.5
+
+2012-08-20  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Version 1.1.3
+
+2012-08-13  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Version 1.1.2
+
+2012-08-07  Mikael Djurfeldt  <mdj@ubuntu-11.10>
+
+	* Version 1.1.1
+
+2012-08-03  Mikael Djurfeldt  <mdj@ubuntu-11.10>
+
+	* configure.ac: Updated to version 1.1.0.
+
+	* configure.ac: Generate music/version.hh.in.
+
+2012-03-15  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* configure.ac (AM_PATH_PYTHON): Added.
+
+	* music: New directory. Python interface for configuring MUSIC.
+
+2012-01-30  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* configure.ac: Make sure that MPI libraries are listed at the end
+	of the command line in AC_CHECK_FUNCS.
+
+2011-03-04  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* configure.ac: Support for Cray XE6.
+
+2010-07-28  Mikael Djurfeldt  <mdj@djurfeldt.com>
+
+	* Release 1.0.7
+
+2009-10-25  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Release 1.0.6
+
+2009-10-24  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Release 1.0.5
+
+2009-10-13  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* configure.ac: Support for MPICH 2 (Thanks to Eilif Müller.)
+
+2009-04-01  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* Release 1.0.4
+
+2009-03-13  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Release 1.0.3
+
+2009-03-12  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Release 1.0.2
+
+2009-03-11  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* configure.ac: Added AM_MAINTAINER_MODE.
+
+2009-03-09  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Makefile.am (debian-source): Copy manual source into debian
+	source tree.
+
+2009-03-08  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Release 1.0.1
+
+	* configure.ac (CXXFLAGS): Added -pedantic -Wall -Wno-long-long.
+
+2009-03-07  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* configure.ac: Renamed package to incf-music (since people in the
+	Debian community has complained about the too generic package
+	name).
+
+2009-03-06  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Makefile.am (EXTRA_DIST): Added debian subdirectory to
+	distribution.
+
+2009-03-03  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Release 1.0
+
+2009-02-11  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* mpidep: New directory for MPI dependent code.
+
+	* configure.ac: Generate mpidep/Makefile.
+
+	* configure.ac: Test if ompi_comm_free exists instead of
+	ompi_comm_create which doesn't exist in OpenMPI 1.3.
+
+	* configure.ac: Pass variables to be substituted one-by-one to
+	AC_SUBST.
+
+2008-11-03  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* configure.ac (OPTIONAL_UTILS): New variable.  Add viewevents
+	conditionally depending on existence of GL/glut.h.
+
+2008-10-16  Mikael Djurfeldt  <mikael@moritz-heliass-macbook.local>
+
+	* configure.ac: Use $CXX instead of $MPI_CXX in tests for
+	configuration of MPI implementation dependent code.
+
+2008-09-23  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* configure.ac: Setup MPI_C; Test for MPI::Init_thread.
+
+2007-11-07  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* configure.ac: Don't try to build shared libraries on BGL.
+
+	* autogen.sh, aclocal.sh: Suppress error messages from which.
+
+2007-11-06  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* configure.ac: Rewritten to make better use of AC_PROG_CXX; Logic
+	added to manage subdirectory rudeconfig directly (tests moved from
+	original rudeconfig configure.ac).
+
+2007-11-02  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* configure.ac: Test for ompi_comm_create (used to identify
+	OPENMPI); Moved configuration of rudeconfig to beginning.
+
+	* Makefile.am (SUBDIRS): Added rudeconfig.
+
+2007-11-01  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* configure.ac: Added AC_CONFIG_SUBDIRS(rudeconfig).
+
+	* rudeconfig: Added.
+
+2007-10-25  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* configure.ac: Added test for rts_get_personality; Generate
+	utils/Makefile.
+
+	* Makefile.am (SUBDIRS): Added utils.
+
+2007-10-18  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* configure.ac: Introduced guessing of host MPI framework. Handle
+	openmpi version of mpiCC.
+
+2007-09-13  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* AUTHORS, COPYING, INSTALL, NEWS, README, ChangeLog,
+	configure.ac, Makefile.am, autogen.sh, aclocal.sh: New files

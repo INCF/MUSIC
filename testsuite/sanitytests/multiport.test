@@ -1,0 +1,54 @@
+#!/bin/sh
+
+NP=4
+music_conf="$( echo "${0##*/}" | sed 's/\.test//'  ).music"
+
+abspath="$(cd "${0%/*}" 2>/dev/null; echo "$PWD"/"${0##*/}")"
+path="`dirname $abspath`"
+
+. ${path}/run_test
+
+# this is music configuration file
+cat <<EOF > "${MUSIC_DATA_PATH}/${music_conf}"
+stoptime=1.0
+[A]
+  binary=${TEST_EXTRABINDIR}/multiport
+  args=--in in0:2640 --in in1:2640 --in in2:1 --out out0:968 --out out1:968 --out out2:1 --out out3:1
+  np=2
+[B]
+  binary=${TEST_EXTRABINDIR}/multiport
+  args=--in in0:1 --out out0:2640 --out out1:2640 --out out2:1
+  np=1
+[C]
+  binary=${TEST_EXTRABINDIR}/multiport
+  args=--in in0:968 --in in1:968 --in in2:1 --in in3:1 --out out0:1
+  np=1
+B.out0 -> A.in0 [2640, collective]
+B.out1 -> A.in1 [2640, collective]
+B.out2 -> A.in2 [1,collective]
+A.out0 -> C.in0 [968,collective]
+A.out1 -> C.in1 [968,collective]
+A.out2 -> C.in2 [1,collective]
+A.out3 -> C.in3 [1,collective]
+C.out0 -> B.in0 [1,collective]
+EOF
+
+# this is the output we should expect to see
+cat <<\EOF > "${MUSIC_DATA_PATH}/ok"
+EOF
+# sort the file using locale specified by current environment
+sort "${MUSIC_DATA_PATH}/ok" -o "${MUSIC_DATA_PATH}/ok"
+
+cat <<\EOF > "${MUSIC_DATA_PATH}/errok"
+EOF
+
+run_test "${NP}" "${music_conf}"
+exit_code=$?
+
+if test "${exit_code}" -gt 0 ; then
+   exit "${exit_code}"
+fi
+
+exit 0
+
+

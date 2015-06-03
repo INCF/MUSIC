@@ -1,0 +1,56 @@
+#!/bin/sh
+
+NP=6
+music_conf="$( echo "${0##*/}" | sed 's/\.test//'  ).music"
+
+abspath="$(cd "${0%/*}" 2>/dev/null; echo "$PWD"/"${0##*/}")"
+path="`dirname $abspath`"
+
+. ${path}/run_test
+
+write_configuration ()
+{
+
+method=$1
+echo "Communication method: ${method}"
+
+# this is music configuration file
+cat <<EOF > "${MUSIC_DATA_PATH}/${music_conf}"
+binary=${TEST_EXTRABINDIR}/launchtest
+np=3
+[1]
+  args=hej du glade
+  param=1.0
+[2]
+  args=ta en spade
+  param=2.0
+  1.as1 -> 2.bd1
+  2.bd2 <- 1.as2 # asd
+  bd2 -> 2.as2 [12,${method}]
+EOF
+
+}
+
+# this is the output we should expect to see
+cat <<\EOF > "${MUSIC_DATA_PATH}/ok"
+EOF
+# sort the file using locale specified by current environment
+sort "${MUSIC_DATA_PATH}/ok" -o "${MUSIC_DATA_PATH}/ok"
+
+cat <<\EOF > "${MUSIC_DATA_PATH}/errok"
+EOF
+
+for method in point-to-point collective ; do
+    write_configuration "${method}"
+    
+    run_test "${NP}" "${music_conf}"
+    exit_code=$?
+
+    if test "${exit_code}" -gt 0 ; then
+	exit "${exit_code}"
+    fi
+done
+
+exit 0
+
+

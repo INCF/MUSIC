@@ -1,0 +1,11 @@
+np=2
+stoptime=1.0
+[from]
+  binary=./eventsource
+  args=10 spikes
+[to]
+  binary=./eventlogger
+  from.out -> to.in [10]
+[two]
+  binary=./eventlogger
+  from.out -> two.in [10]

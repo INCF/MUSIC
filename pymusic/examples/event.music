@@ -1,0 +1,14 @@
+np=2
+stoptime=5.0
+timestep=0.5
+errorAt=-1
+
+buffer=1
+events=50
+
+[from]
+  binary=./eventsource.py
+
+[to]
+  binary=./eventlogger.py
+  from.out -> to.in [10]

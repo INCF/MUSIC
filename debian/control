@@ -1,0 +1,60 @@
+Source: music
+Priority: extra
+Maintainer: Mikael Djurfeldt <mdj@debian.org>
+Build-Depends: debhelper (>= 7), autotools-dev, autoconf, automake, libtool, libopenmpi-dev, libibverbs-dev, freeglut3-dev, texlive-latex-base, texlive-latex-extra, asymptote, chrpath
+Standards-Version: 3.9.0
+Section: libs
+Homepage: http://software.incf.org/software/music/home
+
+Package: libmusic-dev
+Section: libdevel
+Architecture: any
+Depends: libmusic1 (= ${binary:Version}), ${misc:Depends}
+Description: Multi-Simulation Coordinator for MPI -- Development files
+ MUSIC allows spike events and continuous time series to be
+ communicated between parallel applications within the same MPI job in
+ a cluster computer.  Typical usage cases are connecting models
+ developed for different simulators and connecting a parallel
+ simulator to a post-processing tool.
+ .
+ This package contains the header files which are needed to compile
+ and link programs against libmusic.
+
+Package: libmusic1
+Section: libs
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Multi-Simulation Coordinator for MPI -- Runtime library
+ MUSIC allows spike events and continuous time series to be
+ communicated between parallel applications within the same MPI job in
+ a cluster computer.  Typical usage cases are connecting models
+ developed for different simulators and connecting a parallel
+ simulator to a post-processing tool.
+ .
+ This package contains the MUSIC library.
+
+Package: music-bin
+Section: science
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Multi-Simulation Coordinator for MPI -- Utilities
+ MUSIC allows spike events and continuous time series to be
+ communicated between parallel applications within the same MPI job in
+ a cluster computer.  Typical usage cases are connecting models
+ developed for different simulators and connecting a parallel
+ simulator to a post-processing tool.
+ .
+ This package contains the MUSIC launch utility.
+
+Package: music-doc
+Section: doc
+Architecture: all
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Multi-Simulation Coordinator for MPI -- Manual
+ MUSIC allows spike events and continuous time series to be
+ communicated between parallel applications within the same MPI job in
+ a cluster computer.  Typical usage cases are connecting models
+ developed for different simulators and connecting a parallel
+ simulator to a post-processing tool.
+ .
+ This package contains the MUSIC manual.

@@ -1,0 +1,25 @@
+Checklist for a release:
+
+* AC_INIT in configure.ac
+
+* (optional) debian/changelog
+
+* update NEWS
+
+* version number in README
+
+* "Release x.y.z" in all ChangeLog:s except in rudeconfig/
+
+* make debian-source
+
+* cd ../music_x.y.z
+
+* dpkg-buildpackage -rfakeroot
+
+* lintian -i music_x.y.z.-n_ARCH.changes
+
+* dupload music_x.y.z.-n_ARCH.changes
+
+* svn commit
+
+* svn cp http://svn.incf.org/svn/music/trunk http://svn.incf.org/svn/music/tags/release-x.y.z -m 'Tagging release x.y.z of MUSIC'

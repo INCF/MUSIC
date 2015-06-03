@@ -1,0 +1,10 @@
+stoptime=10.0
+[from]
+  np=19
+  binary=eventgenerator
+  args=-b 5 1000
+[view]
+  np=1
+  binary=viewevents
+  args=-s 5 neuronGridLARGE.data
+  from.out -> view.plot [1000]

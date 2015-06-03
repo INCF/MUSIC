@@ -1,0 +1,244 @@
+#!/bin/sh
+
+NP=4
+music_conf="$( echo "${0##*/}" | sed 's/\.test//'  ).music"
+
+abspath="$(cd "${0%/*}" 2>/dev/null; echo "$PWD"/"${0##*/}")"
+path="`dirname $abspath`"
+
+. ${path}/run_test
+
+write_configuration ()
+{
+
+method=$1
+echo "Communication method: ${method}"
+
+# this is music configuration file
+cat <<EOF > "${MUSIC_DATA_PATH}/${music_conf}"
+np=1
+stoptime=1.1
+[A]
+  binary=${TEST_BINARY}/eventdelay
+  args=-d 0.1 -L 1 -b 2
+[B]
+  binary=${TEST_BINARY}/eventdelay
+  args=-d 0.1 -L 2 -b 2
+[from]
+  binary=${TEST_BINARY}/eventsource
+  args=-b 5 10 ${MUSIC_DATA_PATH}/spikes
+[to]
+  binary=${TEST_BINARY}/eventlogger
+  args=-b 5
+
+from.out -> A.in [10, ${method}]
+A.out -> B.in [10, ${method}]
+B.out -> A.aux [10, ${method}]
+B.out -> to.in [10, ${method}]
+EOF
+
+}
+
+# this is input data
+cat <<\EOF > "${MUSIC_DATA_PATH}/spikes0.dat"
+# spikes
+0.0	0
+0.1	1
+0.2	2
+0.3	3
+0.4	4
+0.5	5
+0.6	6
+0.7	7
+0.8	8
+0.9	9
+EOF
+
+# this is the output we should expect to see
+cat <<\EOF > "${MUSIC_DATA_PATH}/ok"
+1:Got(0, 0.1)
+1:Got(1, 0.2)
+1:Sent(0, 0.1 @0.1)
+2:Got(0, 0.2)
+2:Sent(0, 0.2 @0.2)
+1:Got(0, 0.3)
+1:Sent(1, 0.2 @0.2)
+1:Got(2, 0.3)
+2:Got(1, 0.3)
+2:Sent(1, 0.3 @0.3)
+1:Got(1, 0.4)
+1:Sent(0, 0.3 @0.3)
+1:Sent(2, 0.3 @0.3)
+2:Got(0, 0.4)
+1:Got(3, 0.4)
+2:Got(2, 0.4)
+Rank 0: Event (0, 0.2) detected at 0.19
+Rank 0: Event (1, 0.3) detected at 0.29
+2:Sent(0, 0.4 @0.4)
+2:Sent(2, 0.4 @0.4)
+1:Got(0, 0.5)
+1:Got(2, 0.5)
+Rank 0: Event (0, 0.4) detected at 0.39
+Rank 0: Event (2, 0.4) detected at 0.39
+1:Sent(1, 0.4 @0.4)
+2:Got(1, 0.5)
+2:Got(3, 0.5)
+1:Sent(3, 0.4 @0.4)
+1:Got(4, 0.5)
+2:Sent(1, 0.5 @0.5)
+2:Sent(3, 0.5 @0.5)
+Rank 0: Event (1, 0.5) detected at 0.49
+Rank 0: Event (3, 0.5) detected at 0.49
+1:Got(1, 0.6)
+1:Got(3, 0.6)
+1:Sent(0, 0.5 @0.5)
+1:Sent(2, 0.5 @0.5)
+1:Sent(4, 0.5 @0.5)
+2:Got(0, 0.6)
+2:Got(2, 0.6)
+2:Got(4, 0.6)
+1:Got(0, 0.7)
+2:Sent(0, 0.6 @0.59)
+2:Sent(2, 0.6 @0.59)
+2:Sent(4, 0.6 @0.59)
+Rank 0: Event (0, 0.6) detected at 0.54
+Rank 0: Event (2, 0.6) detected at 0.54
+1:Got(2, 0.7)
+1:Got(4, 0.7)
+Rank 0: Event (4, 0.6) detected at 0.54
+1:Got(5, 0.6)
+1:Got(6, 0.7)
+1:Sent(1, 0.6 @0.59)
+1:Sent(3, 0.6 @0.59)
+1:Sent(5, 0.6 @0.59)
+2:Got(1, 0.7)
+2:Got(3, 0.7)
+2:Got(5, 0.7)
+2:Sent(1, 0.7 @0.69)
+2:Sent(3, 0.7 @0.69)
+2:Sent(5, 0.7 @0.69)
+1:Got(1, 0.8)
+1:Got(3, 0.8)
+Rank 0: Event (1, 0.7) detected at 0.64
+Rank 0: Event (3, 0.7) detected at 0.64
+1:Got(5, 0.8)
+1:Sent(0, 0.7 @0.69)
+1:Sent(2, 0.7 @0.69)
+1:Sent(4, 0.7 @0.69)
+1:Sent(6, 0.7 @0.69)
+1:Got(7, 0.8)
+Rank 0: Event (5, 0.7) detected at 0.64
+2:Got(0, 0.8)
+2:Got(2, 0.8)
+2:Got(4, 0.8)
+2:Got(6, 0.8)
+2:Sent(0, 0.8 @0.79)
+2:Sent(2, 0.8 @0.79)
+2:Sent(4, 0.8 @0.79)
+2:Sent(6, 0.8 @0.79)
+Rank 0: Event (0, 0.8) detected at 0.74
+Rank 0: Event (2, 0.8) detected at 0.74
+Rank 0: Event (4, 0.8) detected at 0.74
+Rank 0: Event (6, 0.8) detected at 0.74
+1:Got(0, 0.9)
+1:Got(2, 0.9)
+1:Got(4, 0.9)
+1:Got(6, 0.9)
+1:Sent(1, 0.8 @0.79)
+1:Sent(3, 0.8 @0.79)
+1:Sent(5, 0.8 @0.79)
+1:Sent(7, 0.8 @0.79)
+2:Got(1, 0.9)
+2:Got(3, 0.9)
+2:Got(5, 0.9)
+2:Got(7, 0.9)
+1:Got(8, 0.9)
+2:Sent(1, 0.9 @0.89)
+2:Sent(3, 0.9 @0.89)
+2:Sent(5, 0.9 @0.89)
+2:Sent(7, 0.9 @0.89)
+1:Got(1, 1)
+1:Got(3, 1)
+1:Got(5, 1)
+1:Got(7, 1)
+1:Sent(0, 0.9 @0.89)
+Rank 0: Event (1, 0.9) detected at 0.84
+Rank 0: Event (3, 0.9) detected at 0.84
+1:Sent(2, 0.9 @0.89)
+1:Sent(4, 0.9 @0.89)
+1:Sent(6, 0.9 @0.89)
+1:Sent(8, 0.9 @0.9)
+Rank 0: Event (5, 0.9) detected at 0.84
+1:Got(9, 1)
+Rank 0: Event (7, 0.9) detected at 0.84
+2:Got(0, 1)
+2:Got(2, 1)
+2:Got(4, 1)
+2:Got(6, 1)
+2:Got(8, 1)
+2:Sent(0, 1 @0.99)
+2:Sent(2, 1 @0.99)
+2:Sent(4, 1 @0.99)
+2:Sent(6, 1 @0.99)
+1:Got(0, 1.1)
+1:Got(2, 1.1)
+1:Got(4, 1.1)
+2:Sent(8, 1 @1)
+Rank 0: Event (0, 1) detected at 0.94
+1:Got(6, 1.1)
+1:Sent(1, 1 @0.99)
+Rank 0: Event (2, 1) detected at 0.94
+Rank 0: Event (4, 1) detected at 0.94
+Rank 0: Event (6, 1) detected at 0.94
+1:Sent(3, 1 @0.99)
+1:Sent(5, 1 @0.99)
+1:Sent(7, 1 @0.99)
+1:Got(8, 1.1)
+1:Sent(9, 1 @1)
+2:Got(1, 1.1)
+Rank 0: Event (8, 1) detected at 0.99
+2:Got(3, 1.1)
+2:Got(5, 1.1)
+2:Got(7, 1.1)
+2:Got(9, 1.1)
+2:Sent(1, 1.1 @1.09)
+2:Sent(3, 1.1 @1.09)
+2:Sent(5, 1.1 @1.09)
+2:Sent(7, 1.1 @1.09)
+1:Got(1, 1.2)
+1:Got(3, 1.2)
+1:Got(5, 1.2)
+1:Got(7, 1.2)
+1:Sent(0, 1.1 @1.09)
+1:Sent(2, 1.1 @1.09)
+1:Sent(4, 1.1 @1.09)
+1:Sent(6, 1.1 @1.09)
+Rank 0: Event (1, 1.1) detected at 1.04
+Rank 0: Event (3, 1.1) detected at 1.04
+Rank 0: Event (5, 1.1) detected at 1.04
+Rank 0: Event (7, 1.1) detected at 1.04
+2:Got(0, 1.2)
+2:Got(2, 1.2)
+2:Got(4, 1.2)
+2:Got(6, 1.2)
+EOF
+# sort the file using locale specified by current environment
+sort "${MUSIC_DATA_PATH}/ok" -o "${MUSIC_DATA_PATH}/ok"
+
+cat <<\EOF > "${MUSIC_DATA_PATH}/errok"
+EOF
+
+for method in point-to-point collective ; do
+    write_configuration "${method}"
+    
+    run_test "${NP}" "${music_conf}"
+    exit_code=$?
+
+    if test "${exit_code}" -gt 0 ; then
+	exit "${exit_code}"
+    fi
+done
+
+exit 0
+
+

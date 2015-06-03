@@ -1,0 +1,38 @@
+2010-07-28  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Release 1.0.7
+
+2009-10-25  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Release 1.0.6
+
+2009-10-24  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Release 1.0.5
+
+	* Makefile.am: Use hard instead of soft links for manpages (in
+	order to satisfy Debian dpkg-source); Add figures to CLEANFILES.
+
+2009-04-01  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* Release 1.0.4
+
+2009-03-13  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Release 1.0.3
+
+2009-03-12  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Release 1.0.2
+
+2009-03-08  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Release 1.0.1
+
+2009-03-07  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* eventcounter.1, eventgenerator.1, eventlogger.1, eventselect.1,
+	eventselect.1, eventsink.1, eventsource.1, viewevents.1: New
+	files.
+
+	* Makefile.am: Added rules for creation of music manual.

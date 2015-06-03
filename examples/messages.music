@@ -1,0 +1,9 @@
+np=2
+stoptime=1.0
+[from]
+  binary=messagesource
+  args=-b 1 messages
+[to]
+  binary=eventlogger
+  args=-b 2
+  from.out -> to.message [10]

@@ -1,0 +1,15 @@
+np=1
+stoptime=1.0
+[from]
+  np=2
+  binary=./eventsource
+  args=-b 2 10 spikes
+[mid]
+  binary=./eventdelay
+  args=-d 0.3
+[to]
+  binary=./eventlogger
+  args=-b 2
+
+from.out -> mid.in [10, collective]
+mid.out -> to.in [10]

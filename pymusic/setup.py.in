@@ -1,0 +1,13 @@
+from distutils.core import setup
+
+setup(
+    name='@PACKAGE_NAME@',
+    version='@PACKAGE_VERSION@',
+    description='pyMUSIC provides Python bindings for MUSIC',
+    author='Alexander Peyser',
+    author_email='a.peyser@fz-juelich.de',
+    url='unknown',
+    license='GPLv2+',
+    packages=['music'],
+    package_dir={'music': '@top_srcdir@/pymusic/music'}
+)

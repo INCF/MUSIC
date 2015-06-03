@@ -1,0 +1,78 @@
+When porting music to a new machine, the following things needs to be
+taken into consideration:
+
+
+1. Regeneration of the configure script
+
+The script ./autogen.sh is used to generate/regenerate the configure
+script. For this to work, the GNU autotools (autoconf, automake and
+libtool) need to be installed.
+
+
+2. Compilation and linking flags
+
+configure.ac contains mechanisms which try to identify which MPI
+implementation/environment is in use and, based on this, decide
+automagically which compiler, compilation flags and linking flags to
+use. To circumvent, pass variable definitions ro configure, e.g.:
+
+  ./configure MPI_CXXFLAGS="-g -O3 -Wall -pedantic"
+
+The variables are:
+
+MPI_CXX       The compiler to use for MPI code
+MPI_CXXFLAGS  C++ compilation flags
+MPI_CFLAGS    C compilation flags
+MPI_LDFLAGS   Linking flags
+
+
+3. MPI implementation dependent code
+
+MUSIC depends on two MPI implementation dependent functions: getRank,
+which predicts the rank a process is going to be assigned when
+executing MPI_Init, and getConfig, which determines the first command
+line argument to the music launch utility "music" (also before having
+executed MPI_Init.
+
+
+4. Alternative launch method
+
+On some computers, the standard MUSIC launch method (using the music
+utility) does not work, either because it is difficult to supply an
+implementation of the functions mention under point 3 above, or
+because the compute node OS does not support the system call execvp
+used by the music launch utility to replace its image with one of the
+binaries in the multi-simulation.
+
+In such cases, it is possible to launch the multi-simulation as an
+MPMD/MIMD program. Example: If we have a MUSIC configuration file
+myconfig.music, defining two applications named A and B, the standard
+way to launch the multi-simulation is:
+
+  mpirun -np N music myconfig.music
+
+where N is the number of processes needed (as specified in
+myconfig.music) by the multi-simulation. Using the alternative method,
+one first issues the command line:
+
+  music -e myconfig.music
+
+This will write one shell script per application into the current
+working directory, in this case A.sh and B.sh. These scripts can then
+by used to launch the multi-simulation. Under OpenMPI, the command
+line would be:
+
+  mpirun -np NA A.sh : -np NB B.sh
+
+where NA and NB are the number of processes needed (and specified in
+myconfig.music) by the applications A and B respectively.
+
+On a machine where the architecture of the login node differs from the
+architecture of the compute nodes, it is sometimes convenient to be
+able to compile the music launch utility without MPI support on the
+login node in order to be able to use the -e option. This is
+convenient, for example if the login node is running a script which
+prepares jobs to be executed on the compute nodes.  If you need to do
+this, MUSIC can be configured without MPI:
+
+  ./configure --disable-mpi

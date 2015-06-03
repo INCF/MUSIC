@@ -1,0 +1,1020 @@
+2013-07-09  Mikael Djurfeldt  <mdj@wand.pdc.kth.se>
+
+	* runtime.cc (Runtime::Runtime): Only create scheduling agents if
+	launched by MUSIC.
+
+2012-09-26  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Makefile.am, connector.cc, event_router.cc, multibuffer.cc,
+	music/connectivity.hh, music/connector.hh, music/multibuffer.hh,
+	music/runtime.hh, music/scheduler.hh, music/subconnector.hh,
+	port.cc, runtime.cc, scheduler.cc, subconnector.cc: Implementation
+	of multiconnectors.
+
+2012-09-15  Mikael Djurfeldt  <djurfeldt@hambach.cluster>
+
+	* connector.cc (lessOutputSubconnector): Make less condition
+	consistent.
+
+2012-09-14  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* connector.cc (Connector::initialize): Sort input and output
+	subconnectors according to different criteria in order to obtain
+	the communication schedule described in Mikael Djurfeldt et
+	al. (2005) "Massively parallel simulation of brain-scale neuronal
+	network models."
+
+	* music/connector.hh (Connector::isInput)
+	(InputConnector::isInput): New member function.
+
+	* music/subconnector.hh (Subconnector::localRank): New member
+	function.
+
+2012-09-08  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* music/clock.hh, clock.cc (Clock::reset): New member function.
+
+2012-09-04  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* scheduler.cc (Scheduler::nextCommunication): Make sure that all
+	events from the first point in time are scheduled.
+
+	* music/scheduler.hh (SConnection): Renamed from Connection in
+	order not to be confused with connection.hh::Connection.
+
+	* connector.cc (Connector::isProxy): New member function.
+
+	* music/scheduler.hh, scheduler.cc (Scheduler::addConnection): New
+	argument multiComm.
+	(Scheduler::Connection): New member multiComm.
+
+	* music/temporal.hh, temporal.cc (ConnectionDescriptor): New
+	member multiComm.
+	(TemporalNegotiator::collectNegotiationData): Set multiComm.
+	(TemporalNegotiator::fillScheduler): Pass multiComm to
+	Scheduler::addConnection.
+
+2012-09-03  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* scheduler.cc (Scheduler::initialize): Setup ProxyConnector
+	representing a distant connection.
+
+	* music/scheduler.hh (Scheduler::Node): New member functions
+	leader and nProcs.
+
+	* music/scheduler.hh, scheduler.cc (Scheduler::addNode,
+	Scheduler::Node::Node): New arguments leader and nProcs.
+
+	* music/setup.hh, setup.cc (Setup::nProcs): New member function.
+
+	* music/temporal.hh (TemporalNegotiationData): Added new members
+	leader and nProcs.
+
+	* temporal.cc (TemporalNegotiator::collectNegotiationData): Set
+	leader and nProcs.
+	(TemporalNegotiator::fillScheduler): Pass leader and nProcs to
+	Scheduler::addNode.
+
+	* music/connector.hh (ProxyConnector): New class. These objects
+	will represent connections which the local application doesn't
+	participate in but still need to be aware of in order to schedule
+	common collective communication events.
+
+2012-09-02  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* music/event_router.hh, event_router.cc (DirectRouter): New
+	class.
+
+	* music/setup.hh, setup.cc (Setup::leader): Added selector.
+
+	* music/configuration.hh, configuration.cc
+	(Configuration::leader): Added selector.
+
+2012-08-27  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* music/spatial.hh, spatial.cc: Simplification made possible by
+	previous change.
+
+	* spatial.cc (SpatialNegotiator::send)
+	(SpatialNegotiator::receive): First send size of receive buffer in
+	order to avoid successive resizing. This is kinder to the memory
+	allocator.
+
+2012-08-25  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* music/memory.hh, memory.cc: New files.
+
+	* Makefile.am, runtime.cc: Report memory usage for world rank #0
+	using mallinfo.
+
+	* music/runtime.hh, runtime.cc, music/connector.hh: Initial
+	support for MultiConnector:s. MultiConnector is an object
+	governing simultaneous communication through a set of
+	Connector:s.
+
+	* runtime.cc, music/connector.hh, music/subconnector.hh: Added
+	some debugging/analysis code.
+
+2012-08-23  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* music/scheduler.hh (Scheduler::Node::outputConnections),
+	scheduler.cc: Pass outputConnections as a pointer rather than as a
+	vector.
+
+	* event_routing_map.cc (OutputRoutingMap::fillRouter): Bugfix:
+	return -> continue.
+
+	* interval.cc: New file.
+
+	* music/interval.hh: Make Interval:s printable.
+
+	* music/music-config.hh-in: (and many other files) Some #include
+	reorganization: Let those who need it include music-config.hh as
+	the common first header file.
+
+	* music/ordered_ilist.hh (OrderedIList::iterator): Satisfy BG/P
+	compiler which complained that an OrderedIList member creates a
+	circular reference with respect to type.
+
+2012-08-22  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* music/port.hh, port.cc (Port::checkIndexMap): New member.
+
+	* port.cc (OutputPort::mapImpl, InputPort::mapImpl: Use
+	checkIndexMap.
+
+	* event_routing_map.cc (OutputRoutingMap::fillRouter): Ask
+	EventRouter if it needs as few points as possible rather than as
+	few intervals as possible, and close gaps only in the latter case.
+	This is important when using the new table based routing together
+	with simulators with round-robin allocation, such as NEST.
+
+	* music/event_router.hh: Let table based routers say that they
+	need few points rather than intervals.
+
+2012-08-21  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* music/interval_table.hh, music/ordered_ilist.hh: Introduced an
+	interval table optimization variable MUSIC_ITABLE_FLAVOR with the
+	options MUSIC_VANILLA, MUSIC_TRIMMED, MUSIC_COMPACT and
+	MUSIC_SCATTERED explained at the top of music/interval_table.hh.
+
+	* music/event_router.hh: #define MUSIC_ITABLE_FLAVOR to
+	MUSIC_SCATTERED.
+
+	* music/interval_table.hh (IntervalTable::search): Check index
+	against tableSize_ instead of container size.
+
+	* music/subconnector.hh, music/event_routing_map.hh: Don't
+	#include <music/event_router.hh> which contains heavy template
+	stuff. Instead forward declare EventRouter.  Since both
+	subconnector.hh and event_routing_map.hh are included by other
+	header files, this speeds up compilation and decreases the
+	dependencies in the code tree.
+
+	* connector.cc, event_routing_map.cc, port.cc, subconnector.cc:
+	#include "music/event_router.hh".
+
+	* runtime.cc (Runtime::tick): Only access first element of
+	schedule if non-empty.
+	(Runtime::finalize): Only do schedule-related processing if
+	schedule initially non-empty.
+
+	* Makefile.am: Added music/interval_table.hh,
+	music/ordered_ilist.hh.
+
+	* music/interval_table.hh, music/ordered_ilist.hh: New files.
+
+	* music/event_router.hh: Use new IntervalTable template.
+
+2012-08-19  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* music/event_routing_map.hh, event_routing_map.cc
+	(EventRoutingMap::build): Removed. Replaced by fillRouter which is
+	now public.
+
+	music/port.hh (EventOutputPort::setupCleanup), port.cc
+	(EventOutputPort::buildTable), connector.cc
+	(EventInputCollectiveConnector::spatialNegotiation): Use
+	EventRoutingMap::fillRouter and call EventRouter::buildTable
+	directly. Delete the event routing map before calling buildTable
+	so that the data structures used by buildTable don't co-exist in
+	memory with the event routing map.
+
+2012-08-18  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* music/interval_tree.hh, music/collector.hh, collector.cc,
+	music/distributor.hh, distributor.cc, event_routing_map.cc:
+	Separated the template DataType parameter of IntervalTree into
+	IntervalType and DataType.
+
+	* Makefile.am, music/event_routing_map.hh, event_routing_map.cc,
+	music/connector.hh, music/port.hh: Renamed
+	event_routingmap.{cc,hh} -> event_routing_map.{cc,hh}.
+
+	* music/interval_tree.hh: Optimized memory usage.
+
+2012-08-17  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* music/index_map.hh, music/interval.hh: Removed clone().
+
+	* connector.cc, music/event_router.hh, event_router.cc,
+	event_routingmap.cc, music/event.hh: Removal of indirection and
+	virtual pointers for IndexProcessors.
+
+	* music/event_router, event_router.cc: Removed unused member Data ().
+
+	* interval.hh, music/event_router.hh, event_router.cc,
+	event_routingmap.cc: Simplifications enabled by previous changes.
+
+	* music/event_router.hh, event_router.cc: Removed indirection
+	(pointer) to EventRoutingData from the IntervalTree through the
+	use of templates.
+
+	* port.cc: Let type dispatch happen here instead of in the
+	interval tree.
+
+	* event_routingmap.cc: Formatting.
+
+	* music/collector.hh, collector.cc, music/distributor.hh,
+	distributor.cc: Reverted to old use of interval_tree.
+
+	* music/interval_tree.hh: Reverted to version in trunk, but with
+	an added assignment operator.
+
+2012-08-17  Mikael Djurfeldt  <mdj@djurfeldt.com>
+
+	* application_map.cc (ApplicationMap::read): Only create file
+	"leaders" if MUSIC_DEBUGGING is defined.
+
+	* configuration.cc (Configuration::getEnv): Handle the case where
+	the MUSIC configuration variable is not present (launched without
+	MUSIC) properly.
+
+2012-08-13  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* scheduler.cc (Scheduler::Node::advance): Define time variable
+	only if debugging. Formatting changes.
+
+	* music/data_map.hh (~DataMap::DataMap), music/event_router.hh
+	(~IndexProcessor::IndexProcessor), music/index_map.hh
+	(~IndexMap::IndexMap)
+	(~IndexMap::IteratorImplementation::IteratorImplementation),
+	music/interval.hh (~Interval::Interval), music/spatial.hh
+	(~NegotiationIterator::Implementation::Implementation: Destructor
+	made virtual.
+
+	* music/collector.hh (Collector::Interval::clone),
+	music/distributor.hh (Distributor::Interval::clone): Added for
+	consistency.
+
+	* event_router.cc, music/event_router.hh, music/collector.hh,
+	music/distributor.hh, music/interval.hh, music/index_map.hh,
+	music/interval_tree.hh: Renamed Clone --> clone throughout.
+
+	* event_router.cc, music/event_router.hh: Renamed "spicialized"
+	--> "specialized" throughout.
+
+	* application_map.cc (ApplicationMap::assignLeaders): Only create
+	ranks file if MUSIC_DEBUG is defined.
+
+2012-08-07  Mikael Djurfeldt  <mdj@ubuntu-11.10>
+
+	* runtime.cc (runtime.cc): Disable deletion of ports.
+
+2012-08-03  Mikael Djurfeldt  <mdj@ubuntu-11.10>
+
+	* music/version.hh.in: New file.
+
+2012-03-20  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* setup.cc, music/setup.hh (Setup::maybeProcessMusicArgv): New
+	method.  Get argc and argv from MUSIC_ARGV, if available.
+
+2012-03-18  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* runtime.cc (Runtime::Runtime): Call maybepostponedSetup ().
+
+	* configuration.cc (MUSIC): Added comment with syntax of
+	_MUSIC_CONFIG_.
+
+2012-03-15  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* music/setup.hh, setup.cc (maybePostponedSetup, fullInit): New
+	functions.
+
+	* music/configuration.hh, configuration.cc
+	(Configuration::postponeSetup): New function.
+
+	* port.cc (Port::Port): Call maybepostponedSetup ().
+
+2011-11-24  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Makefile.am (libmusic_la_LDFLAGS): Added libmpidep.la in order
+	to support predictRank.
+
+	* music/predict_rank.hh, predict_rank.cc: New files.
+
+2011-01-31  Mikael Djurfeldt  <mdj@djurfeldt.com>
+
+	* Makefile.am (libmusic_c_la_DEPENDENCIES): Added in order to
+	support parallel builds.
+
+2011-01-13  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* subconnector.cc (ContInputSubconnector::receive): Update receive
+	buffer pointer for subsequent receives when large packages have
+	been split.
+
+	* BIFO.cc (BIFO::insertBlock): Fixes to logic when buffer has
+	wrapped around.
+
+2010-07-28  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Release 1.0.7
+
+	* synchronizer.cc (Synchronizer::nextCommunication): Revert
+	buggy handling of tight loops in change of 2009-10-23.
+
+	* subconnector.cc
+	(MessageOutputSubconnector::MessageOutputSubconnector): Bugfix:
+	Initialize synchronizer pointer properly.
+
+2009-10-25  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Release 1.0.6
+
+	* ioutils.c, parse.cc: Added #include <cstdio>.
+
+2009-10-24  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Release 1.0.5
+
+2009-10-23  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* synchronizer.cc (Synchronizer::nextCommunication): Handle
+	tight loops (maxBuffered == 0) of spike events.
+
+	* temporal.cc (TemporalNegotiator::combineParameters): Correctly
+	take MAX_BUFFERED_NO_VALUE arguments into consideration.
+
+	* music/subconnector.hh, connector.cc, runtime.cc,
+	subconnector.cc: Use COMM_WORLD ranks for the pair-wise
+	communication schedule in Runtime::buildSchedule.
+
+	* music/port.hh, port.cc (EventOutputPort::EventOutputPort,
+	EventInputPort::EventInputPort): Moved from header file to
+	port.cc.
+
+	* temporal.cc (TemporalNegotiator::distributeNegotiationData): Use
+	type ClockState for accLatency.
+
+2009-10-20  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* connector.hh, event_router.hh, interval.hh, port.hh,
+	connector.cc, event_router.cc, port.cc: New version of event
+	routing interval joining code which handles interval sequences for
+	different targets separately.
+
+2009-10-19  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* event_router.cc (EventRouter::buildTable): Added debugging
+	printout of routing table size (when #define MUSIC_DEBUG is
+	uncommented).
+
+	* music/interval_tree.hh (IntervalTree<PointType)
+	(DataType>::size): New method (for debugging purposes).
+
+2009-10-12  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* setup.cc (Setup::Setup): Report an error if MPI::Init has been
+	called.
+
+2009-10-05  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* music/connector.hh, music/event_router.hh, music/port.hh,
+	connector.cc, event_router.cc, port.cc: Join event routing
+	intervals over holes in the routing map.  This increases
+	efficiency of event routing but has the consequence that
+	non-mapped indices may now be erroneously routed.
+
+2009-10-04  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* music-c.h: (MUSIC_EventOutputPort_mapGlobalIndex)
+	(MUSIC_EventOutputPort_mapLocalIndex): Inserted missing
+	declarations.  (Thanks to Michael Hines.)
+
+	* Makefile.am (musicinclude_HEADERS): Removed duplicate
+	message.hh.
+
+2009-04-01  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* Release 1.0.4
+
+2009-03-15  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* music/spatial.hh, spatial.cc (NegotiationIterator): Join
+	intervals.  (In some cases this allows thousands of routing
+	intervals to be replaced by a single one.)
+
+	* runtime.cc (Runtime::finalize): Only include Barrier call for
+	OpenMPI versions <= 1.2.
+
+	* music/temporal.hh,
+	temporal.cc (TemporalNegotiator::computeDefaultMaxBuffered):
+	Select a proper default buffering for message ports.
+
+	* spatial.cc (SpatialInputNegotiator::negotiateWidth): Set
+	maxLocalWidth_ when given wildcard index.
+
+2009-03-14  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* music/connector.hh, music/subconnector.hh, connector.cc,
+	subconnector.cc: Moved buffer from subconnector to connector for
+	MessageOutputPorts.
+
+	* music/subconnector.hh (BufferingOutputSubconnector): New class.
+
+	* music/FIBO.hh, FIBO.cc (FIBO::clear, FIBO::nextBlockNoClear):
+	New member functions.
+
+	* port.cc (MessageInputPort::mapImpl): Give correct routing
+	information in the indexMap.
+
+	* music/port.hh, port.cc (MessageInputPort::map): Cover all
+	argument combinations.
+
+	* music/index_map.hh, index_map.cc (Index::WILDCARD_MAX): New
+	member.
+
+	* spatial.cc: Accept wild card indices on receiver side.
+
+	* subconnector.cc (EventInputSubconnectorGlobal::receive,
+	EventInputSubconnectorLocal::receive,
+	MessageInputSubconnector::receive): Define `data' as vector of
+	char, not vector of char*.
+
+2009-03-13  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Release 1.0.3
+
+	* setup.cc: #include "config.h"
+
+2009-03-12  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* music/temporal.hh, temporal.cc
+	(class TemporalNegotiator,
+	TemporalNegotiator::createNegotiationCommunicator,
+	TemporalNegotiator::~TemporalNegotiator): Keep handles to MPI
+	groups throughout communication.
+
+	* runtime.cc (Runtime::finalize): Call Connector::freeIntercomm
+	(); Include a barrier call to make freeing work under OpenMPI.
+
+	* music/connector.hh, connector.cc (Connector::freeIntercomm): New
+	member function.
+
+2009-03-12  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Release 1.0.2
+
+	* version.cc: Updated to version 1.0.2.
+
+2009-03-11  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* setup.cc: Conditionally delete temporalNegotiator.
+
+	* music/port.hh
+	(OutputRedistributionPort::OutputRedistributionPort,
+	InputRedistributionPort::InputRedistributionPort): New
+	constructors: Initialize spatialNegotiator to NULL pointer.
+
+	* port.cc (OutputRedistributionPort::setupCleanup,
+	InputRedistributionPort::setupCleanup): Conditionally delete
+	spatialNegotiator.  (It has not been allocated if the port has not
+	been mapped.)
+
+	* music/BIFO.hh, music/clock.hh, music/connector.hh,
+	music/subconnector.hh, music/synchronizer.hh, music/temporal.hh,
+	BIFO.cc, clock.cc, connector.cc, port.cc, runtime.cc,
+	subconnector.cc, synchronizer.cc, temporal.cc: Major revision of
+	timing logic.  Cont ports can now be connected in loops.
+
+2009-03-09  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* synchronizer.cc (Synchronizer::setMaxDelay (ClockState)): Moved
+	decrementing of localTime to Runtime::initialize.
+	(Synchronizer::setMaxDelay (ClockState, Clock&)): Use
+	Clock::setClockTicks to set startTime. (setMaxDelay may be called
+	multiple times.)
+
+	* runtime.cc (Runtime::initialize): Decrement localTime one tick
+	here.
+
+	* music/temporal.hh, temporal.cc
+	(TemporalNegotiator::distributeParameters): New function.
+
+	* collector.cc: Collector shouldn't make assumptions and compute a
+	"better" maxBlockSize-value for the buffers.  Instead use
+	allowedBuffered as given when configured.
+
+	* connector.cc: Configure compute the actual needed buffer size
+	here instead.
+
+	* music/clock.hh, clock.cc (Clock::setClockTicks): New function.
+
+	* BIFO.cc (BFIO::trimBlock): More informative overflow message.
+
+2009-03-08  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* synchronizer.cc, port.cc, music/temporal.hh: Decrement
+	maxBuffered at the proper place.  (This fixes a bug where the loop
+	algorithm worked on different parameters than the timing schedule
+	algorithm.)
+
+	* music/debug.hh (MUSIC_LOGBR): New debug macro.
+
+	* synchronizer.cc: Inserted some debugging statements.
+
+	* port.cc (OutputRedistributionPort::setupCleanup,
+	InputRedistributionPort::setupCleanup):  Delete spatialNegotiator
+	at end of setup phase.
+
+	* music/connector.hh, connector.cc, runtime.cc: Resolve a memory
+	allocation problem so that we leak less memory.
+
+	* port.cc (ContInputPort::mapImpl): Don't call assertInput ()
+	here.
+
+	* music/error.hh, music/port.hh, music/runtime.hh, music/setup.hh,
+	error.cc, port.cc, runtime.cc, setup.cc (Setup::Setup,
+	Runtime::Runtime, Port::map): Added error messages when trying to
+	call repeatedly.
+
+2009-03-08  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Release 1.0.1
+
+	* music/connector.hh, music/port.hh, music/spatial.hh,
+	music/subconnector.hh, music/temporal.hh, configuration.cc,
+	connector.cc, port.cc, spatial.cc, subconnector.cc, temporal.cc:
+	Pass MPI::Datatype to ContSubconnectors; Some code cleanups.
+
+2009-03-06  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* music/synchronizer.hh, synchronizer.cc, connector.cc: Removed
+	some old cruft in timing logic.
+
+	* sampler.cc: #include <cstring>
+
+	* setup.cc (Setup::publishMessageInput,
+	Setup::publishMessageOutput): Added.
+
+	* Makefile.am: Link shared library against MPI.
+
+	* music/port.hh, port.cc: Bugfixed error reporting.
+
+	* Makefile.am: Don't accept unresolved symbols in the shared library.
+
+	* music/version.hh, version.cc: New files.
+
+	* Makefile.am: Added ditto.
+
+	* Makefile.am: Set shared library version 1.0.0. (Note that this
+	version number follows different rules than the MUSIC version.)
+
+	* port.cc (Port::assertOutput, Port::assertInput, Port::hasWidth,
+	Port::width): Supply port name in error messages.
+
+	* connectivity.cc (Connectivity::add): Pass port name to
+	ConnectivityInfo constructor.
+
+	* music/connectivity.hh (ConnectivityInfo): Added portName (to be
+	used for more comprehensible error messages).
+
+2009-03-05  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* setup.hh (class Setup): Hide internal API as private.
+
+	* music/connector.hh, music/runtime.hh, music/setup.hh,
+	music/spatial.hh, music/subconnector.hh, music/temporal.hh,
+	connector.cc, port.cc, runtime.cc, setup.cc, spatial.cc,
+	subconnector.cc, synchronizer.cc, temporal.cc: Begin to reorganize
+	connectors so that functionality for setup and not needed during
+	runtime is moved to the new class Connection.
+
+	* music/connection.hh, connection.cc: New files.
+
+	* Makefile.am: Updated.
+
+	* music/temporal.hh, temporal.cc (ConnectionEdge): Renamed from
+	"Connection".
+
+2009-03-03  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Release 1.0
+
+2009-02-27  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* ChangeLog, Makefile.am, music/FIBO.hh, music/array_data.hh,
+	music/clock.hh, music/connector.hh, music/data_map.hh,
+	music/event.hh, music/interval.hh, music/port.hh,
+	music/runtime.hh, music/spatial.hh, music/subconnector.hh,
+	music/synchronizer.hh, music/temporal.hh, FIBO.cc, array_data.cc,
+	clock.cc, connector.cc, port.cc, runtime.cc, spatial.cc,
+	subconnector.cc, synchronizer.cc, temporal.cc: Continous data port
+	framework.
+
+	* music/BIFO.hh, music/collector.hh, music/distributor.hh,
+	music/sampler.hh, BIFO.cc, collector.cc, distributor.cc,
+	sampler.cc: New files.
+
+2009-02-16  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Makefile.am (libmusic_la_SOURCES): Added distributor.cc,
+	music/distributor.cc, collector.cc, music/collector.hh.
+
+	* music/spatial.hh, spatial.cc: Added destructor which destroys
+	indices.
+
+	* setup.cc, runtime.cc: Pass connectors even if not launched using
+	the music utility.
+
+2009-02-11  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* music-c.h, music-c-c.c, music-c.cc (MUSIC_setupCommunicator):
+	Declare properly and don't use MPI_Intracomm.
+
+2009-02-09  Mikael Djurfeldt  <mdj@lampetra.csc.kth.se>
+
+	* music/subconnector.hh,
+	subconnector.cc (InputSubconnector::flushed): Bugfix: Initialize.
+
+	* error.cc, music/error.hh (error0): Report errors only from MPI
+	process rank 0.
+
+	* music/temporal.hh, temporal.cc: Implemented distribution of
+	allowed buffering using a loop detection algorithm.
+
+2009-02-08  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* FIBO.cc, connector.cc, music/FIBO.hh, music/connector.hh,
+	music/event.hh, music/runtime.hh, music/subconnector.hh,
+	music/synchronizer.hh, runtime.cc, subconnector.cc,
+	synchronizer.cc: Flush buffers at MUSIC::finalize.
+
+2009-02-06  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* music/connector.hh, music/spatial.hh, music/synchronizer.hh,
+	music/temporal.hh, port.cc, spatial.cc, synchronizer.cc,
+	temporal.cc: Compute default maxBuffered value based on
+	temporal.hh:DEFAULT_PACKET_SIZE.
+
+2009-02-05  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* music/setup.hh, music/synchronizer.hh, music/temporal.hh,
+	runtime.cc, setup.cc, temporal.cc: Bugfix: Convert accLatency to
+	ClockStateT.
+
+	* clock.cc, connectivity.cc, connector.cc, music/clock.hh,
+	music/connectivity.hh, music/connector.hh, music/debug.hh,
+	music/runtime.hh, music/setup.hh, music/synchronizer.hh,
+	music/temporal.hh, runtime.cc, setup.cc, spatial.cc,
+	synchronizer.cc, temporal.cc: Timing for applications with
+	different inter-tick-intervals may now work.
+
+2009-01-27  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* clock.cc, connector.cc, music/clock.hh, music/connector.hh,
+	music/runtime.hh, music/setup.hh, music/synchronizer.hh,
+	music/temporal.hh, port.cc, runtime.cc, setup.cc, subconnector.cc,
+	synchronizer.cc, temporal.cc: First steps of the timing algorithm.
+
+2008-12-02  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Switch to CamelCase.
+
+2008-11-05  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* music/interval_tree.hh: Bugfix: Compute the size of the binary
+	tree correctly.
+
+2008-11-04  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* music/connectivity.hh, connectivity.cc: Modified
+	connectivity_map to use indices rather than pointers (which cause
+	problems when the vector of connections is resized).
+
+	* music/debug.hh: New file.
+
+2008-11-03  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* FIBO.cc (FIBO::FIBO, FIBO::grow): Bugfix: Use resize instead of
+	reserve on buffer vector, otherwise old elements are not
+	guaranteed to be copied.
+
+	* music/event.hh (event::event): New constructor.
+	(event::operator<): New operator.
+
+	* port.cc (port::has_width, port::width): Added some error
+	checking.
+
+	* music/spatial.hh,
+	spatial.cc (spatial_negotiator::wrap_intervals): Compute local
+	offset differently depending on index::type argument.
+
+	* music/index_map.hh (index_interval::set_local): New member
+	function.
+
+	* linear_index.cc, permutation_index.cc: Correctly compute local
+	index offset.
+
+	* configuration (configuration::configuration,
+	configuration::~configuration): Create and delete application_map
+	and connectivity also when not launched under music.
+
+	* event_router.cc (event_router::insert_event): Always subtract
+	local offset (not subtracting requires that all offsets are zero
+	which only happens either if both sides use global indices or if
+	both sides use local indices which even out).
+
+2008-10-31  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* music/spatial.hh, spatial.cc (negotiate_width): Error check
+	width.
+
+	* music/event_router.hh (inserter_global): Offsets are negative
+	due to the spatial negotiation algorithm.
+
+	* music/spatial.hh, spatial.cc (intersect_to_buffers): New
+	implementation which allows index_maps for different MPI processes
+	to overlap.  The new algorithm is O (NP^2) where N is the number of
+	indices and P the number of processes.  (The old one was O (N).)
+
+	* music/permutation_index.hh, permutation_index.cc: Implemented.
+
+	* music/index_map.hh (index_map): Use value semantics (so that we
+	can copy the position by copying the iterator).
+
+	* music/linear_index.hh (linear_index): Ditto.
+
+2008-10-30  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* spatial.cc: Bugfix: Changed MPI::INTEGER (Fortran) -> MPI::INT
+
+	* spatial.hh (TRANSMITTED_INTERVALS_MAX): New constant.
+
+	* spatial.cc (spatial_negotiator::send,
+	spatial_negotiator::receive): Allow transmission of an arbitrary
+	number of spatial negotiation intervals.
+
+	* subconnector.hh (SPIKE_BUFFER_MAX): New constant.
+
+	* subconnector.cc (event_output_subconnector::send,
+	event_input_subconnector_global, event_input_subconnector_local):
+	Allow transmission of an arbitrary number of spikes.
+
+	* spatial.cc (spatial_output_negotiator::negotiate): Bugfix: Use
+	remote_n_proc instead of n_processes when sending to remote side.
+
+	* music/application_map.hh, application_map.cc, index_map.cc,
+	music/interval.hh, music/interval_tree.hh, music/ioutils.hh,
+	ioutils.cc, music/spatial.hh, spatial.cc, music/subconnector.hh,
+	subconnector.cc, music/temporal.hh, temporal.cc: New files.
+
+	* Changes throughout to implement propagation of configuration
+	information and routing of spikes.
+
+2008-10-16  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* music/FIBO.hh (FIBO::buffer): Bugfix: Changed to vector of char
+	instead of char*.
+
+2008-10-14  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* music/port.hh, port.cc (port::is_connected): Make sure this
+	method works also in the runtime phase.
+
+2008-10-13  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Makefile.am, music/FIBO.hh, FIBO.cc, clock.cc,
+	music/configuration.hh, configuration.cc, music/connector.hh,
+	connector.cc, music/event_router.hh, event_router.cc,
+	music/port.hh, port.cc, music/runtime.hh, runtime.cc,
+	music/setup.hh, setup.cc, synchronizer.cc: A first, cheating,
+	approximation of the implementation of spike communication.  Will
+	be followed by cleanups and real implementation.  The present
+	implementation only allows two applications with an output and
+	input port respectively.  The ports have a constant width given in
+	ports.hh and the sender and receiver application must have equal
+	number of MPI processes.
+
+	* music/connectivity.hh, connectivity.cc: New files.
+
+2008-10-10  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* music/index_map.hh (local_index::local_index,
+	local_index::local_index): New constructor.
+
+	* music-c.h, music-c.cc (MUSIC_event_input_port_map_global_index,
+	MUSIC_event_input_port_map_local_index): Replacing
+	MUSIC_event_input_port_map.
+
+	* music/port.hh (event_input_port): Added facilities to support C
+	interface.
+
+	* music/port.hh, port.cc (event_input_port::map): Take
+	event_handler_global_index and event_handler_local_index instead
+	of event_handler in second argument.
+
+	* music/event.hh (event_handler_global_index,
+	event_handler_local_index): New classes which replace
+	event_handler.
+
+	* music/port.hh, port.cc (insert_event): Replaced old method with
+	two new, one with a second argument local_index, and an overloaded
+	version with global_index.
+
+	* music/index_map.hh (global_index, local_index): New classes.
+
+2008-10-09  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* music/event_data.hh, music/message_data.hh: Removed.
+
+	* music/event.hh (event_handler::operator ()): Made virtual and
+	corrected arguments to adhere to RFC.
+
+	* port.cc (event_output_port::insert_event): Send spikes to event
+	router.
+
+	* Makefile.am (libmusic_la_SOURCES): Added event_router.cc,
+	music/event_router.hh
+
+	* music/event_router, event_router.cc: New files.
+
+2008-10-08  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* runtime.cc (runtime::runtime): Initialize my_communicator and
+	schedule.
+
+	* music/connector.hh, connector.cc: Connectors take over the role
+	of subconnectors.
+
+2008-10-06  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* music/port.hh, port.cc (event_output_port::insert_event): New method.
+
+2008-09-23  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* setup.cc (setup::setup): Compile use of MPI::Init_thread
+	conditionally.
+
+	* music-c.cc: #include <ctsring>.
+
+2007-11-26  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Makefile.am (libmusic_la_SOURCES): Added music/spike_data.hh,
+	spike_data.cc.
+
+	* spike_data.cc: New file.
+
+2007-11-23  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* music/spike_data.hh: New file.
+
+	* music/setup.hh (setup::publish): Removed
+	(setup::publish_input, setup::publish_output): New methods.
+
+	* music/array_data.hh, music/data_map.hh, music/index_map.hh,
+	music/linear_index.hh: Added copyright notice + #ifdef logic.
+
+	* music/array_data.hh (array_data::array_data): Data type argument
+	moved first; added new constructor for linear arrays.
+
+	* Makefile.am: Added music/port.hh, port.cc.
+
+	* music/port.hh, port.cc: New files.
+
+	* music/runtime.hh (runtime::input_ports, runtime::output_ports):
+	New members.
+
+2007-11-08  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* configuration.cc (configuration::configuration): Handle dirct
+	launch by mpirun.
+
+	* music/configuration.hh (setup::launched_by_music): New method.
+
+	* music/configuration.hh (setup::_launched_by_music): New private
+	member.
+
+	* music/setup.hh, setup.cc (setup::my_communicator): Renamed from
+	myCommunicator.
+
+	* parse.cc (parser::parse_string, parser::next_arg): Use int
+	instead of char to handle characters.
+
+	* configuration.cc (configuration::configuration,
+	configuration::tap): Use int instead of char to handle
+	characters.
+
+2007-11-02  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* music/setup.hh, music/parse.hh: Don't #include
+	<music/application_map.hh>.
+
+	* music/setup.hh: #include <music/configuration.hh>.
+
+2007-11-01  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* music/error.hh, error.cc: Added.
+
+	* music/parse.hh, parse.cc: Moved here from utils subdirectory.
+
+	* music/configuration.hh, condiguration.cc
+	(configuration::configuration, configuration::lookup,
+	configuration::write_env,
+	configuration::insert, configuration::color): New methods.
+
+	* music/application_map.hh, application_map.cc: Moved to utils
+	subdirectory.
+
+	* Makefile.am (libmusic_la_SOURCES): Removed
+	music/application_map.hh, application_map.cc; Added
+	music/parse.hh, parse.cc.
+
+	* music/setup.hh, setup.cc: Rewritten.
+
+2007-10-26  Örjan Ekeberg  <orjan@nada.kth.se>
+
+	* runtime.cc, music/runtime.hh: Use type Intracomm for communicator.
+
+2007-10-25  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Makefile.am: Added configuration.cc, music/configuration.hh,
+	application_map.cc music/application_map.hh.
+
+	* application_map.cc, music/application_map.hh: New files.
+
+	* configuration.cc, music/configuration.hh: New files.
+
+2007-10-23  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* music/setup.hh, setup.cc (setup::config_string): Renamed from
+	config_get_string.
+	(setup::config_int): Renamed from config_get_int.
+	(setup::config_double): Renamed from config_get_double.
+
+2007-10-19  Örjan Ekeberg  <orjan@nada.kth.se>
+
+	* music/runtime.hh, runtime.cc, music/setup.hh, setup.cc:
+	Replace C MPI calls to their equivalent C++ versions.
+
+2007-10-19  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* music/setup.hh, setup.cc (setup::config_get_string,
+	setup::config_get_int, setup::config_get_double, setup::is_port,
+	setup::port_size): New methods.
+
+	* array_data.cc, music/array_data.hh: Renamed from arraydata.cc,
+	music/arraydata.hh.
+
+	* linear_index.cc, music/linear_index.hh: Renamed from
+	linearindex.cc, music/linearindex.hh.
+
+	* arraydata.cc, linearindex.cc, music/arraydata.hh,
+	music/linearindex.hh, music/setup.hh (array_data, linear_index):
+	Renamed from arraydata and linearindex everywhere.
+
+	* Makefile.am (libmusic_la_SOURCES): Added linear_index.cc,
+	music/linear_index.hh music/index_map.hh mysic/array_data.hh
+	array_data.cc music/array_data.hh.
+	(musicinclude_HEADERS): Added music/index_map.hh music/data_map.hh
+	music/linear_index.hh music/array_data.hh.
+
+2007-10-19  Örjan Ekeberg  <orjan@nada.kth.se>
+
+	* Makefile.am, music/arraydata.hh, music/data_map.hh,
+	music/index_map.hh, music/linearindex.hh, arraydata.cc,
+	linearindex.cc: Added abstraction classes for data indexing.
+
+	* music/setup.hh, setup.cc: Added publish method.
+	Add communicator access method (duplication from runtime).
+
+2007-09-13  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* runtime.cc, setup.cc: Rewritten.
+
+	* Makefile.am, music/setup.hh, music/runtime.hh: New files.
+
+	* music.hh: Rewritten to include header files under the music
+	directory.
+
+2007-08-17  orjan  <orjan@nada.kth.se>
+
+	* music.hh (MUSIC): Add binding routines
+
+2007-08-17  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Bong!
+

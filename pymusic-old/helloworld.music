@@ -1,0 +1,7 @@
+np=2
+[A]
+  binary=./helloworld
+  args=hey
+[B]
+  binary=./helloworld
+  args=ho

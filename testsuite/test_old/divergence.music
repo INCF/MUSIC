@@ -1,0 +1,10 @@
+stoptime=1.0
+[from]
+  binary=./eventsource
+  args=10 spikes
+  np=1
+[to]
+  binary=./eventlogger
+  args=-a
+  np=2
+  from.out -> to.in [10, collective]

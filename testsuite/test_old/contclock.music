@@ -1,0 +1,10 @@
+stoptime=0.5
+[from]
+  np=1
+  binary=./clocksource
+  args=-t 0.02 -b 3
+[to]
+  np=1
+  binary=./contsink
+  args=-t 0.03
+  from.clock -> to.contdata [1]

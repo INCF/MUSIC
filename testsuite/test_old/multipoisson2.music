@@ -1,0 +1,19 @@
+stoptime=10.0
+[mid]
+  np=1
+  binary=eventdelay
+  args=-d 0.1 -b 2
+[from]
+  np=1
+  binary=eventgenerator
+  args=-b 2 12
+[to]
+  np=1
+  binary=eventsink
+  args=12 multipoisson .dat
+#  binary=eventlogger
+#  args=-b 2
+#  from.out -> mid.in [12]
+#  mid.out -> to.in [12]
+  from.out -> mid.in [12,collective]
+  mid.out -> to.in [12,collective]

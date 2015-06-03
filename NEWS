@@ -1,0 +1,92 @@
+MUSIC NEWS --- history of user-visible changes.
+Copyright (C) 2009, 2010 INCF
+
+Please send MUSIC bug reports to music-bugs@incf.org.
+
+
+Changes in 1.0.7:
+
+* music library
+
+** Bug fix release.
+
+
+Changes in 1.0.6:
+
+* music library
+
+** Fixes for GCC version 4.4.
+
+** Don't include RPATH in libmusic.so.
+
+
+Changes in 1.0.5:
+
+* music library
+
+** Optimizations of event routing.  MUSIC now discovers ranges of
+   indices which can be handled collectively by one entry in the event
+   router, even in the case that this is not apparent from index maps
+   but due to the effect of negotiations with the port connected on
+   the other side.
+
+** Bug fixes.
+   
+
+Changes in 1.0.4:
+
+* test directory
+
+** New example: messages.music
+
+* music library
+
+** Message ports now work correctly.
+
+** Optimizations.
+
+
+Changes in 1.0.3:
+
+* music library
+
+** Fixes a bug which occurs in Runtime::finalize () when using the
+   threading version of the Setup constructor under OpenMPI 1.2.7.
+
+** Other smaller fixes.
+
+
+Changes in 1.0.2:
+
+* music library
+
+** Better error reporting.
+
+** Bug fixes.
+
+** New README file in test directory.
+
+** New demo in test directory.
+
+
+Changes in 1.0.1:
+
+* music utility
+
+** Bug fixes
+
+** Improved error reporting
+
+** New option '-m' prints application rank mapping
+
+** New option '-v' prints version information
+
+** Debian packaging support
+
+
+First release: 1.0
+
+Local variables:
+mode: outline
+paragraph-separate: "[ 	]*$"
+end:

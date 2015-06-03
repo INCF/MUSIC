@@ -1,0 +1,16 @@
+stoptime=1.0
+np=2
+[S0]
+  binary=eventsource
+  args=--out out0 10 spikes
+[S1]
+  binary=eventsource
+  args=--out out1 10 spikes
+[R0]
+  binary=eventlogger
+  args=--in in0
+[R1]
+  binary=eventlogger
+  args=--in in1
+S0.out0 -> R0.in0 [10]
+S1.out1 -> R1.in1 [10]

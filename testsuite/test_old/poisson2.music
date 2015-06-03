@@ -1,0 +1,9 @@
+np=1
+stoptime=10.0
+[from]
+  binary=eventgenerator
+  args=-b 2 16
+[to]
+  binary=eventsink
+  args=16 poisson .dat
+  from.out -> to.in [16,collective]

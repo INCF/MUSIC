@@ -1,0 +1,95 @@
+This directory contains a number of small sample programs and MUSIC
+configuration files.  Each configuration file (with file extension
+.music) is used to launch a set of programs in a multi-simulation.
+The configuration file variable "binary" tells MUSIC which program to
+launch.  Please make sure that such programs exist before you launch
+the simulation.
+
+It is possible to build each program in the standard way for your MPI
+distribution.  You also need to link with the MUSIC library.  This is
+how to build (if it wasn't already built for you automatically) the
+program `clocksource' used in the configuration file contclock.music
+under OpenMPI:
+
+  mpicxx clocksource.cc -lmusic
+
+* Demos
+
+demo.music
+   Random spikes are generated from a 3-process application and
+   sent to a graphics visualizer.
+
+   $ mpirun -np 4 music demo.music
+
+
+demolarge.music
+   Similar to demo.music, but running a larger example on more
+   processors.  20 processes are started by this demo.
+
+   $ mpirun -np 20 music demolarge.music
+
+
+* Event communication
+
+events.music
+   Spikes are sent from a sending to a receiving application.
+
+   $ mpirun -np 4 music events.music
+
+
+fork.music
+   Spikes are sent from one sender to two receiving applications.
+
+   $ mpirun -np 6 music fork.music
+
+
+chain.music
+   Spikes are sent from one sender (running in two processes) to
+   a receiver via an intermediate application which serves as a delay.
+
+   $ mpirun -np 4 music chain.music
+
+
+loop.music
+   Spikes are sent into a loop of two mutually interconnected
+   applications tha both delay and then pass spikes on.
+
+   $ mpirun -np 4 music loop.music
+
+
+* Continuous communication
+
+const.music
+   A constant array of data is sent to a distributed receiving application.
+
+   $ mpirun -np 4 music const.music
+
+
+contclock.music
+   The current simulation time is sent as a test output from one
+   application and received by another.
+
+   $ mpirun -np 2 music contclock.music
+
+
+cloop.music
+   The time signal is sent into a delay loop where values are
+   gradually accumulated.
+
+   $ mpirun -np 4 music cloop.music
+
+
+wavetest.music
+   Send sinusoidal waves from one distributes application
+   to another.  The receiving application writes the result
+   in files named dumpfile0.out, dumpfile1.out and dumpfile2.out.
+
+   $ mpirun -np 7 music wavetest.music
+
+
+* Message communication
+
+messages.music
+   Messages are sent from a sending to a receiving application.
+
+   $ mpirun -np 4 music messages.music

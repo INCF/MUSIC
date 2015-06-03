@@ -1,0 +1,15 @@
+/Makefile
+/Makefile.in
+/TAGS
+/.deps
+/core
+/eventcounter
+/eventgenerator
+/eventselect
+/eventsink
+/eventsource
+/music
+/viewevents
+/contsink
+/eventlogger
+/messagesource

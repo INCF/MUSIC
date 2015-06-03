@@ -1,0 +1,19 @@
+np=1
+stoptime=1.0
+[A]
+  binary=./contdelay
+  args=-d 0.1 -b 1000
+[B]
+  binary=./contdelay
+  args=-d 0.1 -b 1000
+[from]
+  binary=./clocksource
+  args=-b 5
+[to]
+  binary=./contsink
+
+
+from.clock -> A.in [1]
+A.out -> B.in [1]
+B.out -> to.contdata [1]
+B.out -> A.aux [1]

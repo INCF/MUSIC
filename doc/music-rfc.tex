@@ -1,0 +1,1708 @@
+\documentclass[a4paper,twoside]{report}
+
+\usepackage[numbers]{natbib}
+\citestyle{newapa}
+\usepackage[utf8]{inputenc}
+\usepackage{fancyhdr}
+\usepackage{color}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{makeidx}
+\usepackage{comment}
+
+%%%%% Formatting %%%%%
+
+% Use the metatext environment around text that should not appear in
+% the final document
+%\newenvironment{metatext}%
+%{\color{blue}}%
+%{}
+\excludecomment{metatext}
+
+% Use the rationale environment around arguments for design decisions
+\newenvironment{rationale}%
+{\par\begin{quote}\textbf{Rationale:}}%
+{\par\end{quote}}
+
+
+% Use the head environment around method heads
+\lstnewenvironment{head}[1]%
+{\lstset{frame=topline,emph={#1},emphstyle=\color{blue}\textbf}}%
+{}
+
+
+% Use the parameters environment after heads
+\newenvironment{parameters}%
+{\begin{tabular}{@{\hspace{2em}}lp{0.6\textwidth}}}%
+{\end{tabular}\par\vspace{1mm}\par\hrule\par\vspace{5mm}}
+
+
+% Use the code environment around method code examples
+\lstnewenvironment{code}[1]%
+{\lstset{frame=single,caption={#1}}}%
+{}
+
+\renewcommand{\lstlistingname}{Example}
+
+% Use the responsible command to indicate which author is responsible
+% for the present section
+\newcommand{\responsible}[1]%
+{{\color{red}[#1 is responsible for this section]}}
+
+
+\fancyhead{}
+\fancyhead[L]{\slshape\leftmark}
+
+\pagestyle{fancy}
+\makeindex
+
+%%%%% Actual content starts here %%%%%
+\begin{document}
+
+\lstset{language=C++,identifierstyle=\ttfamily}
+
+\title{MUSIC --- Multi-Simulation Coordinator\\[2ex]
+  Request For Comments\\}
+
+\author{Örjan Ekeberg and Mikael Djurfeldt}
+
+\maketitle
+
+\begin{abstract}
+  MUSIC is an API allowing large scale neuron simulators using MPI
+  internally to exchange data during runtime.  MUSIC provides
+  mechanisms to transfer massive amounts of event information and
+  continuous values from one parallel application to another.  Special
+  care has been taken to ensure that existing simulators can be
+  adapted to MUSIC.  In particular, MUSIC handles data transfer
+  between applications that use different time steps and different
+  data allocation strategies.
+\end{abstract}
+
+
+\tableofcontents
+
+\listoffigures
+
+\chapter{Introduction}
+
+This document constitutes a preliminary specification for the
+multi-simulation coordinator MUSIC.  The main purpose of the current
+document is to make it possible for potential users of MUSIC to
+comment on the design before the full implementation is finalized.
+
+\section{Scope}
+
+MUSIC is a standard for run-time exchange of data between parallel
+applications in a cluster environment.  The standard is designed
+specifically for interconnecting large scale neuronal network
+simulators, either with each-other or with other tools.
+
+A typical usage example is illustrated in figure~\ref{fig:multisim},
+where three applications ($A$, $B$, and $C$) are executing in parallel
+while exchanging data via MUSIC.  We will refer to this as a
+\emph{multi-simulation}, since the participating applications
+typically are neuronal simulators, or tools to support such
+simulators.  In this example, application $A$ produces runtime data
+which is then used by $B$ and $C$.  In addition, $B$ and $C$ mutually
+send data to each other.  The data sent between applications can be
+either event based, such as neuronal spikes, or graded continuous
+values, for example membrane voltages.
+
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=0.5\textwidth]{figures/multisim}
+    \caption[Typical multi-simulation]{\label{fig:multisim}
+      Illustration of a typical multi-simulation using MUSIC.  Three
+      applications, $A$, $B$, and $C$, are exchanging data during
+      runtime.
+    }
+  \end{center}
+\end{figure}
+
+The primary objective of MUSIC is to support multi-simulations where
+each participating application itself is a parallel simulator with the
+capacity to produce and/or consume massive amounts of data.  This
+promotes \emph{inter-operability} by allowing models written for
+different simulators to be simulated together in a larger system.  It
+also enables \emph{re-usability} of models or tools by providing a
+standard interface.  The fact that data is spread out over a number of
+processors makes it non-trivial to coordinate the transfer of data so
+that it reaches the right destination at the right time.  The task for
+MUSIC is to relieve the applications from handling this complexity.
+
+
+\section{Design Goals}
+
+\subsection{Portability}
+
+The MUSIC library and utilities have been designed to run
+smoothly on state-of-the-art high-performance hardware.  For maximal
+portability, the software is written in C++, which is the de facto
+standard for current high-end hardware.  MUSIC also provides a
+C-interface, making it possible for applications written in C or
+FORTRAN to participate in a MUSIC multi-simulation.
+
+Most, if not all, current efforts in large scale neuronal simulations
+are based on the MPI\index{MPI} standard.  MUSIC is built on top of
+MPI, and uses it to run the different simulators.  MUSIC provides
+means to allow each simulator to use MPI internally without
+interfering with the others.
+
+MUSIC has been developed using two reference platforms: Intel-based
+multi-core workstations and the IBM
+BlueGene/L\index{BlueGene/L}\index{IBM BlueGene} supercomputer.  These
+platforms can be considered as two extremes, where the multi-core
+machine represents a small parallel environment while the BlueGene/L
+represents a large scale massively parallel supercomputer with special
+requirements.  In particular, the compute nodes on the BlueGene/L do
+not support multiple threads or processes.
+
+
+\subsection{Simplicity}
+\label{sec:simplicity}
+
+For MUSIC to be useful, it must be possible to adapt existing
+simulators so that they can participate in a multi-simulation without
+too much effort.  We rely on the simulator developers to make these
+adaptations.  An important design goal has therefore been to adapt the
+design to the typical structure of current simulators.  It should be
+possible to add MUSIC library support without invasive restructuring
+of the existing code.
+
+The primary requirements on an application using MUSIC is that it
+declares what data should be exported and imported and that it
+repeatedly calls a function at regular intervals during the simulation
+to allow MUSIC to make the actual data transfer.
+
+
+\subsection{Independence}
+
+The MUSIC interface ensures that each individual application does not
+need special adaptation to specific properties of other applications.
+The application only needs to adhere to the specification of the MUSIC
+interface in order to communicate with other applications performing
+complementary tasks.  This makes the development of MUSIC-aware
+software independent of what other applications it will communicate
+with.
+
+We hope that this will facilitate the development of general purpose
+tools.  For example, a researcher can develop a tool for calculating
+synthetic EEG from simulation data.  Via MUSIC, this tool should then
+be useful for anybody using any neuronal simulator which supports the
+common MUSIC interface.
+
+
+\subsection{Performance}
+
+The MUSIC API has been designed to allow for data transport of high
+bandwidth and low latency within the cluster.  One means of ensuring
+the best use of the hardware while maintaining portability is to use
+the facilities of MPI for communication.  MPI encapsulates software
+optimizations for specific hardware. By basing the interface on MPI we
+can benefit from such optimizations.
+
+
+\subsection{Extensibility}
+
+Where possible, MUSIC allows for extensions by the application
+programmer.  Some classes in the MUSIC API (such as the index and data
+maps) can be subclassed in order to provide facilities not available
+directly in the API.
+
+
+\section{Terminology}
+
+\begin{description}
+\item[application] We use the term
+  \emph{application}\index{application} to denote a simulator or other
+  program interfaced to MUSIC.  Each application is a parallel
+  program, normally running on several processors.
+
+\item[multi-simulation] We use the term
+  \emph{multi-simulation}\index{multi-simulation} to refer to the
+  whole parallel execution of multiple applications coordinated by
+  MUSIC.
+
+\item[port] Each application declares its ability to produce and
+  consume data by publishing \emph{ports}\index{port}.  Ports are
+  named by the application and provided with information about the
+  datatype (continuous data, spike events, messages) and mapping onto
+  different processors.  Ports are either
+  \lstinline|input_ports|\index{input port} or
+  \lstinline|output_ports|\index{output port}.
+
+\item[connection] During the setup phase, MUSIC connects pairs of
+  ports together to form \emph{connections}\index{connection}.  During
+  the runtime phase, data is transferred over the connection from the
+  producer of the data to the consumer.  While an
+  \lstinline|input_port| can have only one connection, an
+  \lstinline|output_port| can be connected to multiple
+  \lstinline|input_ports|.
+\pagebreak
+\item[data map] A data map\index{data map} denotes the information on
+  where data actually resides within the application.  This is
+  typically stored internally in the port data structure.  Data to be
+  transferred over a connection can be regarded as a large array
+  distributed over multiple processors. The data map tells on
+  what processor each data element resides and how it should be
+  accessed.
+
+\item[ticks] During the runtime phase, all processes in each
+  application must make a \emph{tick}\index{tick} call at regular
+  intervals in simulated time.  At these tick points, MUSIC is allowed
+  to use MPI to transfer data between processors.
+\end{description}
+
+
+\section{Relation to Existing Software}
+
+MUSIC is not the only software project aiming to support
+inter-operability between neural simulators.  In this section we will
+briefly describe some related projects and specifically focus on how
+they relate to MUSIC.
+
+\paragraph{PyNN}\index{PyNN}
+
+PyNN is a Python package for simulator-independent specification of
+neuronal network models.  It provides a low-level procedural API and a
+high-level object-oriented API.  Neuronal network models which are
+specified using these API:s can be simulated on simulators supporting
+PyNN, such as Neuron\index{Neuron} and NEST\index{NEST}.
+
+PyNN could be extended to support multi-simulations using the MUSIC
+library.  Such an extension would provide means for controlling the
+interaction between the simulator and the MUSIC library and would, for
+example, support publishing of named ports.
+
+It is possible, in principle, to write Python code to directly handle
+communication between applications in a cluster, but such a solution
+would be inefficient compared to using MUSIC, and might, in the end,
+have to address the same problems which MUSIC provides a solution to.
+
+\paragraph{Neurospaces}\index{Neurospaces}
+
+The Neurospaces project promotes inter-operability and re-usability
+through the development of independent software components, some of
+which, together, will provide one of two alternative cores of the
+Genesis 3 simulator.  One of the components, the Neurospaces Model
+Container abstracts model description from the solver.  Another
+component, the Discrete Event System can handle distribution and
+queuing of spikes.  Components adhere to the CBI simulator
+architecture.
+
+It is possible to develop a MUSIC adapter consistent with the CBI
+simulator architecture.  This would allow the Neurospaces framework,
+and Genesis 3, to interface to independently running applications in a
+cluster environment.
+
+\begin{metatext}
+\paragraph{Neosim}\index{Neosim}
+
+\paragraph{MOOSE}\index{MOOSE}
+\end{metatext}
+
+\chapter{Execution Model}
+
+\section{Phases of Execution}
+
+A multi-simulation, i.e. a set of interconnected parallel
+applications, is executed in three distinct phases:
+\begin{description}
+\item[\textbf{Launch}]\index{launch phase} is the phase where all the
+  applications are started on the processors.  During this phase,
+  MUSIC is responsible for distributing and launching the application
+  binaries on the set of MPI processes allocated to the MUSIC job.
+  Since MPI can be initialized first when the applications have been
+  launched, most of this work needs to be performed outside of MPI.
+  In particular, the tasks of accessing the command line argument of
+  the MUSIC launch utility and of determining the ranks of processes
+  before MPI initialization therefore has to be handled separately for
+  different MPI implementations.
+
+  Technically, the launch phase begins when \texttt{mpirun} launches
+  the MUSIC binary and ends when the setup object constructor
+  returns.  (See further description below.)
+
+\item[\textbf{Setup}]\index{setup phase} is the phase when all
+  applications can publish what ports they are prepared to handle
+  along with the time step they will use and where data will be
+  present (where in memory and/or on what processor).  During the
+  setup phase, applications can read configuration parameters
+  communicated via the common configuration file.  At the end of the
+  setup phase, MUSIC will establish all connections.
+
+  The setup phase begins when the setup object has been created and
+  ends when the runtime object constructor returns.
+
+\item[\textbf{Runtime}]\index{runtime phase} is the phase when
+  simulation data is actually transferred between applications.  Via
+  \texttt{tick} calls the simulated time of applications is
+  kept in order.
+
+  The runtime phase begins when the runtime object has been created
+  and ends when the runtime object is destroyed.
+\end{description}
+
+From the application programmers point of view, these phases are
+clearly separated through the use of two main components of the
+MUSIC interface: the \emph{setup} and the \emph{runtime} object.  The
+launch phase is not visible for the application since it handles the
+situation before the application starts.
+
+When the application initializes MUSIC at the beginning of execution
+it receives a specific \emph{setup object}.  This object gives access
+to the functionality relevant during the setup phase via its methods.
+When done with the setup, the application program makes the transition
+to the runtime phase by passing the setup object as an argument to the
+\emph{runtime object} constructor which destroys the setup object.
+The runtime object provides methods relevant during the runtime phase
+of execution.
+
+\section{Spatial Distribution of Data}
+\label{sec:spatialdist}
+
+Communication between applications is handled by ports.  Ports are
+named sources (output ports) or sinks (input ports) of data flows.
+The data to be communicated may be differently organized in process
+memory on the receiver side compared to the sender side.  The
+applications may run on different numbers of processes, and, the data
+may be differently distributed among the sender processes and the
+receiver processes, as is shown in Figure~\ref{fig:datamapping}.  How
+does MUSIC know which data to send where?
+
+In MUSIC, there are two views of the data to be communicated over a
+connection.  Data elements are enumerated differently according to
+these views.  MUSIC uses \emph{global indices}\index{global index} to
+enumerate the entire set of data to be sent over the connection while
+\emph{local indices}\index{local index} enumerate the subset of data
+which is stored in the memory of a particular MPI process.  Data does
+not need to be ordered in the same way according to the two views.
+For example, local data stored in an array may be associated with an
+arbitrary subset of global indices in an arbitrary order.
+
+The MUSIC library is informed about the relationship between global
+and local indices and how data is stored in memory during the setup
+phase.  Two abstractions are used to carry this information:
+
+The \lstinline|index_map| maps local indices to global indices.  That
+is, the \lstinline|index_map| tells which parts of a distributed data
+array are handled by the local process and how the data elements are
+locally ordered.
+
+The \lstinline|data_map| encapsulates how a port accesses its data.
+The \lstinline|data_map| contains an \lstinline|index_map|.  While an
+index map is a mapping between two kinds of indices, the data map also
+contains information about where in memory data resides, how it is
+structured, and, the type of the data elements.  The type is used for
+marshalling when running on a heterogeneous cluster.
+
+During setup every process of the application individually provides
+the port with a \lstinline|data_map| (or an \lstinline|index_map| in
+the case of event ports).
+
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=0.7\textwidth]{figures/datamapping}
+    \caption[Mapping of data]{\label{fig:datamapping} Data transfer
+      over a connection from an application running in four processes
+      to an application running in three processes.  The light gray
+      areas in the sender and receiver represents the MUSIC port.
+      Dashed lines divide the application into distinct processes.  }
+  \end{center}
+\end{figure}
+
+\begin{rationale}
+  While connections are often used to handle the transfer of spikes
+  from one group of neurons to another, they should not be regarded as
+  an implementation of synaptic projections\index{projections}.
+  Connections will only handle a direct one-to-one transport from one
+  application to another.  Re-mapping to actual receiving neurons,
+  e.g. to implement an all-to-all projection, must be handled by one
+  of the applications.  Thus, it may be better to regard the ports as
+  \emph{proxy-objects}\index{proxy objects}, providing indirect access
+  to neurons simulated by the other application.
+\end{rationale}
+
+
+\section{Timing Considerations}
+\label{sec:timing}
+  
+Different applications may use different time steps and it is the
+responsibility of MUSIC to ensure that data is delivered at the
+appropriate time.  In order to minimize handshaking, both parts of a
+connection pair locally calculate when the actual data transfer over
+MPI takes place.  To ensure that these calculations produce
+predictable results, simulation time is internally represented using
+integers with a global micro-timestep\index{micro-timestep} common for
+all applications.
+
+Simulation time\index{simulation time} is local for each application
+and MUSIC does not enforce unnecessary synchronization between these
+local clocks.  Thus, an application producing data may be running
+ahead of another application which consumes the same data.  MUSIC
+internally builds a schedule which ensures that data arrives at the
+appropriate local time in the receiving application.  Scheduling
+becomes more complex when data is not only transferred in a
+feed-forward manner, i.e. when the connection graph contains loops.
+In this case MUSIC has to rely on the existence of sufficient delays
+in the simulated model, typically corresponding to axonal
+delays\index{axonal delay}.
+
+\begin{figure}
+  \begin{center}
+    \begin{minipage}{0.45\textwidth}
+      \includegraphics[width=\textwidth]{figures/ticklogic}
+      \caption[Timing of data transfer, slowdown]{\label{fig:timingshorter}
+        Transfer of data when sender has a shorter
+        tick interval than the receiver}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.45\textwidth}
+      \includegraphics[width=\textwidth]{figures/ticklogic2}
+      \caption[Timing of data transfer, speedup]{\label{fig:timinglonger}
+        Transfer of data when sender has a longer
+        tick interval than the receiver}
+    \end{minipage}
+  \end{center}
+\end{figure}
+
+Figures~\ref{fig:timingshorter} and \ref{fig:timinglonger} illustrate
+how MUSIC handles time when transferring continuous data over a connection.
+In figure~\ref{fig:timingshorter}, the sender application uses a
+shorter interval between the tick calls than the receiver.  The sender
+side uses values sampled at the tick points to interpolate a value
+corresponding to the point in time when the receiver makes its tick
+call.
+
+The dark middle area (labelled ``MPI'') is where the actual data
+transfer takes place.  MUSIC makes use of the fact that the receiving
+application can run with its simulation clock set independently of the
+sender.  The arrows going ``backwards in time'' in this area reflect
+the fact that the receivers clock is lagging.  This makes it possible
+for data to arrive in time despite the fact that it was available
+later (e.g. at tick \(s_2\)) than when it was arriving (at \(r_1\)),
+when talking about simulated time.
+
+Figure~\ref{fig:timinglonger} illustrates what happens when the
+receiver of continuous data is calling tick faster then the sender.
+The sender will then buffer up values from the preceding and current
+ticks and transfer this at a suitable tick call.  The receiver will
+portion these values out by interpolating at the appropriate ticks.
+
+The strategy of having the receiver application running with a delayed
+local clock only works when the connection graph forms a directed
+acyclic graph (DAG)\index{DAG}\index{acyclic graph}\index{loops}.
+When loops occur it is necessary to allow for data arriving late, at
+least somewhere along each loop.  MUSIC handles this via
+\emph{acceptable latency}\index{acceptable latency}\index{latency}
+which is a property of event input ports.  The receiving application
+declares how late, according to simulation time, data may arrive, thus
+giving MUSIC room for resolving the scheduling problem.  In the case
+of continuous data, the application specifies a
+\emph{delay}\index{delay} which fulfills the same purpose.
+
+In figures \ref{fig:timingshorter} and \ref{fig:timinglonger}, the
+sending application must be running ahead of the receiver in order to
+maintain the illusion that communication is instantaneous.
+Figure~\ref{fig:timeline} illustrates the timing relation between
+sender and receiver along a real time axis (wallclock time) when the
+receiver accepts a delay of incoming data.  This allows the receiver
+(B) to run ahead of the sender (A), thus creating the slack necessary
+to make schedules for communication loops.
+
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=0.7\textwidth]{figures/timeline}
+    \caption[Timing of ticks]{\label{fig:timeline}
+      This figure illustrates how MUSIC can allow one application (A)
+      to execute ahead of another (B) when transferring continuous
+      data.  The receiver (B) has specified a delay on the input port
+      which means that the value to be delivered at each tick (gray
+      areas) corresponds to a simulated time in A (blue arrows) which
+      has already happened.
+
+      Note that the tick times when MUSIC actually transfers data will
+      be aligned on the real time axis, since blocking communication
+      is used.  In practice, one of the applications will have to wait
+      for the other to reach the same point in its execution.
+    }
+  \end{center}
+\end{figure}
+
+
+\section{Message Ports}\index{message port}
+
+In addition to the port types which handle continuous and spike event
+data, MUSIC provides \emph{message ports}.  Message ports allow for
+transmission of arbitrary messages of, for example, control
+information between applications.  A multi-simulation may, for
+example, be controlled by a script running in a Python process on one
+of the cluster nodes.  The script may use a message port to alter a
+parameter or turn on a stimulus in an application at a certain point
+in time.
+
+\pagebreak
+Messages sent from any process on the sender side of the connection
+are routed to all processes on the receiver side which have announced
+there willingness to receive messages.  Contrary to ports for
+continuous data, any marshalling is the responsibility of the sender
+and receiver application.
+
+To achieve independence between MUSIC applications, it is recommended
+that messages are text strings with the syntax of the interpreter
+language of the receiving application, and that these text strings
+originate from a user-specified configuration file read by the sending
+application.
+
+
+\section{Application Responsibilities}
+
+One goal of MUSIC has been to limit the responsibilities imposed on
+each application (c.f. section \ref{sec:simplicity}).  Here we present
+a step-by-step list of what an application must do in order to
+participate in a multi-simulation.
+
+\begin{enumerate}
+\item \textbf{Initiate MUSIC}\index{initiate MUSIC}
+
+  This is done by calling the \lstinline!setup! function.
+\item \textbf{Create ports}
+
+  Data to be imported and exported is identified by creating named
+  ports.
+\item \textbf{Map ports}\index{map ports}
+
+  MUSIC is informed about where the actual data is located.  This
+  includes information about which processor owns each data element.
+  For continuous data it also includes information about where in
+  memory it is stored, while for event data it specifies how to
+  receive events.
+\item \textbf{Initiate the runtime phase}
+
+  At this stage, MUSIC can build the plan for communication between
+  different processes.
+\item \textbf{Advance simulation time}\index{tick}\index{advance time}
+  \index{time}
+
+  The application must call \lstinline!tick! at regular intervals
+  to give MUSIC the opportunity to transfer data.
+\item \textbf{Finalize MUSIC}\index{finalize}\index{terminate}
+
+  By deleting the runtime object, all MUSIC communication is terminated.
+\end{enumerate}
+
+
+\chapter{Starting a Multi-Simulation}
+
+\section{Overview}
+
+Parallel programs based on MPI are normally started by running a
+special program called \texttt{mpirun}\index{mpirun} (for MPI-1) or
+\texttt{mpiexec}\index{mpiexec} (for MPI-2).  To start multiple
+applications and enable them to communicate with each other, MUSIC
+utilizes a special launcher program called \texttt{music}\index{music
+  (launcher)} which, in turn, starts the different applications.
+Information about which applications should be started, and the
+communication pattern between them is described in a common
+\emph{configuration file}\index{configuration file}.
+
+\begin{rationale}
+  The reason for not controlling configuration via the MUSIC API is
+  that individual applications should remain ignorant about the
+  structure of the full multi-simulation.  Thus, the API provides
+  methods for asking about the parts of the configuration relevant for
+  that application, i.e. its ports, but does not expose the complete
+  communication graph.
+\end{rationale}
+
+
+\section{The Configuration File}
+
+The main purpose of the configuration file is to control what
+applications to start, and to connect output ports to input ports.
+The configuration file specifies the number of MPI processes allocated to
+each application.
+
+The configuration file consists of a sequence of blocks, each starting
+with a non-indented bracket:
+
+\begin{quote}
+  [\emph{application\_label}]
+\end{quote}
+
+\noindent Each block consists of a sequence of configuration variable
+definitions applying to one application.  The application label is
+used to refer to ports of the application.  A variable definition
+takes the form of an assignment:
+
+\begin{quote}
+  \emph{varname} = \emph{value}
+\end{quote}
+
+\pagebreak
+The following variable names have special meaning to MUSIC:
+\begin{description}
+  \item[binary] Pathname to application binary
+  \item[args] Command line given to the binary
+  \item[np] The number of MPI processes to allocate for the application
+  \item[timebase] The length of a MUSIC micro-step, that is, the
+    resolution of {MUSIC}:s internal clocks).  (Default value is 1
+    ns.)
+\end{description}
+\begin{rationale}
+  The possibility to specify the MUSIC timebase is provided since the
+  timebase is a compromise between resolution and maximal simulation
+  time.  With 64-bit clocks, a timebase of 1 ns gives a maximal
+  simulation time of 585 years which should be sufficient for most
+  applications.
+\end{rationale}
+
+Arbitrarily named parameters may also be included in the configuration
+file and these parameters can be accessed from the applications.
+
+A connection between an output and input port is specified using the
+following syntax:
+\begin{quote}
+  \emph{application\_label.port\_name} \lstinline|->| \emph{application\_label.port\_name}
+\end{quote}
+\noindent  The direction of the arrow (\lstinline|->|, \lstinline|<-|) indicates the
+direction of data transport.  An output port can be connected to
+multiple input ports while an input port can be connected to, at most,
+one output port.
+
+Optionally, the width of the connections between applications can be
+specified:
+\begin{quote}
+  \emph{application\_label.port\_name} \lstinline|->|
+  \emph{application\_label.port\_name} [\emph{width}]
+\end{quote}
+The application label can be omitted if it refers to the application
+being specified by the surrounding block.
+An example of a simple configuration file can be seen in
+section~\ref{sec:conffile}.  Appendix~\ref{sec:specsyntax} specifies
+the formal syntax of configuration files.
+
+\begin{rationale}
+  Information from the configuration file needs to be available both
+  in order to launch the application binaries and during the setup
+  phase.  Since launching must be done prior to MPI initialization, it
+  is not possible to distribute configuration information via MPI
+  itself.  In the reference implementation of MUSIC, environment
+  variables are used to distribute this information to the
+  applications.
+
+  This information transfer is hidden within MUSIC, so a different
+  implementation of MUSIC may use another technique.  In particular,
+  if the applications are launched from a scripting program, such as
+  PyNN\index{PyNN}, that program must also take care of transferring
+  the relevant configuration information to the applications.
+\end{rationale}
+
+
+\chapter{Application Program Interface}
+
+\section{Conventions}
+
+This chapter describes the API to the MUSIC library.  The API is
+object oriented and all communication with the library is performed
+via instance methods of different classes of objects.  Appendix
+\ref{app:cint} presents an alternative C interface.  The most common
+way of passing objects as arguments in MUSIC is via pointers.  The
+only exception is the setup constructor.  The convention regarding
+memory management is that the caller should make sure that objects
+exist in memory during the entire execution of the method, and is also
+responsible for the deallocation of objects afterwards.
+
+
+\section{Error handling}
+
+MUSIC attempts to fall back on the error handling mechanisms of MPI.
+A MUSIC exception thus results in a call to the MPI error handler.
+A particular implementation of the MUSIC library does not guarantee
+that it handles all kinds of errors that may occur during MUSIC calls.
+Each error handled by MUSIC generates an exception, and MUSIC installs
+suitable error codes, classes and strings so that the MPI error
+handler is able to generate suitable error messages.
+
+MUSIC follows the style of error handling in the MPI standard, which
+is described in sections 7.2 and 7.3 in the MPI 1.1
+report\cite{mpi1.1} and in section 2.8 of the MPI 2.0
+report\cite{mpi2.0}.  The default error handler of MPI is
+\lstinline|MPI_ERRORS_ARE_FATAL| which means that any error handled by
+MUSIC will result in the program being aborted.  Using the error
+handling of MPI requires features only described in the MPI 2.0
+report.  For MPI implementations which lack this support, MUSIC uses
+its own error handler which has the same behavior as
+\lstinline|MPI_ERRORS_ARE_FATAL|.
+
+\begin{rationale}
+  MUSIC adheres to the error handling strategy of MPI since the
+  application is already using MPI and should not need to implement a
+  second error handling strategy when converted to use MUSIC.
+\end{rationale}
+
+\section{Setup}
+
+\subsection{The setup constructor}
+
+Each application initializes the MUSIC library through a call to the
+setup constructor\index{setup}.  This constructor, in turn, calls
+\lstinline|MPI::Init|\index{MPI::Init}\index{init} to initialize
+MPI\index{initialize MPI}.  The setup constructor creates the setup
+object through which the application can retrieve configuration
+information, get an application wide communicator, and setup ports.
+
+\begin{head}{setup}
+  setup::setup (int& argc, char**& argv)
+\end{head}
+\begin{parameters}
+  \lstinline|argc| &%
+  reference to the \lstinline|argc| argument of \lstinline|main| \\
+  \lstinline|argv| &%
+  reference to the \lstinline|argv| argument of \lstinline|main| \\
+\end{parameters}
+
+This constructor must be called at most once; subsequent calls are
+erroneous.  It accepts the \lstinline|argc| and \lstinline|argv| that are
+provided by the arguments to \lstinline|main|.
+\index{argc}\index{argv}
+
+\begin{code}{Initializing MUSIC}
+int main (int argc, char *argv[])
+{
+  MUSIC::setup* setup = new MUSIC::setup (argc, argv);
+
+  /* parse arguments */
+  /* rest of program */
+}
+\end{code}
+
+\begin{rationale}
+  The idea behind creating a specific setup object is to ensure that
+  the application does not accidentally call functions relevant only
+  for the setup phase at other times.
+\end{rationale}
+
+
+\subsection{Communicators}
+
+During a multi-simulation the MUSIC library will create a unique
+intra-communi\-cator over the group of processes assigned to each
+application.  This application wide communicator takes the role of the
+global communicator \lstinline|MPI::COMM_WORLD| and is retrieved from
+the setup object through a call to the \lstinline|communicator|
+method.\index{communicator}
+
+\begin{head}{communicator}
+  MPI::Intracomm setup::communicator ()
+\end{head}
+\begin{parameters}
+  \emph{return value} & the application wide communicator \\
+\end{parameters}
+
+The application is supposed to use the application wide communicator
+in place of
+\lstinline|MPI::COMM_WORLD|\index{MPI::COMM\_WORLD}\index{COMM\_WORLD}. If
+the application binary has been launched using \lstinline|mpirun|
+instead of the \lstinline|music| utility, \lstinline|communicator ()|
+will return \lstinline|MPI::COMM_WORLD| as the application wide
+communicator.
+
+\pagebreak
+\index{rank}\index{Get\_rank}
+\begin{code}{Accessing the application-wide communicator}
+/* communicator with global scope */
+extern MPI_Comm comm;
+
+...
+{
+  ...
+  comm = setup->communicator ();
+  int rank = comm.Get_rank ();
+  ...
+}
+\end{code}
+
+\begin{rationale}
+  An alternative to provide the \lstinline|communicator| function
+  would have been to redefine \lstinline|MPI::COMM_WORLD|.  This would
+  ensure that an application does not accidentally use the global
+  communicator.  However, it may not always be possible to dynamically
+  redefine this variable in all MPI implementations, so for the sake
+  of portability, we have chosen a more straightforward technique.
+\end{rationale}
+
+
+\subsection{Port creation}
+
+Ports\index{ports} are named sources (output ports) or sinks (input
+ports) of data flows.  Output and input ports are distinct classes.
+Ports are further subdivided into distinct classes depending on
+whether they handle continuous data, event data or messages.
+
+\index{publish\_output}\index{publish\_input}
+\begin{head}{publish_cont_output,publish_cont_input,
+            ,publish_event_output,publish_event_input,
+            ,publish_message_output,publish_message_input}
+  cont_output_port*
+  setup::publish_cont_output (string id)
+
+  cont_input_port*
+  setup::publish_cont_input (string id)
+
+  event_output_port*
+  setup::publish_event_output (string id)
+
+  event_input_port*
+  setup::publish_event_input (string id)
+
+  message_output_port*
+  setup::publish_message_output (string id)
+
+  message_input_port*
+  setup::publish_message_input (string id)
+\end{head}
+\begin{parameters}
+  \lstinline|id| & port name \\
+  \emph{return value} & an unmapped port \\
+\end{parameters}
+
+\pagebreak
+Ports have two stages in life: the \emph{unmapped} stage and the
+\emph{mapped} stage.  A port is unmapped when created.  The MUSIC
+configuration file specifies connections between ports.  It is
+possible to ask an unmapped port if it is connected, if it has a width
+specified and, if so, what width it has.  A port becomes mapped when
+its method \lstinline|map| is called.
+
+\begin{code}{Creating an unmapped port}
+cont_output_port* out =
+   setup->publish_cont_output ("out");
+\end{code}
+
+\subsection{General port methods}
+
+The port API includes methods to ask a port if it is connected, if it
+has a width specified, and, if so, what that width is.
+
+\subsubsection{Port connectivity}
+
+The method \lstinline|is_connected| is used to check if the user has
+specified a connection of this port to another port in the
+configuration file.
+
+\index{is\_connected}\index{connected port}
+\begin{head}{is_connected}
+  bool port::is_connected ()
+\end{head}
+\begin{parameters}
+  \emph{return value} & \lstinline|true| only if connected\\
+\end{parameters}
+
+This method is typically used in cases where the use of some of the
+ports of the application is optional.  In such a case, it is not
+sensible to allocate any application resources to support the data
+flow in question.  One example is if one wants to support output of
+membrane potentials from a certain population of cells, but don't want
+to waste resources if no one is listening.
+
+\begin{code}{Optional handling of ports}
+cont_output_port* out =
+   setup->publish_cont_output ("Vm");
+/* map port only if anyone is listening */
+if (out->is_connected ())
+  /* allocate application resources and map port */
+\end{code}
+
+\subsubsection{Port width}
+\label{sec:width}
+
+The width of a port\index{port width}, that is the number of data
+elements transferred in parallel from a cont port or the largest
+possible id of an event port $+$ 1, can be specified in the
+configuration file.  This should be thought of as a request for a
+given width.  Applications can use the method \lstinline|has_width| to
+determine if a width has been specified and retrieve it using
+\lstinline|width|.  Message ports do not have width.
+
+\pagebreak
+\index{has\_width}
+\begin{head}{has_width}
+  bool port::has_width ()
+\end{head}
+\begin{parameters}
+  \emph{return value} & \lstinline|true| only if port width has been
+                         specified \\
+\end{parameters}
+
+\index{width}
+\begin{head}{width}
+  int port::width ()
+\end{head}
+\begin{parameters}
+  \emph{return value} & port width \\
+\end{parameters}
+
+\begin{rationale}
+  Applications can use the above methods to adapt their port width.  A
+  typical usage would be a general purpose post-processing tool which
+  receives information from an ongoing simulation.  Such a tool can
+  publish a number of optional input ports and then use
+  \lstinline|is_connected| and \lstinline|width| to adapt its internal
+  processing depending on what kind of data source it is actually
+  connected to.  See example \ref{code:adaptivewidth}.
+\end{rationale}
+
+
+\begin{code}{Publishing port of adaptive width\label{code:adaptivewidth}}
+{
+  ...
+  /* Publishing a port of adaptive width */
+  double* state_vars;
+  MUSIC::cont_input_port* in =
+     setup->publish_cont_input ("in");
+  if (!in->has_width ())
+    /* report error */
+  else
+    {
+      int size = in->width ();
+      /* for clarity we assume that n_elements
+         is a multiple of size */
+      int n_local = n_elements / size;
+      /* example continues as in next example */
+      ...
+      
+    }
+}
+\end{code}
+
+
+\subsection{Mapping cont ports}
+\index{cont ports}
+
+A port is informed about what data exists locally and how to access it
+by mapping it.  Cont ports transfer data from or to memory during
+\lstinline|tick| calls and need to know the layout of data in memory.
+In addition, the marshalling (conversion between different bit level
+representations) performed on heterogeneous clusters requires
+information about the data type being transferred.  This information
+is captured by the data map argument \lstinline|dmap|.  The
+\lstinline|data_map| type is described in section \ref{sec:datamap}
+below.
+
+\index{map}\index{mapping cont ports}
+\begin{head}{map}
+  void cont_output_port::map (data_map* dmap,
+                              int max_buffered)
+
+  void cont_input_port::map (data_map* dmap,
+                             double delay,
+                             int max_buffered,
+                             bool interpolate)
+\end{head}
+\begin{parameters}
+  \lstinline|dmap| & the data map associated with the port \\
+  \lstinline|delay| & delay of data arrival in simulation time (s) \\
+  \lstinline|max_buffered| & maximal amount of data buffered (ticks)
+  \\
+  \lstinline|interpolate| & enable interpolation (boolean) \\
+\end{parameters}
+
+The optional argument \lstinline|delay| informs MUSIC of when,
+according to simulation time, to sample data on the sender side.  If
+enabled, linear interpolation is used to obtain an approximation of
+the state at this time.  The default delay is zero.  Delayed continuous
+data may be used in connectionist networks when modeling brain
+pathways.  A delay is \emph{required} at some point when communicating
+continuous data in a loop (c.f. section \ref{sec:timing}).
+
+Buffering data in output and input ports gives more efficient
+communication since data can be sent fewer times in larger packets.
+By default MUSIC buffers some reasonable amount of data.  In certain
+situations it is necessary to be careful about memory usage.  Using
+the optional argument \lstinline|max_buffered| the application can
+give MUSIC a bound on how much data to buffer.  MUSIC decides how much
+data to buffer based on the lowest \lstinline|max_buffered| parameter
+given when mapping each of a set of connected ports and on latency
+considerations when applications are connected in loops.  A
+\lstinline|max_buffered| value of \(N\) ticks means: don't buffer more
+data than is sufficient for communicating at every \(N\)\,th tick.
+
+When the optional argument \lstinline|interpolate| is
+\lstinline|true|, MUSIC uses linear interpolation to determine the
+values delivered on the receiver side.  This is the default behavior.
+By passing \lstinline|false| this interpolation can be switched off in
+which case MUSIC selects the sample on the sender side which is
+closest according to simulation time.
+
+
+\clearpage
+\begin{code}{Mapping ports to internal data\label{code:mapping}}
+{
+  ...
+  int size = comm.Get_size ();
+  int rank = comm.Get_rank ();
+  /* for clarity we assume that n_elements
+     is a multiple of size */
+  int n_local = n_elements / size;
+  double* state_vars = new double[n_local];
+  MUSIC::cont_input_port* out =
+     setup->publish_cont_output ("out");
+  MUSIC::array_data dmap (state_vars, MPI::DOUBLE,
+                          rank * n_local, n_local);
+  out->map (&dmap);
+  ...
+}
+\end{code}
+
+
+\subsection{Mapping event ports}
+\index{event ports}
+
+\index{map}\index{mapping event ports}
+\begin{head}{map}
+  void event_output_port::map (index_map* indices,
+                               int max_buffered)
+
+  void event_input_port::map (index_map* indices,
+                              event_handler* handle_event,
+                              double acc_latency,
+                              int max_buffered)
+\end{head}
+\begin{parameters}
+  \lstinline|indices| & the index map associated with the port \\
+  \lstinline|handle_event| & a user-defined event handler \\
+  \lstinline|acc_latency| & acceptable latency for incoming data (s) \\
+  \lstinline|max_buffered| & maximal amount of data buffered (ticks) \\
+\end{parameters}
+
+Since event ports don't access data the same way as cont ports, they
+do not require a full \lstinline|data_map|.  Events are communicated
+to the application through an \emph{event handler}\index{event
+handler}.  The event handler is called by MUSIC when the application
+calls \lstinline|tick|.  It is called once for every spike delivered.
+
+Some spiking neural network models include axonal delays.  The MUSIC
+framework assumes that handling and delivery of delayed spikes occurs
+on the receiver side.  In such a case, the receiver may allow MUSIC to
+deliver a spike event later than its time stamp according to local
+time.  The maximal acceptable latency is specified through the
+\lstinline|acc_latency|\index{acc\_latency} argument.
+
+The optional argument \lstinline|max_buffered|\index{max\_buffered}
+has a similar meaning as for cont ports above but the actual amount
+of data buffered is, in this case, not deterministic since it is
+dependent on spike rate.
+
+\pagebreak
+\subsubsection{Sending events}
+\index{sending events}
+
+The sender registers events for transmission by calling the method
+\lstinline|insert_event|.
+
+\index{insert\_event}
+\begin{head}{insert_event}
+  void event_output_port::insert_event (double t, int id)
+\end{head}
+\begin{parameters}
+  \lstinline|t| & trigger time of the event (s) \\
+  \lstinline|id| & the sender local index \\
+\end{parameters}
+
+MUSIC guarantees that this event will be delivered through a call to
+the user-specified \lstinline|event_handler| on the receiver side no
+later that the acceptable latency relative to receiver local time.
+The time \lstinline|t| must be between the simulation time of the last
+tick and that of the next.
+
+
+\subsubsection{Receiving events}
+\index{receiving events}
+
+\index{event\_handler}
+\begin{head}{event_handler,operator}
+  class event_handler {
+  public:
+    virtual void operator () (double t, int id) = 0;
+  };
+\end{head}
+\begin{parameters}
+  \lstinline|t| & trigger time of the event (s) \\
+  \lstinline|id| & the receiver local index \\
+\end{parameters}
+
+Event handlers are called by event input ports to deliver events.  The
+application is supposed to customize \lstinline|event_handler| by
+subclassing it.
+
+
+\subsection{Mapping message ports}
+\index{message ports}
+
+Message ports behave similarly to event ports in that messages are
+sent and delivered using similar mechanisms, but while events are
+routed between processes based on event id, messages are routed to all
+processes on the receiver side which have provided a
+\lstinline|message_handler| to \lstinline|map|.  All arguments to
+\lstinline|map| for message ports are optional.
+
+\index{map}\index{mapping message ports}
+\begin{head}{map}
+  void message_output_port::map (int max_buffered)
+
+  void message_input_port::map (message_handler* handler,
+                                double acc_latency,
+                                int max_buffered)
+\end{head}
+\begin{parameters}
+  \lstinline|handler| & a user-defined message handler \\
+  \lstinline|accept_latency| & acceptable latency for incoming data (s) \\
+  \lstinline|max_buffered| & maximal amount of data buffered (ticks) \\
+\end{parameters}
+
+
+\pagebreak
+\subsubsection{Sending messages}
+\index{sending messages}
+
+The sender registers a message for transmission by calling the method\\
+\lstinline|insert_message|.
+
+\index{insert\_message}
+\begin{head}{insert_message}
+  void message_output_port::insert_message (double t,
+                                            void* msg,
+                                            size_t size)
+\end{head}
+\begin{parameters}
+  \lstinline|t| & time stamp (s) \\
+  \lstinline|msg| & pointer to message \\
+  \lstinline|size| & size of message in bytes \\
+\end{parameters}
+
+MUSIC will deliver this message through a call to the user-specified \\
+\lstinline|message_handler| on the receiver side no later than
+\lstinline|acc_latency| with regard to the time stamp.
+
+\begin{code}{Sending a message}
+{
+  ...
+  char m[] = "string to send";
+  port->insert_message (runtime->time (), m, sizeof (m));
+  ...
+}
+\end{code}
+
+
+\subsubsection{Receiving messages}
+\index{receiving messages}
+
+\begin{head}{message_handler,operator}
+  class message_handler {
+  public:
+    virtual void operator () (double t,
+                              void* msg,
+                              size_t size) = 0;
+  };
+\end{head}
+\begin{parameters}
+  \lstinline|t| & time stamp supplied by sender (s) \\
+  \lstinline|msg| & pointer to message subclass instance \\
+  \lstinline|size| & size of message instance in bytes \\
+\end{parameters}
+
+Message handlers are called by message input ports to deliver
+messages.  The application is supposed to customize
+\lstinline|message_handler| by subclassing.  It is recommended that
+messages are text strings with the syntax of the interpreter language
+of the receiving application, and that these text strings originate
+from a user-specified configuration file read by the sending
+application.
+
+The message given to the \lstinline|message_handler| is deallocated by
+the MUSIC library.
+
+
+\subsection{Index maps}
+\index{index maps}
+
+An \lstinline|index_map| is a mapping from local data element indices to
+global. An index map instance thus holds information of which global
+indices belong to the local MPI process and of their order with regard
+to local index.  MUSIC implements two subclasses of
+\lstinline|index_map|: \lstinline|permutation_index| and
+\lstinline|linear_index|.  The most general form is
+\lstinline|permutation_index| which allows for an arbitrary mapping.
+
+\index{permutation\_index}
+\begin{head}{permutation_index}
+  permutation_index::permutation_index (int* indices,
+                                        int size)
+\end{head}
+\begin{parameters}
+  \lstinline|indices| & vector of global indices \\
+  \lstinline|size| & number of global indices \\
+\end{parameters}
+
+\index{linear\_index}
+\begin{head}{linear_index}
+  linear_index::linear_index (int baseindex, int size)
+\end{head}
+\begin{parameters}
+  \lstinline|baseindex| & global index of first local element \\
+  \lstinline|size| & number of contiguous global indices \\
+\end{parameters}
+
+When a cont output port is mapped it becomes associated with a set of
+state variables (or other data) in the memory of the sender.  When the
+receiver calls \lstinline|runtime::tick|, an estimate of the values
+of these variables are stored in a set of variables associated with an
+input port on the receiver side.  Similarly, an event output port is
+mapped to a set of event id:s.
+
+While the number of variables or id:s on the receiver side is always
+the same as on the sender side, the data can be distributed in
+different ways between MPI processes on the sender side compared to
+the receiver side.  In fact, sender and receiver may consist of
+different numbers of processes.
+
+Index maps are used in each MPI process to tell MUSIC how data is
+distributed and ordered by enumerating the global indices represented
+by the process in local order.
+
+\subsection{Data maps}
+\label{sec:datamap}
+\index{data maps}
+
+A \lstinline|data_map| encapsulates how a port accesses its data.
+While an index map is a mapping between two kinds of indices, the data
+map also contains information about where in memory data resides, how
+it is structured, and, the type of the data elements.
+\lstinline|array_data| is a subclass of \lstinline|data_map| which
+describes arrays of data elements.  See example \ref{code:mapping}.
+
+\index{array\_data}
+\begin{head}{array_data}
+  array_data::array_data (void* buffer, MPI_Datatype type,
+                          index_map* map)
+\end{head}
+\begin{parameters}
+  \lstinline|buffer| & data memory location \\
+  \lstinline|type|   & data type \\
+  \lstinline|map|    & index map \\
+\end{parameters}
+
+Since data organized in arrays is common, MUSIC provides a convenience
+form of the array data map constructor which also creates a linear
+index map:
+
+\pagebreak
+\begin{head}{array_data}
+  array_data::array_data (void* buffer,
+                          MPI_Datatype type,
+                          int  baseindex,
+                          int size)
+\end{head}
+\begin{parameters}
+  \lstinline|buffer|    & data memory location \\
+  \lstinline|type|	& data type \\
+  \lstinline|baseindex| & global index of first local element \\
+  \lstinline|size|      & number of contiguous global indices \\
+\end{parameters}
+
+
+\subsection{Configuration variables}
+\index{configuration variables}
+
+The values of all variables defined in the configuration file can be
+queried using the method \lstinline|config|.
+
+\index{config}
+\begin{head}{config}
+  bool setup::config (string name, string* result)
+
+  bool setup::config (string name, int* result)
+
+  bool setup::config (string name, double* result)
+\end{head}
+\begin{parameters}
+  \lstinline|name|     & variable name \\
+  \lstinline|result|  & pointer to location where result should go \\
+  \emph{return value} & true if value of correct type was found \\
+\end{parameters}
+
+Querying for a value of type \lstinline|int| or \lstinline|double|
+expects a value of the correct type, if defined in the configuration
+file.  If the variable is defined, but its value can't be translated
+into the correct type this causes an error condition.
+
+\begin{code}{Querying configuration variables}
+/* Retrieving the parameter gKCa
+   from configuration file */
+double gKCa;
+if (!config ("gKCa", &gKCa))
+  gKCa = 29.5e-9; // default value
+\end{code}
+
+\section{Runtime}
+
+\subsection{The runtime constructor}
+
+\begin{head}{runtime}
+  runtime::runtime (setup* s, double h)
+\end{head}
+\begin{parameters}
+  \lstinline|s| & pointer to the setup object \\
+  \lstinline|h| & simulated time elapsed between each tick (s) \\
+\end{parameters}
+
+Creation of the runtime object marks the transition from the setup to
+the runtime phase.  The runtime object constructor destroys the setup
+object, effectively making it impossible to create new ports.  All
+data structures which have been associated with ports during mapping
+must be initialized to some suitable start value at the time of the
+call to the runtime constructor.  These values are used during early
+data transfers of data sampled at negative values of simulation time
+and, thus, not available.
+
+\begin{code}{runtime}
+...
+MUSIC::runtime runtime = MUSIC::runtime (setup, stepsize);
+...
+\end{code}
+
+\begin{rationale}
+  The step size is given as a real number (in seconds) since this
+  makes most sense from the applications point of view.  Internally,
+  this number is converted to an integer (using the time micro step
+  time base).  This is made to ensure that all processes use exactly
+  the same numbers even when the multi-simulation is running on mixed
+  architectures.  Both sides of a connection must agree on when data
+  is transferred over the MPI connector to minimize the
+  need for handshaking during the runtime phase.
+\end{rationale}
+
+\begin{rationale}
+  In order to create a deterministic schedule for buffering and data
+  transfer, we require that \lstinline|tick| is called at fixed
+  intervals in simulated time.  We realize that some applications may
+  use a variable time step\index{variable time step} for their
+  numerical integrations, which may then make it harder to execute
+  these tick calls at the right time.  However, allowing variable tick
+  steps would have made it impossible to use a pre-computed
+  deterministic schedule and enforced repeated handshaking throughout
+  the runtime phase, resulting in a substantial performance
+  degradation.
+
+  Note that the tick step does not need to be equal to the internally
+  used integration step\index{integration step}.  We believe that most
+  large scale parallel simulators already have some means for fixed
+  interval operations, e.g. to handle logging to files or graphics,
+  which may be utilized also for the tick calls.
+\end{rationale}
+
+
+\subsection{The tick}
+\index{tick}
+
+\begin{head}{tick}
+  void runtime::tick ()
+\end{head}
+\begin{parameters}
+\end{parameters}
+
+The tick function must be called at regular intervals in simulation
+time.  The application chooses the interval as a parameter to the
+\lstinline|runtime| constructor, normally based on the time step used
+in the application.  The \lstinline|tick| function is typically called
+in the main simulation loop of each application.  Different
+applications may use different tick-intervals and MUSIC will ensure
+that time is incremented consistently throughout the multi-simulation.
+
+The MUSIC library may, or may not, exchange data with other
+applications at the tick call.  The application must ensure that
+exported data values are valid when \lstinline|tick| is called.  It
+must also expect that imported values may change and that event and
+message handlers are called.
+
+\begin{rationale}
+  The idea behind the \lstinline|tick| call is to hide the complexity
+  of data buffering and MPI transfer from the application.  For
+  efficient data transfer, MUSIC will try to buffer data both at the
+  sending and receiving port in order to send data in large chunks.
+  Internally, MUSIC will use a pre-computed schedule to keep track of
+  at what ticks the actual data transfer should take place and when
+  data should instead be buffered for later transfer.
+\end{rationale}
+
+
+\subsection{Simulation time}
+\index{simulation time}
+
+The method \lstinline|time| returns local time in seconds.
+
+\index{time}
+\begin{head}{time}
+  double runtime::time ()
+\end{head}
+\begin{parameters}
+  \emph{return value} & local time (s) \\
+\end{parameters}
+
+\lstinline|time| returns the local time of last \lstinline|tick|
+call.  Time starts at 0\,s.  While it is possible, and recommended, to
+let MUSIC keep track of time for the application, this is not
+required.
+
+\begin{rationale}
+  To schedule data transfers, MUSIC needs to keep track of the
+  simulation time of all applications via its internal integer
+  representation.  If the application independently manages its own
+  clock, typically by incrementing a floating point variable, there is
+  a risk for drift between the two time representations.  The
+  \lstinline|time| function makes it possible for the application to
+  keep its clock in perfect synchronization with time in the other
+  applications.
+\end{rationale}
+
+
+\subsection{Finalization}
+\index{finalize}
+
+An application supporting MUSIC should replace its call to
+MPI::Finalize with the destruction of the MUSIC runtime object.
+
+\begin{code}{}
+...
+MUSIC::runtime runtime = MUSIC::runtime (setup, stepsize);
+...
+delete runtime;
+\end{code}
+
+\chapter{Adapting Existing Applications}
+
+In this chapter we will highlight the steps necessary to adapt an
+existing neural simulator to MUSIC.  We will assume that the simulator
+is already using MPI to simulate large networks of interconnected
+neurons.
+
+The two main tasks that need to be handled are: firstly, to create and
+map ports for data to be imported and exported, and, secondly, to
+ensure that the \lstinline|tick| function is called at regular
+intervals.
+
+
+\section{Creating and Mapping Ports}
+
+The application needs to inform MUSIC about what data to import and
+export, and where this data resides.  A simulator will typically use
+some sort of script files where the user specifies the model and other
+aspects of the simulation.  If possible, it is desirable to extend the
+scripting language of the simulator so that the user can specify what
+model variables to communicate, and what names to use for ports.
+
+Assuming that we have introduced such constructs into the scripting
+language, we must decide on a suitable point in the initialization
+process where ports should be created and mapped.  Since continuous
+data is read from, or written to, application memory space, the
+program must have allocated its runtime data structures in order to
+perform the mapping.
+
+Communication of spikes will use event ports. Function calls are used
+to send and receive individual spike events.  Sending of spikes is
+relatively straightforward, since the only thing needed is to add a
+call to the method \lstinline|insert_event| at the location where
+spikes are normally detected in the program.  Receiving spikes
+requires more administration, since the spikes can be received earlier
+than when they should reach their destination compartment.  It is
+therefore necessary to save incoming spikes in some sort of sorted
+buffer (typically a priority queue).
+
+\begin{figure}
+  \begin{center}
+    \begin{minipage}[t]{0.45\textwidth}
+      \includegraphics[width=\textwidth]{figures/remapping}
+      \caption[Processing of incoming data]{\label{fig:remapping1}
+        The sender application presents the data to the output port in
+        the same order as it is stored internally.  The receiving
+        application will see the transferred data in the same order
+        and will explicitly have to implement a proper reordering to
+        implement a typical synaptic projection.
+      }
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.45\textwidth}
+      \includegraphics[width=\textwidth]{figures/remapping2}
+      \caption[Remapping of data within MUSIC]{\label{fig:remapping2}
+        If there is a one-to-one correspondence between sending and
+        receiving neurons, the receiving application can specify an
+        appropriate index map to instruct MUSIC to send the data
+        directly to the right destination.
+      }
+    \end{minipage}
+  \end{center}
+\end{figure}
+
+In addition, MUSIC will always present the spikes as they appear in
+the sending group of neurons.  In most situations, the receiving
+application will want to implement a remapping to the target
+compartments, as illustrated in figure~\ref{fig:remapping1}.  One spike
+may thus end up at multiple postsynaptic compartments, spread out over
+the processors of the receiving application.
+
+In some situations it may be desirable for the receiving application
+to avoid this remapping.  The application can then utilize the different
+forms of mappings available in MUSIC to create a general permutation
+so that MUSIC will send spikes directly to the processor where they
+should be handled.  This situation is illustrated in
+figure~\ref{fig:remapping2}
+
+
+\section{Advancing Simulation Time}
+
+The application must call the \lstinline|tick| function repeatedly
+throughout the simulation.  The application will have to ensure that
+these calls are made at regular intervals, as specified to the runtime
+constructor.  Note that this refers to \emph{simulated time}; there is
+no need to consider how much computation time (``wall clock time'') is
+used between tick calls.
+
+If the application makes use of variable time steps internally, it may
+be necessary to use some sort of checkpoints at fixed intervals where
+tick can be called.  It is not necessary to call tick at every
+integration time step, but the calls should not be too infrequent.
+
+The tick calls are the only times during runtime when MUSIC will use
+MPI.  MUSIC will then use its own communicators, not to interfere with
+the MPI operations of the application.  Still, we recommend that the
+application does not intersperse the tick calls with ongoing MPI
+operations.
+
+
+\section{Initialization and Finalization}
+
+\subsection{Initiate MUSIC}\index{initiate MUSIC}
+
+The idea here is to replace the call to \lstinline|MPI:Init| with a
+call to the \lstinline|MUSIC:setup| constructor.  The setup
+constructor calls \lstinline|MPI:Init| for the application.
+
+The application will have to replace all uses of the global
+communicator \lstinline|MPI::COMM_WORLD| with the communicator
+supplied by MUSIC.  The global communicator will be global over all
+applications and it is necessary to limit the MPI operations to the
+group of MPI processes belonging to the application.
+
+There should be no need to link an application differently when it is
+used together with other applications in a MUSIC setting compared to
+when it is used in a stand-alone setting.  In order to support
+``standard'' operation for the application,
+\lstinline|setup::communicator ()|, therefore, will return
+\lstinline|MPI::COMM_WORLD| if the job is started directly with
+\lstinline|mpirun| instead of with the MUSIC launcher.
+
+
+
+\subsection{Initiate the runtime phase}
+
+Creating the runtime object will implicitly call the \lstinline|setup|
+object destructor to ensure that the application will no longer be
+able to change the communication pattern.  At this stage, MUSIC can
+build the plan for communication between different processes.
+
+\subsection{Finalize MUSIC}\index{finalize}\index{terminate}
+
+The application should also replace its call to
+\lstinline|MPI::Finalize| by the destruction of the runtime object.
+The destructor method will internally call \lstinline|MPI::Finalize|.
+
+\bibliographystyle{unsrtnat}
+\bibliography{music-rfc}
+
+\appendix
+
+\chapter{A Complete Example}
+
+This chapter shows a minimal but still complete example.  It consists
+of two applications, \texttt{waveproducer} and \texttt{waveconsumer},
+and a configuration file used to launch and connect them.
+
+
+\section{Configuration File}
+\label{sec:conffile}
+
+The configuration file starts the waveproducer application on three
+processors and waveconsumer on four.
+
+\lstinputlisting[language=Clean,frame=single]{../test/wavetest.music}
+
+
+\section{Data Generating Application}
+
+\lstinputlisting{../test/waveproducer.cc}
+
+
+\section{Data Consuming Application}
+
+\lstinputlisting{../test/waveconsumer.cc}
+
+
+\chapter{C Interface}
+\label{app:cint}
+
+Most elements of the C interface can be constructed from their C++
+counterparts using a few translation rules:
+
+\begin{enumerate}
+\item All identifiers have the prefix \lstinline|MUSIC_|.
+\item Constructors translate to \lstinline|create_| followed by the
+  class name.
+\item Destructors translate to \lstinline|destroy_| followed by the
+  class name.
+\item Methods translate to class name followed by method name.
+\item References translate to pointers.
+\item Strings translate to \lstinline|char *|.
+\item Optional C++ arguments are required in C.
+\end{enumerate}
+
+Entries which do not strictly follow these rules are preceded with an
+extra comment in the following listing.
+
+\lstinputlisting{music-c-int.h}
+
+\chapter{Specification File Syntax}
+\label{sec:specsyntax}
+
+\newcommand{\nt}[1]{$<$#1$>$}
+
+\begin{tabular}{lcl}
+\nt{simulation spec}   & ::= & \{ \nt{application block} \} \\
+\nt{application block} & ::= & \nt{newline} '[' \nt{application id} ']' \{ \nt{declaration}
+\} \\
+\nt{application id}    & ::= & \nt{symbol} \\
+\nt{declaration}       & ::= & \nt{variable def} $|$ \nt{connection} \\
+\nt{variable def}      & ::= & \nt{variable} '=' \nt{value} \\
+\nt{variable}	       & ::= & \nt{symbol} \\
+\nt{value} 	       & ::= & \nt{integer} $|$ \nt{float} $|$ \nt{string} \\
+\nt{connection}	       & ::= & \nt{port id} \nt{direction} \nt{port id} [ \nt{width} ] \\
+\nt{port id}	       & ::= & \nt{application id} '.' \nt{port} $|$
+\nt{port} \\
+\nt{port}	       & ::= & \nt{symbol} \\
+\nt{direction}	       & ::= & $->$ $|$ $<-$ \\
+\nt{width}	       & ::= & '[' \nt{integer} ']' \\
+\end{tabular}
+
+\printindex
+
+\end{document}
+
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: t
+%%% eval: (flyspell-mode 1)
+%%% eval: (ispell-change-dictionary "american")
+%%% eval: (flyspell-buffer)
+%%% End: 

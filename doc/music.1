@@ -1,0 +1,70 @@
+.\"                                      Hey, EMACS: -*- nroff -*-
+.\" First parameter, NAME, should be all caps
+.\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
+.\" other parameters are allowed: see man(7), man(1)
+.TH MUSIC 1 "March  5, 2009"
+.\" Please adjust this date whenever revising the manpage.
+.\"
+.\" Some roff macros, for reference:
+.\" .nh        disable hyphenation
+.\" .hy        enable hyphenation
+.\" .ad l      left justify
+.\" .ad b      justify to both left and right margins
+.\" .nf        disable filling
+.\" .fi        enable filling
+.\" .br        insert line break
+.\" .sp <n>    insert n+1 empty lines
+.\" for manpage-specific macros, see man(7)
+.SH NAME
+music \- launch a multi-simulation using MUSIC
+.SH SYNOPSIS
+.B mpirun
+.RI [ mpirun-options ]
+.B  music
+.RI [ options ] " config"
+.br
+.B music
+.RI [ options ] " config" ...
+.SH DESCRIPTION
+This manual page documents briefly the
+.B music
+utility.
+.PP
+.\" TeX users may be more comfortable with the \fB<whatever>\fP and
+.\" \fI<whatever>\fP escape sequences to invode bold face and italics,
+.\" respectively.
+\fBmusic\fP is used to launch a multi-simulation, i.e., an MPI job
+partitioned between a set of parallel programs.  Such programs need to
+be MUSIC-aware (see documentation for the MUSIC library).  MUSIC also
+provides facilities for these programs to exchange data.
+.PP
+The second form of the command above (without \fBmpirun\fP) can be
+used to print out an application rank map or version information.
+.SH OPTIONS
+The
+.B music
+utility follows the usual GNU command line syntax, with long
+options starting with two dashes (`-').
+A summary of options is included below.
+For a complete description, see the MUSIC manual.
+.TP
+.B \-h, \-\-help
+Show summary of options.
+.TP
+.B \-m, \-\-map
+Print application rank map.
+.TP
+.B \-v, \-\-version
+Show version of program.
+.\" .SH SEE ALSO
+.\" .BR bar (1),
+.\" .BR baz (1).
+.\" .br
+.\" The programs are documented fully by
+.\" .IR "The Rise and Fall of a Fooish Bar" ,
+.\" available via the Info system.
+.SH AUTHOR
+MUSIC was written by Mikael Djurfeldt and Örjan Ekeberg for INCF.
+.PP
+This manual page was written by Mikael Djurfeldt <mdj@debian.org>,
+for the Debian project (but may be used by others).

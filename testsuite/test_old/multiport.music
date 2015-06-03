@@ -1,0 +1,21 @@
+stoptime=1.0
+[A]
+  binary=multiport
+  args=--in in0:2640 --in in1:2640 --in in2:1 --out out0:968 --out out1:968 --out out2:1 --out out3:1
+  np=2
+[B]
+  binary=multiport
+  args=--in in0:1 --out out0:2640 --out out1:2640 --out out2:1
+  np=1
+[C]
+  binary=multiport
+  args=--in in0:968 --in in1:968 --in in2:1 --in in3:1 --out out0:1
+  np=1
+B.out0 -> A.in0 [2640,collective]
+B.out1 -> A.in1 [2640,collective]
+B.out2 -> A.in2 [1,collective]
+A.out0 -> C.in0 [968,collective]
+A.out1 -> C.in1 [968,collective]
+A.out2 -> C.in2 [1,collective]
+A.out3 -> C.in3 [1,collective]
+C.out0 -> B.in0 [1,collective]

@@ -1,0 +1,11 @@
+To find out what should go in this file, see "Information For
+Maintainers of GNU Software" (maintain.texi), the section called
+"Recording Changes".
+
+Mikael Djurfeldt <mikael@djurfeldt.com>
+
+Örjan Ekeberg
+
+Johannes Hjorth wrote the viewevents utility.
+
+Eilif Müller added support for MPICH 2.0

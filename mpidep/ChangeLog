@@ -1,0 +1,62 @@
+2012-08-13  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* mpidep.cc (getRank): CRAY_XE -> CRAY_XE6; ifstream -> std::ifstream
+
+
+2011-03-04  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* mpidep.cc (getRank): Support for Cray XE6.  (However, execvp in
+	the music launcher does not work on Cray.  Use option -e.)
+
+2010-07-28  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Release 1.0.7
+
+2009-10-25  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Release 1.0.6
+
+2009-10-24  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Release 1.0.5
+
+2009-10-13  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* mpidep.cc (getRank): Support for MPICH 2.  (Thanks to Eilif
+	Müller.)
+
+2009-10-04  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* mpidep.cc (getRank): Handle rank 0 and correctly detect cases
+	where command line has unexpected form.
+
+2009-04-01  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* Release 1.0.4
+
+2009-03-13  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Release 1.0.3
+
+2009-03-12  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Release 1.0.2
+
+2009-03-08  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Release 1.0.1
+
+2009-03-04  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* mpidep.cc (getConfig): Don't reports errors here.  Leave that to
+	utils/music.cc; Skip optional arguments when looking for config
+	file name.
+
+2009-03-03  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Release 1.0
+
+2009-02-11  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Makefile.am, mpidep.hh, mpidep.cc: New files.
+

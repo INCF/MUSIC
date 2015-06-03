@@ -1,0 +1,43 @@
+#!/bin/sh
+
+run_test ()
+{
+    np=$1
+    test_name=$2
+    if [ $# -eq 3 ]; then
+      timeout=$3
+    else
+      timeout=4
+    fi
+
+    if ! $( timeout $timeout sh -c "${MUSIC_BINARY} ${np} ${MUSIC_DATA_PATH}/${test_name} 2> ${MUSIC_DATA_PATH}/err | sort -o ${MUSIC_DATA_PATH}/out"); then
+        echo "...TIMEOUT"
+	echo "......given:" 
+	cat "${MUSIC_DATA_PATH}/out" 
+	return 15
+    fi
+ 
+    if ${CMP} -s "${MUSIC_DATA_PATH}/out" "${MUSIC_DATA_PATH}/ok" ; then
+	echo "...OK"
+    else
+	echo "...FAILED"
+	echo "......given:" 
+	cat "${MUSIC_DATA_PATH}/out" 
+	echo "......expected:"
+	cat "${MUSIC_DATA_PATH}/ok"
+	echo "......error:"
+	cat "${MUSIC_DATA_PATH}/err"
+	return 2
+    fi
+
+    if "$CMP" -s "${MUSIC_DATA_PATH}/err" "${MUSIC_DATA_PATH}/errok"; then
+	:
+    else
+	echo "err:" >&2
+	cat "${MUSIC_DATA_PATH}/err" >&2
+	echo "errok:" >&2
+	cat "${MUSIC_DATA_PATH}/errok" >&2
+	return 10
+    fi
+   return 0
+}

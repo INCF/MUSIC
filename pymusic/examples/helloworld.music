@@ -1,0 +1,8 @@
+np=2
+stoptime=5.0
+timestep=0.5
+[from]
+  binary=./senders.py
+[to]
+  binary=./receivers.py
+  from.out -> to.in

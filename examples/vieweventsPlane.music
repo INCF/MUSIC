@@ -1,0 +1,9 @@
+np=1
+stoptime=1.0
+[from]
+  binary=eventsource
+  args=-t 1e-3 529 viewevents-spikes
+[to]
+  binary=viewevents
+  from.out -> to.plot [529]
+  args=-t 1e-3 -s 100.0 -T Cortex neuronGridPlane.data

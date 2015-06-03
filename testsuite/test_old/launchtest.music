@@ -1,0 +1,13 @@
+binary=./launchtest
+np=3
+[1]
+  args=hej du glade
+  param=1.0
+[2]
+  args=ta en spade
+  param=2.0
+  1.as1 -> 2.bd1
+  2.bd2 <- 1.as2 # asd
+  bd2 -> 2.as2 [12]
+
+

@@ -1,0 +1,20 @@
+Implementation of temporal negotiation:
+
+1. XXXConnector constructors stores timing parameters
+
+2. XXXConnector::spatialNegotiation (which constructs the
+subconnectors) passes additional timing parameters to subconnector constructor
+
+3: Phases of temporal negotiation:
+
+3.1 Output subconnectors communicates maxBuffered values to input
+subconnectors
+
+3.2 Input subconnector stores min value of output and input maxBuffered
+
+3.3 Each rank communicates its number of input subconnectors with
+AllToAll
+
+3.4 All timing parameters are communicated using AllToAll
+
+3.5 All ranks run the timing algorithm

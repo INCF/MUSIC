@@ -1,0 +1,201 @@
+2009-10-24  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* src/ParserJuly2004.cpp: #include <cstdio>.
+	(ParserJuky2004::parse): Changed type of variable `dotPos' from
+	int to size_t throughout; Use '&&' instead of '&' in conditional
+	expression.
+
+2009-03-08  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Makefile.am (man_MANS): Don't install man pages.
+	(pkginclude): Don't install header files.
+
+2009-02-11  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Makefile.am: Changed librudeconfig.la to a noinst target.
+
+2008-08-05  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* src/ConfigImpl.cpp: #include <cstring>.
+
+	* src/File.h: #include <string>.
+
+2007-11-07  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* ParserJuly2004.cpp: Use int instead of char to handle parsed
+	characters, so that we can distinguish between code 255 and EOF.
+
+2007-11-06  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* INSTALL, Makefile.in, aclocal.m4, config.guess, config.sub,
+	configure.ac, configure, depcomp, install-sh, ltmain.sh, missing:
+	Removed.
+
+2007-11-01  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* src/config.h, src/config.cpp (Config::load): Added new method
+	for std::istream&.
+
+ ChangeLog for RudeConfig C++ Library
+
+ Copyright (C) 2005, 2007, 2008 Matthew Flood
+ See file AUTHORS for contact information
+
+ This file is part of RudeConfig.
+
+ RudeConfig is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 2, or (at your option)
+ any later version.
+ 
+ RudeConfig is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with RudeConfig; (see COPYING) if not, write to the Free Software
+ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
+ 02111-1307, USA.
+
+* Thu Feb 01 2007 Matt Flood <matt@rudeserver.com>
+- 5.0.5-1
+- Renamed header include guards in config.h
+	- From INCLUDED_CONFIG_H to INCLUDED_RUDE_CONFIG_H
+
+* Thu Feb 01 2007 Matt Flood <matt@rudeserver.com>
+- 5.0.4-3
+- Minor amendments to build-related scripts
+	- Added missing include directory to specfile
+
+* Thu Feb 01 2007 Matt Flood <matt@rudeserver.com>
+- 5.0.4-2
+- Minor amendments to build-related scripts
+	- Fixed minor typo in changelog (ChangeLog and rudeconfig.spec)
+	- Added --disable-static to configure directive in rudeconfig.spec
+
+* Fri Jan 19 2007 Matt Flood <matt@rudeserver.com>
+- 5.0.4-1
+- Created MAN page (rudeconfig.3)
+
+* Mon Jul 31 2006 Matt Flood <matt@rudeserver.com>
+-  5.0.3-1
+- Minor changes to facilitate Windows builds 
+		* changed #include's of  <cstring> to <string.h>
+		* added .c_str() to a string object to correct shorthand if statement ( a ? x : y )
+
+* Thu Apr 10 2006 Matt Flood <matt@rudeserver.com>
+- 5.0.2-1
+- First RPM Release
+
+* Fri Sep 2 2005 Matt Flood <matt@rudeserver.com>
+- 5.0.2-0
+- Modified source code for DataLine.cpp - removed 'using namespace std' which Visual Studio is too dumb to ignore.
+- Fixed ParserJuly2004::chompEOL() - was not returning a value - (TODO: consider making the function void)
+
+
+-------------
+--------------------------
+---------------------------------------------------
+Release Version 3.2  Lib Version 5.0.2
+
+2005-06-02
+	* Renamed Config.cc to config.cc - interface files will be lower case, all other will remain mixed-cased.
+	* Added Instance Methods:
+			const char *Config::getConfigFile();
+			const char *ConfigImpl::getConfigFile();
+	* In order to accommodate windows builds, renamed *.cc to *.cpp
+
+
+-------------
+--------------------------
+---------------------------------------------------
+Release Version 3.1  Lib Version 4.0.1
+	
+			
+2005-05-18
+	*	Renamed Config.h config.h
+
+2005-05-17 Matthew Flood
+	* Changed signature of:
+	
+			static int ConfigImpl::stringToBinary(const char *value, char *dataout);
+
+			to: 
+			
+			static char * ConfigImpl::stringToBinary(const char *value, int &outlength);
+
+
+2005-05-07 Matthew Flood
+	*Added the folowing interface methods
+			const char * Config::getValue(const char *name) const;
+			void Config::setValue(const char *name, const char *value);
+	*getStringValue() and setStringValue() are now deprecated
+
+2005-05-06 Matthew Flood
+
+	*Added AUTOMAKE_OPTIONS to create more distribution types
+	*Created README, THANKS, NEWS
+	*Added Static Interface methods:
+			static void Config::setDefaultConfigFile(const char *filepath);
+			static const char *Config::getDefaultConfigFile();
+			static void Config::setDefaultCommentCharacter(char c);
+			static char Config::getDefaultCommentCharacter();
+			static void Config::setDefaultDelimiter(char c);
+			static char Config::getDefaultDelimiter();
+			static void Config::setDefaultPreserveDeleted(bool shouldPreserve);
+			static bool Config::getDefaultPreserveDeleted();
+	*Added Static Implementation Methods (Implementation Additions)
+			static const char *ConfigImpl::getDefaultConfigFile();
+			static char ConfigImpl::getDefaultCommentCharacter();
+			static char ConfigImpl::getDefaultDelimiter();
+			static bool ConfigImpl::getDefaultPreserveDeleted();
+	*Updated API Documentation
+
+
+-------------
+--------------------------
+---------------------------------------------------
+Release Version 3.0 Lib Version 3.0.0
+
+2005-05-05  Matthew Flood  (Created Open Source)
+
+	* AUTHORS - created
+	* ChangeLog Created
+	* Renamed config.h and config.cc to Config.h and Config.cc
+
+
+-------------
+--------------------------
+---------------------------------------------------
+Release 2.1
+
+1. Added setSection(const char *) method to interface, to replace the 
+	commonly used setSection(const char *, bool) 
+2. Added preserveDeletedData(bool) method to allow deleted data to be discarded 
+3. Made significant performance optimizations
+4. Enhanced documentation 
+5. Changed name of default configuration file from default.cnf to default.ini 
+
+
+-------------
+--------------------------
+---------------------------------------------------
+Release 1.1
+
+1. Fixed integer and double conversion bugs 
+
+
+-------------
+--------------------------
+---------------------------------------------------
+Release 1.0
+
+1. Renamed Component from Rude_Config 
+2. Added Rude namespace 
+3. Added multi-line value support (backslash-CRLF escape sequence) 
+
+
+------------------------------------------------------------------------------------
+
+--End of Change Log--

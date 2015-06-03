@@ -1,0 +1,8 @@
+2012-03-15  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* __init__.py, predict_rank.py: New files.
+
+	* config.py: Renamed from music.py.
+
+	* music.py: New file.
+	(configure): New function.

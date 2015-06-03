@@ -1,0 +1,134 @@
+.\"                                      Hey, EMACS: -*- nroff -*-
+.\" First parameter, NAME, should be all caps
+.\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
+.\" other parameters are allowed: see man(7), man(1)
+.TH EVENTCOUNTER 1 "March  5, 2009"
+.\" Please adjust this date whenever revising the manpage.
+.\"
+.\" Some roff macros, for reference:
+.\" .nh        disable hyphenation
+.\" .hy        enable hyphenation
+.\" .ad l      left justify
+.\" .ad b      justify to both left and right margins
+.\" .nf        disable filling
+.\" .fi        enable filling
+.\" .br        insert line break
+.\" .sp <n>    insert n+1 empty lines
+.\" for manpage-specific macros, see man(7)
+.SH NAME
+eventcounter, eventgenerator, eventlogger, eventselect, eventsink,
+eventsource, viewevents \- utility applications which can be used
+together with other MUSIC-aware applications in multi-simulations
+.SH SYNOPSIS
+.B eventcounter
+.RB [ "\-tbmh " ]
+.I "n_units prefix "
+[
+.I suffix
+]
+.br
+.B eventgenerator
+.RB [ "\-tbfmih " ]
+.I "n_units"
+.br
+.B eventlogger
+.RB [ "\-tlbmih " ]
+.br
+.B eventselect
+.RB [ "\-th " ]
+.I n_units units
+.br
+.B eventsink
+.RB [ "\-tmih " ]
+.I "n_units prefix "
+[
+.I suffix
+]
+.br
+.B eventsource
+.RB [ "\-tbmih " ]
+.I "n_units prefix "
+[
+.I suffix
+]
+.br
+.B viewevents
+.RB [ "\-tshT " ]
+.I "configfile"
+.SH DESCRIPTION
+This manual page documents briefly a set of MUSIC-aware utility
+applications provided together with MUSIC library.
+.PP
+.\" TeX users may be more comfortable with the \fB<whatever>\fP and
+.\" \fI<whatever>\fP escape sequences to invode bold face and italics,
+.\" respectively.
+\fBeventcounter\fP receives spikes through a MUSIC input port, counts
+all spikes for each index and writes the frequencies to a set of files
+with names
+.I "prefix rank suffix"
+.PP
+\fBeventgenerator\fP generates spikes from a Poisson distribution.
+.PP
+\fBeventlogger\fP logs spikes from a MUSIC port.
+.PP
+\fBeventselect\fP receives events from an input port of width
+.I "n_units "
+and sends events for the subset of id:s specified in the file
+.I "units"
+.PP
+\fBeventsink\fP receives spikes through a MUSIC input port and
+writes these to a set of files with names
+.I "prefix rank suffix"
+.PP
+\fBeventsource\fP reads spikes from a set of files with names
+.I "prefix rank suffix"
+and propagates these spikes through a MUSIC output port.
+.PP
+\fBviewevents\fP reads spikes from a MUSIC input port and displays
+them as a 3D graphical representation.
+.SH OPTIONS
+The utilities follow the usual GNU command line syntax, with long
+options starting with two dashes (`-').
+A summary of options is included below.
+.TP
+.B \-b ticks, \-\-maxbuffered ticks
+Specify maximal amount of data buffered.
+.TP
+.B \-f freq, \-\-frequency
+Specify average frequency (default 10 Hz).
+.TP
+.B \-h, \-\-help
+Show usage information.
+.TP
+.B \-i, \-\-indextype
+Select global (default) or local indices. (Used for testing and
+benchmarking purposes.)
+.TP
+.B \-l latency, \-\-acclatency latency
+Specify acceptable data latency (s).
+.TP
+.B \-m type, \-\-imaptype type
+Select linear (default) or roundrobin index map.
+.TP
+.B \-s scaling, \-\-scaletime scaling
+Specify real time to simulated time scale factor (s).  If omitted, the
+visualization runs at full speed.
+.TP
+.B \-t timestep, \-\-timestep timestep
+Specify time between tick() calls (default 0.01 s).
+.TP
+.B \-T title, \-\-title title
+Specify window title.
+.SH SEE ALSO
+.BR music (1)
+.\" .BR baz (1).
+.\" .br
+.\" The programs are documented fully by
+.\" .IR "The Rise and Fall of a Fooish Bar" ,
+.\" available via the Info system.
+.SH AUTHOR
+MUSIC was written by Mikael Djurfeldt and Örjan Ekeberg for INCF.
+viewevents was written by Johannes Hjorth for INCF.
+.PP
+This manual page was written by Mikael Djurfeldt <mdj@debian.org>,
+for the Debian project (but may be used by others).
