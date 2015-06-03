@@ -28,7 +28,6 @@ MUSIC_RESULT=result
 mkdir "$MUSIC_RESULT"
 
 MUSIC_RESULT=$(readlink -f $MUSIC_RESULT)
-
 $CONFIGURE \
     --prefix="$MUSIC_RESULT" \
     $CONFIGURE_MPI
