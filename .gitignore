@@ -1,6 +1,10 @@
-*.in
+*.o
 *.lo
 *.la
+Makefile.in
+.dirstamp
+.deps/
+.libs/
 
 config.*
 
@@ -8,6 +12,7 @@ Makefile
 
 /aclocal.m4
 /configure
+/compile
 /depcomp
 /install-sh
 /libtool
