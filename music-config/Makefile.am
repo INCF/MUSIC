@@ -2,6 +2,8 @@ edit = sed -e 's|@libdir[@]|$(libdir)|g'
 
 pkgpython_PYTHON = __init__.py predict_rank.py config.py
 
+pkgpythondir = $(pythondir)/music/config
+
 EXTRA_DIST = predict_rank.py.in
 
 predict_rank.py: Makefile predict_rank.py.in

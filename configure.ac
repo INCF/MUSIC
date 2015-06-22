@@ -325,6 +325,7 @@ AX_CHECK_COMPILE_FLAG([-fno-strict-aliasing],
 
 # FIXME: this means that --without-python make will not recurse into pymusic subdir
 if test "x$have_python" = "xyes"; then
+    MUSICCONFIGDIR="music-config"
     PYMUSIC_SUBDIR="pymusic"
 else
     PYMUSIC_SUBDIR=""
@@ -340,6 +341,7 @@ fi
 
 
 AC_SUBST([HAVE_PYTHON])
+AC_SUBST([MUSICCONFIGDIR])
 AC_SUBST([PYMUSIC_SUBDIR])
 AC_SUBST([PYEXECDIR], ${pyexecdir})
 
@@ -384,8 +386,8 @@ AC_CONFIG_FILES([
   testsuite/music_tests.sh
   testsuite/unittests/catch/Makefile
   testsuite/sanitytests/Makefile
-  music/Makefile
-  music/predict_rank.py
+  music-config/Makefile
+  music-config/predict_rank.py
   doc/Makefile
   extras/Makefile
 ])
