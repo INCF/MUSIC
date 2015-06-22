@@ -1,3 +1,8 @@
+# The following include is needed to define a missing type MPI_Message
+# which is lacking for a certain combination of MPI and mpi4py versions
+cdef extern from "mpi_compat.h":
+    pass
+
 cimport mpi4py.MPI as MPI
 from mpi4py.mpi_c cimport *
 
