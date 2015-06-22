@@ -1,3 +1,10 @@
+* Startup hangs for msgtest3.music example (with unconnected port)
+
+* Check problem with port width and random connections (should we use
+  max of sender and receiver width? patch on spell)
+  
+* autoconf test for mpi4py
+
 Things to do in preparation for the music-1.2.0 release:
 --- Start music-1.2.0
 
