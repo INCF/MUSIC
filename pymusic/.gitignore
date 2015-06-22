@@ -1,3 +1,5 @@
 *.html
 /build/
 /setup.py
+/pybuffer.cpp
+/pymusic.cpp
