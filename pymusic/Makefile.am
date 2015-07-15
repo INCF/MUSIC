@@ -22,7 +22,7 @@ pybuffer_la_LDFLAGS = -shared -module -avoid-version -export-dynamic $(MPI_LDFLA
 pymusic_la_CPPFLAGS = \
 	$(MPI_CPPFLAGS) \
 	$(PYMUSIC_CPPFLAGS) \
-	-I$(top_srcdir)/src
+	-I$(top_srcdir)/src -I$(top_builddir)/src
 
 pymusic_la_CXXFLAGS = \
 	$(PYMUSIC_CXXFLAGS) \
