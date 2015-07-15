@@ -6,7 +6,10 @@ Makefile.in
 .deps/
 .libs/
 
-config.*
+config.guess
+config.h.in
+config.h
+config.sub
 
 Makefile
 
