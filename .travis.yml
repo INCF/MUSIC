@@ -21,7 +21,7 @@ before_install:
   - echo $CXX
   - echo $CC
   - if [ "$CXX" == "g++" ]; then export CXX=""; fi
-  - if [ "$CC" == "gcc" ];  then export CXX=""; fi
+  - if [ "$CC" == "gcc" ];  then export CC=""; fi
   - echo $CXX
   - echo $CC
   
