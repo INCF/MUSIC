@@ -37,7 +37,15 @@ before_install:
   - sudo apt-get autoremove
   - sudo apt-get install -y python-coverage python-nose python-setuptools
   - sudo apt-get install -y python-mpi4py openmpi-bin openmpi-doc libopenmpi-dev
+  # Install pip and cython
+  - wget https://raw.github.com/pypa/pip/master/contrib/get-pip.py
+  - sudo python get-pip.py
+  - pip install --user cython==0.21.1
+  - sudo pip install -U setuptools
 
+install: 
+  - cython --version
+  
 before_script:
   - chmod +x build.sh 
   
