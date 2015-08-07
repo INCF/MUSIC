@@ -18,8 +18,12 @@ cache:
   
 
 before_install:
+  - echo $CXX
+  - echo $CC
   - if [ "$CXX" == "g++" ]; then export CXX=""; fi
   - if [ "$CC" == "gcc" ];  then export CXX=""; fi
+  - echo $CXX
+  - echo $CC
   
   - echo $LANG
   - echo $LC_ALL
