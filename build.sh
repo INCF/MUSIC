@@ -5,24 +5,26 @@ set -x
 
 ./autogen.sh
 
+#openmpi
+export LD_LIBRARY_PATH="/usr/lib/openmpi/lib:$LD_LIBRARY_PATH"
+export CPATH="/usr/lib/openmpi/include:$CPATH"
+export PATH="/usr/include/mpi:$PATH"
 if [ "$xMPI" = "1" ] ; then
-    #openmpi
-   export LD_LIBRARY_PATH="/usr/lib/openmpi/lib:$LD_LIBRARY_PATH"
-   export CPATH="/usr/lib/openmpi/include:$CPATH"
-   export PATH="/usr/include/mpi:$PATH"
+    
    CONFIGURE_MPI=""
 else
     CONFIGURE_MPI="--disable-mpi"
 fi
 
-if [ "$xInSource" = "InSource+" ] ; then
-    CONFIGURE="./configure"
-else
-    MUSIC_VPATH=build
-    mkdir "$MUSIC_VPATH"
-    cd "$MUSIC_VPATH"
-    CONFIGURE="../configure"
-fi
+#if [ "$xInSource" = "InSource+" ] ; then
+ 
+ #   CONFIGURE="./configure"
+#else
+MUSIC_VPATH=build
+mkdir "$MUSIC_VPATH"
+cd "$MUSIC_VPATH"
+CONFIGURE="../configure"
+#fi
 
 MUSIC_RESULT=result
 mkdir "$MUSIC_RESULT"
