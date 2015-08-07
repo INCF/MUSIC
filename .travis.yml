@@ -1,7 +1,6 @@
 language: cpp
 #compiler:
 #  - gcc
-
 env:
   matrix:
     - xMPI=0 
