@@ -252,10 +252,7 @@ namespace MUSIC {
 	    cmd = std::string (MUSIC_ARGV, s - MUSIC_ARGV);
 	    argstring = std::string (s + 1);
 	  }
-	char** newArgv = parseArgs (cmd, argstring, &argc);
-	for (int i = 0; i < argc; ++i)
-	  argv[i] = newArgv[i];
-	delete[] newArgv;
+	argv = parseArgs (cmd, argstring, &argc);
       }
   }
 
