@@ -3,8 +3,12 @@
 cdef extern from "mpi_compat.h":
     pass
 
+include "pyconfig.pxi" 
 cimport mpi4py.MPI as MPI
-from mpi4py.mpi_c cimport *
+IF MPI4V2:
+    from mpi4py.libmpi cimport *
+ELSE:
+    from mpi4py.mpi_c cimport *
 
 from libcpp cimport bool as cbool
 from libcpp.string cimport string
