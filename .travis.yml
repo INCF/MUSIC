@@ -1,6 +1,8 @@
-language: cpp
+language: generic
 #compiler:
 #  - gcc
+sudo: required
+dist: trusty
 env:
   matrix:
     - xMPI=0 
@@ -36,12 +38,12 @@ before_install:
   # remove any obsolete libraries
   - sudo apt-get autoremove
   - sudo apt-get install -y python-coverage python-nose python-setuptools
-  - sudo apt-get install -y python-mpi4py openmpi-bin openmpi-doc libopenmpi-dev
+  - sudo apt-get install -y python-mpi4py openmpi-bin openmpi-doc libopenmpi-dev python-all-dev
   # Install pip and cython
-  - wget https://raw.github.com/pypa/pip/master/contrib/get-pip.py
+  - wget https://bootstrap.pypa.io/get-pip.py
   - sudo python get-pip.py
-  - pip install --user cython==0.21.1
   - sudo pip install -U setuptools
+  - pip install --user cython==0.23.4
 
 install: 
   - cython --version
