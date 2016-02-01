@@ -1,6 +1,8 @@
 language: cpp
 #compiler:
 #  - gcc
+sudo: required
+dist: trusty
 env:
   matrix:
     - xMPI=0 
