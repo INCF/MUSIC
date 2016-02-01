@@ -38,7 +38,7 @@ before_install:
   # remove any obsolete libraries
   - sudo apt-get autoremove
   - sudo apt-get install -y python-coverage python-nose python-setuptools
-  - sudo apt-get install -y python-mpi4py openmpi-bin openmpi-doc libopenmpi-dev
+  - sudo apt-get install -y python-mpi4py openmpi-bin openmpi-doc libopenmpi-dev python-all-dev
   # Install pip and cython
   - wget https://bootstrap.pypa.io/get-pip.py
   - sudo python get-pip.py
