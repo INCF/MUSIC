@@ -1,14 +1,18 @@
 
-EXTRA_DIST = setup.py.in pymusic.pyx pymusic.pxd music_c.h pybuffer.pyx pybuffer.pxd
+EXTRA_DIST = setup.py.in tests.py pymusic.pyx pymusic.pxd music_c.h pybuffer.pyx pybuffer.pxd 
 
 BUILT_SOURCES = pymusic.cpp pybuffer.cpp
 
-pybuffer.cpp: pybuffer.pyx pybuffer.pxd
+
+pyconfig.pxi: tests.py
+	cd $(top_srcdir)/pymusic; $(PYTHON) tests.py
+
+pybuffer.cpp: pyconfig.pxi pybuffer.pyx pybuffer.pxd 
 	cd $(top_srcdir)/pymusic; $(PYTHON) -c \
 	"from Cython.Build import cythonize; \
 	cythonize('pybuffer.pyx', verbose=1)"
 
-pymusic.cpp: pymusic.pyx pymusic.pxd
+pymusic.cpp: pyconfig.pxi pymusic.pyx pymusic.pxd 
 	cd $(top_srcdir)/pymusic; $(PYTHON) -c \
 	"from Cython.Build import cythonize; \
 	cythonize('pymusic.pyx', verbose=1)"
