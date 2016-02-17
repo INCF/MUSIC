@@ -32,6 +32,7 @@ namespace MUSIC {
 
   class EventHandlerGlobalIndex {
   public:
+    virtual ~EventHandlerGlobalIndex() { }
     virtual void operator () (double t, GlobalIndex id) = 0;
   };
   
@@ -55,6 +56,7 @@ namespace MUSIC {
   
   class EventHandlerLocalIndex {
   public:
+    virtual ~EventHandlerLocalIndex() { }
     virtual void operator () (double t, LocalIndex id) = 0;
   };
 
