@@ -5,7 +5,7 @@
 from libc.stdlib cimport malloc, free
 
 import mpi4py.MPI as MPI
-import cPickle as pickle
+from six.moves import cPickle as pickle
 
 ###########################################################
 

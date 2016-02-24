@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 import music
 import sys
@@ -23,6 +23,7 @@ def eventerr(d):
 
 time = None
 def msgfunc(d, msg):
+    print (msg)
     eventerr(d)
     sys.stderr.write(
         "Receive rank {}: {} ({}) at {}\n".
