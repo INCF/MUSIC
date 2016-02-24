@@ -17,12 +17,12 @@ if sys.platform == 'linux2':
     sys.setdlopenflags(dl.RTLD_NOW|dl.RTLD_GLOBAL)
 
     setrc()
-    from pymusic import *
+    from .pymusic import *
 
     sys.setdlopenflags(flags)
 else:
     setrc()
-    from pymusic import *
+    from .pymusic import *
 
 #import DLFCN as dl
 #import sys
