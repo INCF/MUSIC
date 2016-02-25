@@ -1,7 +1,7 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 import music
-from itertools import groupby, ifilter, takewhile
+from itertools import groupby, takewhile
 import sys
 
 setup = music.Setup()
@@ -38,8 +38,8 @@ out.map(index,
         maxBuffered=buf)
 
 eventgen = ((mapout(i % local), i * stoptime / events)
-            for i in xrange(events)) # index, time
-steps = groupby(eventgen, lambda (i , t): int(t/timestep))
+            for i in range(events)) # index, time
+steps = groupby(eventgen, lambda i_t: int(i_t[1]/timestep))
 def step(): return next(steps, (None, None))
 
 runtime = setup.runtime(timestep)

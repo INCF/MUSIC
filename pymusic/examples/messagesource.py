@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 import music
 from itertools import groupby, takewhile
@@ -19,7 +19,7 @@ out = setup.publishMessageOutput("out")
 out.map(maxBuffered=buf, pickled=pickled)
 
 eventgen = (i * stoptime / events
-            for i in xrange(events)
+            for i in range(events)
             if i % size == rank)
 steps = groupby(eventgen, lambda t: int(t/timestep))
 def step(): return next(steps, (None, None))

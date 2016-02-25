@@ -5,7 +5,7 @@
 from libc.stdlib cimport malloc, free
 
 import mpi4py.MPI as MPI
-import cPickle as pickle
+from six.moves import cPickle as pickle
 
 ###########################################################
 
@@ -709,8 +709,9 @@ cdef cbool MessageCallback(PyObject* func,
          obj: is either the unpickled object if the port unpickles
               or simply a bytearray of data (you figure out the source)
     """
-    cdef str pobj = (<char*>msg)[:s]
-    cdef object obj = pickle.loads(pobj) if pickled else <bytearray> pobj
+    #cdef str pobj = (<char*>msg)[:s]
+    cdef bytearray pobj = (<char*>msg)[:s]
+    cdef object obj = pickle.loads(pobj) if pickled else pobj
     (<object>func)(t, obj)
     return True
 
