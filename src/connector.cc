@@ -762,6 +762,8 @@ error( "LOCAL Indices are not supported with MUSIC_ANYSOURCE");
 	  }
    }
 #endif //MUSIC_ANYSOURCE
+
+
   /********************************************************************
    *
    * Message Connectors
@@ -779,8 +781,6 @@ error( "LOCAL Indices are not supported with MUSIC_ANYSOURCE");
       buffers_ (buffers)
   {
   }
-
-
 
   
   Subconnector*

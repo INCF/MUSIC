@@ -680,7 +680,7 @@ namespace MUSIC {
   {
     return new MessageOutputConnector (connInfo,
 				       indices_,
-		  			   index_type_,
+				       index_type_,
 				       setup_->communicator (),
 				       buffers);
   }

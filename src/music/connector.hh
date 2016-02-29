@@ -393,9 +393,10 @@ namespace MUSIC {
 				 public PostCommunicationConnector {
   private:
     //   OutputSynchronizer synch;
-    FIBO buffer;
+    FIBO buffer; // MessageOutputConnectors have only one output buffer
     bool bufferAdded;
-    std::vector<FIBO*>& buffers_;
+    std::vector<FIBO*>& buffers_; // pointer to the port vector of
+				  // connector buffers
     void send ();
   public:
     MessageOutputConnector (ConnectorInfo connInfo,

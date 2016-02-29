@@ -33,6 +33,10 @@
 
 namespace MUSIC {
 
+  /**
+   * The Distributor distributes data from state variables represented
+   * by a DataMap ro a set of output buffers in BufferMap.
+   */
   class Distributor {
   public: //for BG compiler
     class Interval : public MUSIC::Interval {

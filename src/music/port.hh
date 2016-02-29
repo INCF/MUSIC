@@ -242,7 +242,7 @@ namespace MUSIC {
 
   class MessageOutputPort : public MessagePort,
 			    public OutputPort {
-    std::vector<FIBO*> buffers;
+    std::vector<FIBO*> buffers; // one buffer per MessageOutputConnector
   public:
     MessageOutputPort (Setup* s, std::string id);
     void map ();

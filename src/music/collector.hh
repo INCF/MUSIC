@@ -33,6 +33,11 @@
 
 namespace MUSIC {
 
+  /**
+   * The Collector is responsible for collecting data from a set of
+   * input buffers in BufferMap and store them in the state variables
+   * represented by a DataMap.
+   */
   class Collector {
   public: //for BG compiler
     class Interval : public MUSIC::Interval {
