@@ -596,7 +596,7 @@ namespace MUSIC {
   {
     void* data;
     int size;
-    buffer_->nextBlockNoClear (data, size);
+    buffer_->nextBlock (data, size);
     // NOTE: marshalling
     char* buffer = static_cast <char*> (data);
     while (size >= MESSAGE_BUFFER_MAX)

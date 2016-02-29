@@ -813,8 +813,6 @@ error( "LOCAL Indices are not supported with MUSIC_ANYSOURCE");
   void
   MessageOutputConnector::postCommunication ()
   {
-    //   if (synch.communicate ())
-    buffer.clear ();
   }
 
   
