@@ -42,6 +42,35 @@ namespace MUSIC {
 
   class Runtime;
 
+  struct SetupData
+  {
+    SetupData()
+        : comm(),
+        config_(NULL),
+        ports_(),
+        connections_(),
+        temporalNegotiator_(NULL),
+        argc_(),
+        argv_(NULL),
+        launchedByMusic_(false),
+        postponeSetup_(false),
+        timebase_(0.0),
+        isInstantiated_(true)
+      {}
+
+    MPI::Intracomm comm_;
+    Configuration* config_;
+    std::vector<Port*> ports_;
+    std::vector<Connection*>* connections_;
+    TemporalNegotiator* temporalNegotiator_;
+    int argc_;
+    char** argv_;
+    bool launchedByMusic_;
+    bool postponeSetup_;
+    double timebase_;
+    static bool isInstantiated_;
+  };
+
   /*
    * This is the Setup object in the MUSIC API
    *
@@ -52,6 +81,8 @@ namespace MUSIC {
     static const char* const configEnvVarName;
     static const char* const opConfigFileName;
     static const char* const opAppLabel;
+    static bool isInstantiated_;
+
   public:
     Setup (int& argc, char**& argv);
 
@@ -80,18 +111,7 @@ namespace MUSIC {
     MessageOutputPort* publishMessageOutput (string identifier);
 
   private:
-    MPI::Intracomm comm;
-    Configuration* config_;
-    std::vector<Port*> ports_;
-    std::vector<Connection*>* connections_;
-    TemporalNegotiator* temporalNegotiator_;
-    double timebase_;
-    static bool isInstantiated_;
-    int& argc_;
-    char**& argv_;
-
-    bool launchedByMusic_;
-    bool postponeSetup_;
+    static SetupData data_;
 
     // Since we don't want to expose this internal interface to the
     // user we put the member functions in the private part and give
@@ -106,7 +126,7 @@ namespace MUSIC {
     friend class TemporalNegotiator;
     friend class ApplicationNode;
     
-    double timebase () { return timebase_; }
+    double timebase () { return data_.timebase_; }
 
     bool launchedByMusic ();
 
@@ -139,19 +159,19 @@ namespace MUSIC {
 
     std::vector<Port*>* ports ()
     {
-      return &ports_;
+      return &data_.ports_;
     }    
 
     void addPort (Port* p);
     
     std::vector<Connection*>* connections ()
     {
-      return connections_;
+      return data_.connections_;
     }
     
     void addConnection (Connection* c);
 
-    TemporalNegotiator* temporalNegotiator () { return temporalNegotiator_; }
+    TemporalNegotiator* temporalNegotiator () { return data_.temporalNegotiator_; }
     
     void errorChecks ();
 
