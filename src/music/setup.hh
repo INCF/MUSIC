@@ -42,33 +42,34 @@ namespace MUSIC {
 
   class Runtime;
 
-  struct SetupData
+  class Setup;
+
+  struct GlobalSetupData
   {
-    SetupData()
-        : comm(),
+    GlobalSetupData()
+        : setups_(),
         config_(NULL),
-        ports_(),
-        connections_(),
         temporalNegotiator_(NULL),
         argc_(),
         argv_(NULL),
         launchedByMusic_(false),
         postponeSetup_(false),
-        timebase_(0.0),
-        isInstantiated_(true)
-      {}
+        timebase_(0.0)
+      {
+      }
 
-    MPI::Intracomm comm_;
+    ~GlobalSetupData();
+
+    void clean_up();
+
+    std::vector<Setup*> setups_;
     Configuration* config_;
-    std::vector<Port*> ports_;
-    std::vector<Connection*>* connections_;
     TemporalNegotiator* temporalNegotiator_;
     int argc_;
     char** argv_;
     bool launchedByMusic_;
     bool postponeSetup_;
     double timebase_;
-    static bool isInstantiated_;
   };
 
   /*
@@ -81,7 +82,8 @@ namespace MUSIC {
     static const char* const configEnvVarName;
     static const char* const opConfigFileName;
     static const char* const opAppLabel;
-    static bool isInstantiated_;
+    static size_t instance_count_;
+    static MPI::Intracomm* comm_;
 
   public:
     Setup (int& argc, char**& argv);
@@ -98,6 +100,8 @@ namespace MUSIC {
 
     bool config (string var, double* result);
 
+    bool isLastSetupInstance();
+
     ContInputPort* publishContInput (string identifier);
 
     ContOutputPort* publishContOutput (string identifier);
@@ -111,8 +115,9 @@ namespace MUSIC {
     MessageOutputPort* publishMessageOutput (string identifier);
 
   private:
-    static SetupData data_;
-
+    static GlobalSetupData data_;
+    std::vector<Port*> ports_;
+    std::vector<Connection*>* connections_;
     // Since we don't want to expose this internal interface to the
     // user we put the member functions in the private part and give
     // these classes access through a friend declaration.  Classes are
@@ -159,14 +164,25 @@ namespace MUSIC {
 
     std::vector<Port*>* ports ()
     {
-      return &data_.ports_;
+      return &ports_;
     }    
+
+    std::vector<Port*> global_ports()
+    {
+        std::vector<Port*> global_port_list;
+        for( std::vector<Setup*>::iterator it = data_.setups_.begin(); it != data_.setups_.end(); ++it )
+        {
+            std::vector<Port*>* p = (*it)->ports();
+            global_port_list.insert(global_port_list.end(), p->begin(), p->end());
+        }
+        return global_port_list;
+    }
 
     void addPort (Port* p);
     
     std::vector<Connection*>* connections ()
     {
-      return data_.connections_;
+      return connections_;
     }
     
     void addConnection (Connection* c);

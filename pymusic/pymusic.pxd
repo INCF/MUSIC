@@ -119,6 +119,7 @@ cdef extern from "music/setup.hh" namespace "MUSIC":
         CSetup(int&, char**&, int, int*) except +
 
         cbool config(string, string*)
+        cbool isLastSetupInstance()
 
         CContInputPort*     publishContInput(string)
         CContOutputPort*    publishContOutput(string)
@@ -126,6 +127,7 @@ cdef extern from "music/setup.hh" namespace "MUSIC":
         CEventOutputPort*   publishEventOutput(string)
         CMessageInputPort*  publishMessageInput(string)
         CMessageOutputPort* publishMessageOutput(string)
+        
 
 cdef extern from "music/runtime.hh" namespace "MUSIC":
     cdef cppclass CRuntime "MUSIC::Runtime":

@@ -61,8 +61,9 @@ namespace MUSIC
     /* remedius
      * copy ports in order to delete them afterwards (it was probably a memory leak in previous revision)
      */
-    for (std::vector<Port *>::iterator it = s->ports ()->begin ();
-        it < s->ports ()->end (); it++)
+    std::vector<Port*> p = s->global_ports();
+    for (std::vector<Port *>::iterator it = p.begin ();
+        it < p.end (); it++)
       ports.push_back ( (*it));
 
     Connections* connections = s->connections ();
