@@ -58,9 +58,34 @@ namespace MUSIC {
       {
       }
 
-    ~GlobalSetupData();
 
-    void clean_up();
+  ~GlobalSetupData()
+  {
+      setups_.clear();
+      if (launchedByMusic_ )
+      {
+          delete temporalNegotiator_;
+      }
+
+      delete config_;
+      delete argv_;
+  }
+
+
+
+    void remove_setup(Setup* s)
+    {
+        std::vector<Setup*>::iterator it = std::find(setups_.begin(), setups_.end(), s);
+        if(it != setups_.end())
+        {
+            setups_.erase(it);
+        }
+    }
+
+    void add_setup(Setup* s)
+    {
+        setups_.push_back(s);
+    }
 
     std::vector<Setup*> setups_;
     Configuration* config_;
@@ -82,10 +107,10 @@ namespace MUSIC {
     static const char* const configEnvVarName;
     static const char* const opConfigFileName;
     static const char* const opAppLabel;
-    static size_t instance_count_;
-    static MPI::Intracomm* comm_;
+
 
   public:
+
     Setup (int& argc, char**& argv);
 
     Setup (int& argc, char**& argv, int required, int* provided);
@@ -102,6 +127,10 @@ namespace MUSIC {
 
     bool isLastSetupInstance();
 
+    void clearPorts();
+
+    void clearConnections();
+
     ContInputPort* publishContInput (string identifier);
 
     ContOutputPort* publishContOutput (string identifier);
@@ -116,8 +145,9 @@ namespace MUSIC {
 
   private:
     static GlobalSetupData data_;
+    static MPI::Intracomm* comm_;
     std::vector<Port*> ports_;
-    std::vector<Connection*>* connections_;
+    std::vector<Connection*> connections_;
     // Since we don't want to expose this internal interface to the
     // user we put the member functions in the private part and give
     // these classes access through a friend declaration.  Classes are
@@ -131,6 +161,11 @@ namespace MUSIC {
     friend class TemporalNegotiator;
     friend class ApplicationNode;
     
+    static std::vector<Setup*> get_all_setups()
+    {
+        return std::vector<Setup*>( data_.setups_ );        
+    }
+
     double timebase () { return data_.timebase_; }
 
     bool launchedByMusic ();
@@ -162,25 +197,14 @@ namespace MUSIC {
 
     PortConnectorInfo portConnections (const std::string localName);
 
-    std::vector<Port*>* ports ()
+    std::vector<Port*> ports ()
     {
-      return &ports_;
+      return ports_;
     }    
-
-    std::vector<Port*> global_ports()
-    {
-        std::vector<Port*> global_port_list;
-        for( std::vector<Setup*>::iterator it = data_.setups_.begin(); it != data_.setups_.end(); ++it )
-        {
-            std::vector<Port*>* p = (*it)->ports();
-            global_port_list.insert(global_port_list.end(), p->begin(), p->end());
-        }
-        return global_port_list;
-    }
 
     void addPort (Port* p);
     
-    std::vector<Connection*>* connections ()
+    std::vector<Connection*> connections ()
     {
       return connections_;
     }

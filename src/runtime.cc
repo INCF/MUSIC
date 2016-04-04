@@ -61,12 +61,27 @@ namespace MUSIC
     /* remedius
      * copy ports in order to delete them afterwards (it was probably a memory leak in previous revision)
      */
-    std::vector<Port*> p = s->global_ports();
-    for (std::vector<Port *>::iterator it = p.begin ();
-        it < p.end (); it++)
-      ports.push_back ( (*it));
+    std::vector<Setup*> all_setups = Setup::get_all_setups();
+    Connections* connections = new std::vector<Connection*>();
+    for( std::vector<Setup*>::iterator setup_it = all_setups.begin(); setup_it != all_setups.end(); setup_it++)
+    {
 
-    Connections* connections = s->connections ();
+        std::vector<Port*> p = (*setup_it)->ports();
+        for (std::vector<Port *>::iterator it = p.begin ();
+            it < p.end (); it++)
+        {
+          ports.push_back ( (*it));
+        }
+        (*setup_it)->clearPorts();
+
+        std::vector<Connection*> c = (*setup_it)->connections();
+        for (std::vector<Connection *>::iterator it = c.begin ();
+            it < c.end (); it++)
+        {
+          connections->push_back ( (*it));
+        }
+       (*setup_it)->clearConnections();
+    }
 
     scheduler = new Scheduler (comm, leader_);
     if (s->launchedByMusic ())
@@ -111,7 +126,10 @@ namespace MUSIC
 	scheduler->initializeAgentState ();
       }
 
-    delete s;
+    for( std::vector<Setup*>::iterator setup_it = all_setups.begin(); setup_it != all_setups.end(); setup_it++)
+    {
+        //delete *setup_it;
+    }
 #ifdef MUSIC_AFTER_RUNTIME_CONSTRUCTOR_REPORT
     if (MPI::COMM_WORLD.Get_rank () == 0)
     reportMem ();

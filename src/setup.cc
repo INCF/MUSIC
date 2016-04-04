@@ -29,42 +29,16 @@
 namespace MUSIC {
 
 
+  MPI::Intracomm* Setup::comm_;
   GlobalSetupData Setup::data_;
-  MPI::Intracomm* comm_ = NULL;
-  size_t Setup::instance_count_ = 0;
   static std::string err_MPI_Init = "MPI_Init was called before the Setup constructor";
   const char* const Setup::opConfigFileName = "--music-config";
   const char* const Setup::opAppLabel = "--app-label";
 
-  void GlobalSetupData::clean_up()
-  {
-      if ( temporalNegotiator_ != NULL && launchedByMusic_)
-      {
-        delete temporalNegotiator_;
-        temporalNegotiator_ = NULL;
-      }
-
-      if( config_ != NULL)
-      {
-          delete config_;
-          config_ = NULL;
-      }
-
-      if( argv_ != NULL)
-      {
-          delete argv_;
-          argv_ = NULL;
-      }
-  }
-
-  GlobalSetupData::~GlobalSetupData()
-  {
-    clean_up();
-  }
 
   Setup::Setup (int& argc, char**& argv)
   {
-    if( instance_count_ == 0 )
+    if( data_.setups_.size() == 0 )
     {
         data_.argc_ = argc;
         data_.argv_ = argv;
@@ -74,7 +48,6 @@ namespace MUSIC {
         MPI::Init (argc, argv);
         init (argc, argv);
     }
-    instance_count_++;
     data_.setups_.push_back(this);
   }
 
@@ -82,7 +55,7 @@ namespace MUSIC {
   Setup::Setup (int& argc, char**& argv, int required, int* provided)
   {
       
-    if( instance_count_ == 0 )
+    if( data_.setups_.size() == 0 )
     {
         data_.argc_ = argc;
         data_.argv_ = argv;
@@ -97,33 +70,27 @@ namespace MUSIC {
 #endif
         init (argc, argv);
     }
-    instance_count_++;
     data_.setups_.push_back(this);
   }
 
 
   Setup::~Setup ()
     {
+        data_.remove_setup(this);
+
         for (std::vector<Port*>::iterator i = ports_.begin ();
             i != ports_.end (); ++i)
         {
             (*i)->setupCleanup ();
         }
-        for (std::vector<Connection*>::iterator i = connections_->begin ();
-            i != connections_->end (); ++i)
+        for (std::vector<Connection*>::iterator i = connections_.begin ();
+            i != connections_.end (); ++i)
         {
             delete *i;
         }
-        instance_count_--;
-        std::vector<Setup*>::iterator it = std::find(data_.setups_.begin(), data_.setups_.end(), this);
-        if(it != data_.setups_.end())
+
+        if (isLastSetupInstance())
         {
-            data_.setups_.erase(it);
-        }
-        if( instance_count_ == 1 )
-        {
-            delete comm_;
-            data_.clean_up();
         }
     }
 
@@ -171,7 +138,6 @@ namespace MUSIC {
       data_.config_ = new Configuration ();
 
 
-    connections_ = new std::vector<Connection*>; // destroyed by runtime
     if (launchedByMusic ())
       {
         // launched by the music utility
@@ -350,14 +316,14 @@ namespace MUSIC {
   bool 
   Setup::isLastSetupInstance()
   {
-    return instance_count_ <= 1; 
+    return data_.setups_.size() <= 1;
   }
 
   
   MPI::Intracomm
   Setup::communicator ()
   {
-    return comm_;
+    return *comm_;
   }
 
 
@@ -399,7 +365,7 @@ namespace MUSIC {
   int
   Setup::nProcs ()
   {
-    return comm_.Get_size ();
+    return comm_->Get_size ();
   }
 
 
@@ -495,7 +461,18 @@ namespace MUSIC {
   
   void Setup::addConnection (Connection* c)
   {
-    connections_->push_back (c);
+    connections_.push_back (c);
+  }
+
+  void Setup::clearPorts()
+  {
+    ports_.clear();
+    
+  }
+
+  void Setup::clearConnections()
+  {
+      connections_.clear();
   }
 
 }
