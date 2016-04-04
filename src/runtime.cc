@@ -128,7 +128,7 @@ namespace MUSIC
 
     for( std::vector<Setup*>::iterator setup_it = all_setups.begin(); setup_it != all_setups.end(); setup_it++)
     {
-        //delete *setup_it;
+        delete *setup_it;
     }
 #ifdef MUSIC_AFTER_RUNTIME_CONSTRUCTOR_REPORT
     if (MPI::COMM_WORLD.Get_rank () == 0)

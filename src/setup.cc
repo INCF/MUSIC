@@ -29,7 +29,6 @@
 namespace MUSIC {
 
 
-  MPI::Intracomm* Setup::comm_;
   GlobalSetupData Setup::data_;
   static std::string err_MPI_Init = "MPI_Init was called before the Setup constructor";
   const char* const Setup::opConfigFileName = "--music-config";
@@ -38,6 +37,7 @@ namespace MUSIC {
 
   Setup::Setup (int& argc, char**& argv)
   {
+    comm_ = MPI::COMM_NULL;
     if( data_.setups_.size() == 0 )
     {
         data_.argc_ = argc;
@@ -55,6 +55,7 @@ namespace MUSIC {
   Setup::Setup (int& argc, char**& argv, int required, int* provided)
   {
       
+    comm_ = MPI::COMM_NULL;
     if( data_.setups_.size() == 0 )
     {
         data_.argc_ = argc;
@@ -147,12 +148,12 @@ namespace MUSIC {
             argc = data_.argc_;
             argv = data_.argv_;
           }
-        comm_ = new MPI::Intracomm(MPI::COMM_WORLD.Split (data_.config_->Color (), myRank));
+        comm_ = MPI::COMM_WORLD.Split (data_.config_->Color (), myRank);
       }
     else
       {
         // launched with mpirun
-        comm_ = &MPI::COMM_WORLD;
+        comm_ = MPI::COMM_WORLD;
         data_.timebase_ = MUSIC_DEFAULT_TIMEBASE;
       }
   }
@@ -323,7 +324,7 @@ namespace MUSIC {
   MPI::Intracomm
   Setup::communicator ()
   {
-    return *comm_;
+    return comm_;
   }
 
 
@@ -365,7 +366,7 @@ namespace MUSIC {
   int
   Setup::nProcs ()
   {
-    return comm_->Get_size ();
+    return comm_.Get_size ();
   }
 
 
