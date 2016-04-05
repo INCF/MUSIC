@@ -145,7 +145,7 @@ namespace MUSIC {
 
   private:
     static GlobalSetupData data_;
-    MPI::Intracomm comm_;
+    static MPI::Intracomm comm_;
     std::vector<Port*> ports_;
     std::vector<Connection*> connections_;
     // Since we don't want to expose this internal interface to the

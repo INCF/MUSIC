@@ -30,6 +30,7 @@ namespace MUSIC {
 
 
   GlobalSetupData Setup::data_;
+  MPI::Intracomm Setup::comm_;
   static std::string err_MPI_Init = "MPI_Init was called before the Setup constructor";
   const char* const Setup::opConfigFileName = "--music-config";
   const char* const Setup::opAppLabel = "--app-label";
@@ -37,7 +38,6 @@ namespace MUSIC {
 
   Setup::Setup (int& argc, char**& argv)
   {
-    comm_ = MPI::COMM_NULL;
     if( data_.setups_.size() == 0 )
     {
         data_.argc_ = argc;
@@ -55,7 +55,6 @@ namespace MUSIC {
   Setup::Setup (int& argc, char**& argv, int required, int* provided)
   {
       
-    comm_ = MPI::COMM_NULL;
     if( data_.setups_.size() == 0 )
     {
         data_.argc_ = argc;
