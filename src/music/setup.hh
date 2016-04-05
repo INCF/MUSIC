@@ -47,47 +47,50 @@ namespace MUSIC {
   struct GlobalSetupData
   {
     GlobalSetupData()
-        : setups_(),
+        : comm_(MPI::COMM_WORLD),
+        ports_(),
+        connections_(),
         config_(NULL),
         temporalNegotiator_(NULL),
         argc_(),
         argv_(NULL),
         launchedByMusic_(false),
         postponeSetup_(false),
-        timebase_(0.0)
+        timebase_()
       {
       }
 
 
   ~GlobalSetupData()
   {
-      setups_.clear();
       if (launchedByMusic_ )
       {
-          delete temporalNegotiator_;
+          //delete temporalNegotiator_;
       }
 
-      delete config_;
-      delete argv_;
+      //delete config_;
+      //delete argv_;
+
+	   for (std::vector<Port*>::iterator i = ports_.begin ();
+           i != ports_.end ();
+           ++i)
+       {
+       
+         //   (*i)->setupCleanup ();
+       }
+
+      // delete connection objects
+      for (std::vector<Connection*>::iterator i = connections_.begin ();
+           i != connections_.end ();
+           ++i)
+      {
+        //delete *i; 
+      }
   }
 
-
-
-    void remove_setup(Setup* s)
-    {
-        std::vector<Setup*>::iterator it = std::find(setups_.begin(), setups_.end(), s);
-        if(it != setups_.end())
-        {
-            setups_.erase(it);
-        }
-    }
-
-    void add_setup(Setup* s)
-    {
-        setups_.push_back(s);
-    }
-
-    std::vector<Setup*> setups_;
+    MPI::Intracomm comm_;
+    std::vector<Port*> ports_;
+    std::vector<Connection*> connections_;
     Configuration* config_;
     TemporalNegotiator* temporalNegotiator_;
     int argc_;
@@ -107,7 +110,7 @@ namespace MUSIC {
     static const char* const configEnvVarName;
     static const char* const opConfigFileName;
     static const char* const opAppLabel;
-
+    static size_t instanceCount;
 
   public:
 
@@ -127,9 +130,6 @@ namespace MUSIC {
 
     bool isLastSetupInstance();
 
-    void clearPorts();
-
-    void clearConnections();
 
     ContInputPort* publishContInput (string identifier);
 
@@ -144,10 +144,7 @@ namespace MUSIC {
     MessageOutputPort* publishMessageOutput (string identifier);
 
   private:
-    static GlobalSetupData data_;
-    static MPI::Intracomm comm_;
-    std::vector<Port*> ports_;
-    std::vector<Connection*> connections_;
+    static GlobalSetupData* data_;
     // Since we don't want to expose this internal interface to the
     // user we put the member functions in the private part and give
     // these classes access through a friend declaration.  Classes are
@@ -161,12 +158,8 @@ namespace MUSIC {
     friend class TemporalNegotiator;
     friend class ApplicationNode;
     
-    static std::vector<Setup*> get_all_setups()
-    {
-        return std::vector<Setup*>( data_.setups_ );        
-    }
 
-    double timebase () { return data_.timebase_; }
+    double timebase () { return data_->timebase_; }
 
     bool launchedByMusic ();
 
@@ -197,21 +190,21 @@ namespace MUSIC {
 
     PortConnectorInfo portConnections (const std::string localName);
 
-    std::vector<Port*> ports ()
+    std::vector<Port*>* ports ()
     {
-      return ports_;
+      return new std::vector<Port*>(data_->ports_);
     }    
 
     void addPort (Port* p);
     
-    std::vector<Connection*> connections ()
+    std::vector<Connection*>* connections ()
     {
-      return connections_;
+      return new std::vector<Connection*>(data_->connections_);
     }
     
     void addConnection (Connection* c);
 
-    TemporalNegotiator* temporalNegotiator () { return data_.temporalNegotiator_; }
+    TemporalNegotiator* temporalNegotiator () { return data_->temporalNegotiator_; }
     
     void errorChecks ();
 

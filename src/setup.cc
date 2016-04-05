@@ -29,8 +29,8 @@
 namespace MUSIC {
 
 
-  GlobalSetupData Setup::data_;
-  MPI::Intracomm Setup::comm_;
+  GlobalSetupData* Setup::data_ = new GlobalSetupData();
+  size_t Setup::instanceCount = 0;
   static std::string err_MPI_Init = "MPI_Init was called before the Setup constructor";
   const char* const Setup::opConfigFileName = "--music-config";
   const char* const Setup::opAppLabel = "--app-label";
@@ -38,27 +38,27 @@ namespace MUSIC {
 
   Setup::Setup (int& argc, char**& argv)
   {
-    if( data_.setups_.size() == 0 )
+    Setup::instanceCount++;
+    if( Setup::instanceCount == 1 )
     {
-        data_.argc_ = argc;
-        data_.argv_ = argv;
+        data_->argc_ = argc;
+        data_->argv_ = argv;
         if (MPI::Is_initialized ())
           errorRank (err_MPI_Init);
         maybeProcessMusicArgv (argc, argv);
         MPI::Init (argc, argv);
         init (argc, argv);
     }
-    data_.setups_.push_back(this);
   }
 
   
   Setup::Setup (int& argc, char**& argv, int required, int* provided)
   {
-      
-    if( data_.setups_.size() == 0 )
+    Setup::instanceCount++;
+    if( Setup::instanceCount == 1 )
     {
-        data_.argc_ = argc;
-        data_.argv_ = argv;
+        data_->argc_ = argc;
+        data_->argv_ = argv;
         if (MPI::Is_initialized ())
           errorRank (err_MPI_Init);
         maybeProcessMusicArgv (argc, argv);
@@ -70,27 +70,15 @@ namespace MUSIC {
 #endif
         init (argc, argv);
     }
-    data_.setups_.push_back(this);
   }
 
 
   Setup::~Setup ()
     {
-        data_.remove_setup(this);
-
-        for (std::vector<Port*>::iterator i = ports_.begin ();
-            i != ports_.end (); ++i)
+        Setup::instanceCount--;
+        if( Setup::instanceCount == 0 )
         {
-            (*i)->setupCleanup ();
-        }
-        for (std::vector<Connection*>::iterator i = connections_.begin ();
-            i != connections_.end (); ++i)
-        {
-            delete *i;
-        }
-
-        if (isLastSetupInstance())
-        {
+            delete Setup::data_;
         }
     }
 
@@ -100,20 +88,20 @@ namespace MUSIC {
   {
     int myRank = MPI::COMM_WORLD.Get_rank ();
     std::string config = "";
-    data_.launchedByMusic_ = false;
-    data_.postponeSetup_ = false;
+    data_->launchedByMusic_ = false;
+    data_->postponeSetup_ = false;
 
     if (launchedWithExec (config))
       {
         assert(config.length() > 0);
-        data_.launchedByMusic_ = true;
+        data_->launchedByMusic_ = true;
         if (!config.compare (0, 8, "POSTPONE"))
-          data_.postponeSetup_ = true;
-        data_.config_ = new Configuration (config);
+          data_->postponeSetup_ = true;
+        data_->config_ = new Configuration (config);
       }
     else if (launchedMPMD (argc, argv, config))
       {
-        data_.launchedByMusic_ = true;
+        data_->launchedByMusic_ = true;
         std::string config_file;
         loadConfigFile (config, config_file);
 
@@ -130,30 +118,31 @@ namespace MUSIC {
           }
 
         std::istringstream config_istream (config_file);
-        data_.config_ = new Configuration ();
-        ApplicationMapper app_mapper(data_.config_);
+        data_->config_ = new Configuration ();
+        ApplicationMapper app_mapper(data_->config_);
         app_mapper.map(&config_istream, binary, app_label);
       }
     else
-      data_.config_ = new Configuration ();
+      data_->config_ = new Configuration ();
 
 
+     //data_->connections_ = new std::vector<Connection*>; // destroyed by runtime
     if (launchedByMusic ())
       {
         // launched by the music utility
-        if (!data_.postponeSetup_)
+        if (!data_->postponeSetup_)
           {
             fullInit ();
-            argc = data_.argc_;
-            argv = data_.argv_;
+            argc = data_->argc_;
+            argv = data_->argv_;
           }
-        comm_ = MPI::COMM_WORLD.Split (data_.config_->Color (), myRank);
+        data_->comm_ = MPI::COMM_WORLD.Split (data_->config_->Color (), myRank);
       }
     else
       {
         // launched with mpirun
-        comm_ = MPI::COMM_WORLD;
-        data_.timebase_ = MUSIC_DEFAULT_TIMEBASE;
+        data_->comm_ = MPI::COMM_WORLD;
+        data_->timebase_ = MUSIC_DEFAULT_TIMEBASE;
       }
   }
 
@@ -266,10 +255,10 @@ namespace MUSIC {
   void
   Setup::maybePostponedSetup ()
   {
-    if (data_.postponeSetup_)
+    if (data_->postponeSetup_)
       {
-	delete data_.config_;
-	data_.config_ = new Configuration ();
+	delete data_->config_;
+	data_->config_ = new Configuration ();
 	fullInit ();
       }
   }
@@ -296,118 +285,118 @@ namespace MUSIC {
   Setup::fullInit ()
   {
     errorChecks ();
-    if (!config ("timebase", &data_.timebase_))
-      data_.timebase_ = MUSIC_DEFAULT_TIMEBASE;	       // default timebase
+    if (!config ("timebase", &data_->timebase_))
+      data_->timebase_ = MUSIC_DEFAULT_TIMEBASE;	       // default timebase
     string binary;
-    data_.config_->lookup ("binary", &binary);
+    data_->config_->lookup ("binary", &binary);
     string args;
-    data_.config_->lookup ("args", &args);
-    data_.argv_ = parseArgs (binary, args, &data_.argc_);
-    data_.temporalNegotiator_ = new TemporalNegotiator (this);
+    data_->config_->lookup ("args", &args);
+    data_->argv_ = parseArgs (binary, args, &data_->argc_);
+    data_->temporalNegotiator_ = new TemporalNegotiator (this);
   }
   
 
   bool
   Setup::launchedByMusic ()
   {
-    return data_.launchedByMusic_;
+    return data_->launchedByMusic_;
   }
 
   bool 
   Setup::isLastSetupInstance()
   {
-    return data_.setups_.size() <= 1;
+    return Setup::instanceCount <= 1;
   }
 
   
   MPI::Intracomm
   Setup::communicator ()
   {
-    return comm_;
+    return data_->comm_;
   }
 
 
   ConnectivityInfo*
   Setup::portConnectivity (const std::string localName)
   {
-    return data_.config_->connectivityMap ()->info (localName);
+    return data_->config_->connectivityMap ()->info (localName);
   }
 
 
   ApplicationMap*
   Setup::applicationMap ()
   {
-    return data_.config_->applications ();
+    return data_->config_->applications ();
   }
 
 
   int
   Setup::applicationColor ()
   {
-	  return data_.config_->Color();
+	  return data_->config_->Color();
   }
 
 
   std::string
   Setup::applicationName()
   {
-    return data_.config_->Name();
+    return data_->config_->Name();
   }
 
 
   int
   Setup::leader ()
   {
-    return data_.config_->Leader ();
+    return data_->config_->Leader ();
   }
 
 
   int
   Setup::nProcs ()
   {
-    return comm_.Get_size ();
+    return data_->comm_.Get_size ();
   }
 
 
   ConnectivityInfo::PortDirection
   Setup::portDirection (const std::string localName)
   {
-    return data_.config_->connectivityMap ()->direction (localName);
+    return data_->config_->connectivityMap ()->direction (localName);
   }
 
 
   int
   Setup::portWidth (const std::string localName)
   {
-    return data_.config_->connectivityMap ()->width (localName);
+    return data_->config_->connectivityMap ()->width (localName);
   }
 
 
   PortConnectorInfo
   Setup::portConnections (const std::string localName)
   {
-    return data_.config_->connectivityMap ()->connections (localName);
+    return data_->config_->connectivityMap ()->connections (localName);
   }
 
 
   bool
   Setup::config (string var, string* result)
   {
-    return data_.config_->lookup (var, result);
+    return data_->config_->lookup (var, result);
   }
 
   
   bool
   Setup::config (string var, int* result)
   {
-    return data_.config_->lookup (var, result);
+    return data_->config_->lookup (var, result);
   }
 
   
   bool
   Setup::config (string var, double* result)
   {
-    return data_.config_->lookup (var, result);
+    return data_->config_->lookup (var, result);
   }
 
   
@@ -455,25 +444,16 @@ namespace MUSIC {
   
   void Setup::addPort (Port* p)
   {
-    ports_.push_back (p);
+    data_->ports_.push_back (p);
   }
 
   
   void Setup::addConnection (Connection* c)
   {
-    connections_.push_back (c);
+    data_->connections_.push_back (c);
   }
 
-  void Setup::clearPorts()
-  {
-    ports_.clear();
-    
-  }
 
-  void Setup::clearConnections()
-  {
-      connections_.clear();
-  }
 
 }
 #endif
