@@ -29,7 +29,7 @@
 namespace MUSIC {
 
 
-  GlobalSetupData* Setup::data_ = new GlobalSetupData();
+  GlobalSetupData* Setup::data_ = NULL;
   size_t Setup::instanceCount = 0;
   static std::string err_MPI_Init = "MPI_Init was called before the Setup constructor";
   const char* const Setup::opConfigFileName = "--music-config";
@@ -41,6 +41,7 @@ namespace MUSIC {
     Setup::instanceCount++;
     if( Setup::instanceCount == 1 )
     {
+        Setup::data_ = new GlobalSetupData();
         data_->argc_ = argc;
         data_->argv_ = argv;
         if (MPI::Is_initialized ())
@@ -57,6 +58,7 @@ namespace MUSIC {
     Setup::instanceCount++;
     if( Setup::instanceCount == 1 )
     {
+        Setup::data_ = new GlobalSetupData();
         data_->argc_ = argc;
         data_->argv_ = argv;
         if (MPI::Is_initialized ())
@@ -126,7 +128,7 @@ namespace MUSIC {
       data_->config_ = new Configuration ();
 
 
-     //data_->connections_ = new std::vector<Connection*>; // destroyed by runtime
+    //data_->connections_ = new std::vector<Connection*>; // destroyed by runtime
     if (launchedByMusic ())
       {
         // launched by the music utility
@@ -453,6 +455,11 @@ namespace MUSIC {
     data_->connections_.push_back (c);
   }
 
+  void Setup::clearSetupData()
+  {
+      data_->connections_.clear();
+      data_->ports_.clear();
+  }
 
 
 }

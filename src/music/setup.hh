@@ -56,7 +56,7 @@ namespace MUSIC {
         argv_(NULL),
         launchedByMusic_(false),
         postponeSetup_(false),
-        timebase_()
+        timebase_(0.0)
       {
       }
 
@@ -65,27 +65,11 @@ namespace MUSIC {
   {
       if (launchedByMusic_ )
       {
-          //delete temporalNegotiator_;
+          delete temporalNegotiator_;
       }
 
-      //delete config_;
-      //delete argv_;
-
-	   for (std::vector<Port*>::iterator i = ports_.begin ();
-           i != ports_.end ();
-           ++i)
-       {
-       
-         //   (*i)->setupCleanup ();
-       }
-
-      // delete connection objects
-      for (std::vector<Connection*>::iterator i = connections_.begin ();
-           i != connections_.end ();
-           ++i)
-      {
-        //delete *i; 
-      }
+      delete config_;
+      delete argv_;
   }
 
     MPI::Intracomm comm_;
@@ -192,17 +176,21 @@ namespace MUSIC {
 
     std::vector<Port*>* ports ()
     {
-      return new std::vector<Port*>(data_->ports_);
+      //return new std::vector<Port*>(data_->ports_.begin(), data_->ports_.end());
+      return &data_->ports_;
     }    
 
     void addPort (Port* p);
     
     std::vector<Connection*>* connections ()
     {
-      return new std::vector<Connection*>(data_->connections_);
+      //return new std::vector<Connection*>(data_->connections_.begin(), data_->connections_.end());
+      return &data_->connections_;
     }
-    
+
     void addConnection (Connection* c);
+
+    void clearSetupData();
 
     TemporalNegotiator* temporalNegotiator () { return data_->temporalNegotiator_; }
     
