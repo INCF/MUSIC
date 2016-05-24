@@ -12,9 +12,16 @@ if test -z "$AUTOMAKE" ; then
  done
 fi
 
+if [ `uname -s` = Darwin ] ; then
+# libtoolize is glibtoolize on OSX
+  LIBTOOLIZE=glibtoolize
+else
+  LIBTOOLIZE=libtoolize
+fi
+
 ./aclocal.sh &&
-echo libtoolize --copy --automake &&
-libtoolize --copy --automake &&
+echo $LIBTOOLIZE --copy --automake &&
+$LIBTOOLIZE --copy --automake &&
 echo autoheader &&
 autoheader &&
 echo autoconf &&
