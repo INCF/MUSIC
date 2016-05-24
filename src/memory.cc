@@ -19,7 +19,11 @@
 #include <iostream>
 
 extern "C" {
+#ifdef __APPLE__
+#include <malloc/malloc.h>
+#else
 #include <malloc.h>
+#endif
 }
 
 #include "music/memory.hh"
