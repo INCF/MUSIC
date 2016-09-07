@@ -30,6 +30,10 @@ namespace MUSIC {
 
   int ConnectorInfo::maxPortCode_;
 
+#if __cplusplus <=199711L
+  ConnectivityInfo* const Connectivity::NO_CONNECTIVITY = NULL;
+#endif
+
   void
   ConnectorInfo::registerPortCode (int portCode)
   {

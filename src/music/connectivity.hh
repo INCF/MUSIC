@@ -207,7 +207,11 @@ namespace MUSIC {
     {
     }
 
-    static const int NO_CONNECTIVITY = 0;
+#if __cplusplus > 199711L
+    static constexpr ConnectivityInfo* NO_CONNECTIVITY = nullptr;
+#else
+    static ConnectivityInfo* const NO_CONNECTIVITY;
+#endif
 
     void  add (std::string localPort, ConnectivityInfo::PortDirection dir, int width,
         std::string recApp, std::string recPort, int recPortCode,
