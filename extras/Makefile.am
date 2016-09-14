@@ -3,4 +3,4 @@
 EXTRA_DIST = music_mpirun
 
 install-data-hook:
-	@INSTALL_PROGRAM@ $(srcdir)/music@LAUNCHSTYLE@ $(DESTDIR)$(bindir)/MUSIC2
+	@INSTALL_PROGRAM@ $(srcdir)/music@LAUNCHSTYLE@ $(DESTDIR)$(bindir)/musicrun
