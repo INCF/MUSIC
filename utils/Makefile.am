@@ -48,7 +48,7 @@ MUSIC_INCLUDE = -I$(top_srcdir)/src -I$(top_builddir)/src
 
  viewevents_SOURCES = viewevents.cpp VisualiseNeurons.cpp VisualiseNeurons.h
  viewevents_CXXFLAGS = $(MUSIC_INCLUDE) @MPI_CXXFLAGS@
- viewevents_LDADD = $(top_builddir)/src/libmusic.la @MPI_LDFLAGS@  -lglut -lGL -lGLU 
+ viewevents_LDADD = $(top_builddir)/src/libmusic.la @MPI_LDFLAGS@  -lglut -lGL -lGLU -lpthread
 
 
 MKDEP = gcc -M $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
