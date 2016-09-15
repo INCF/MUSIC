@@ -21,7 +21,7 @@
 
 import os
 
-from music.predict_rank import predictRank
+from music import predictRank
 
 # This function now defined in predict_rank.py
 #
@@ -241,6 +241,7 @@ def configure ():
     os.environ[CONFIGVARNAME] = conf
 
     configured = True
+    print "Config string is \n{}".format(conf)
 
     
 def launch ():

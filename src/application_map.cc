@@ -123,6 +123,7 @@ namespace MUSIC {
     int size = MPI::COMM_WORLD.Get_size ();
     int my_rank = MPI::COMM_WORLD.Get_rank ();
     int *colors = new int[size];
+	ApplicationInfo* app = lookup (my_app_label);
     colors[my_rank] = lookup (my_app_label)->color ();
     MPI::COMM_WORLD.Allgather (MPI::IN_PLACE, 0, MPI::INT, colors, 1, MPI::INT);
 

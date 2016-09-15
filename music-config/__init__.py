@@ -16,6 +16,6 @@
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from predict_rank import predictRank
+from music import predictRank
 from config import launchedByMusic, supersedeArgv, postponeSetup, \
                    define, Application, connect, configure, launch
