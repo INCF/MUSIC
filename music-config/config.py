@@ -241,7 +241,6 @@ def configure ():
     os.environ[CONFIGVARNAME] = conf
 
     configured = True
-    print "Config string is \n{}".format(conf)
 
     
 def launch ():

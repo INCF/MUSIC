@@ -19,10 +19,12 @@
 #if MUSIC_USE_MPI
 #include <mpi.h>
 
+#include "music/ioutils.hh"
 #include "music/runtime.hh"
 #include "music/parse.hh"
 #include "music/error.hh"
 #include "music/application_mapper.hh"
+#include <iostream>
 #include <strings.h>
 #include <fstream>
 
@@ -46,7 +48,6 @@ namespace MUSIC {
 
   }
 
-  
   Setup::Setup (int& argc, char**& argv, int required, int* provided)
     : argc_ (argc), argv_ (argv)
   {
@@ -101,8 +102,14 @@ namespace MUSIC {
         assert(config.length() > 0);
         launchedByMusic_ = true;
         if (!config.compare (0, 8, "POSTPONE"))
+		{
           postponeSetup_ = true;
-        config_ = new Configuration (config);
+		  	config_ = new Configuration ();
+		}
+		else
+		{
+			config_ = new Configuration (config);
+		}
       }
     else if (launchedMPMD (argc, argv, config))
       {
@@ -131,6 +138,23 @@ namespace MUSIC {
       config_ = new Configuration ();
 
 
+	// Can be moved to configuration.cc or re-written more clean, the current
+	// form is just for testing
+	int color;
+	if (postponeSetup_)
+	{
+		std::istringstream env (config);
+		IOUtils::read (env);
+		env.ignore();
+		/* env.ignore(); */
+		env >> color;
+	}
+	else
+	{
+		color = config_->Color ();
+	}
+
+
     connections_ = new std::vector<Connection*>; // destroyed by runtime
     if (launchedByMusic ())
       {
@@ -141,7 +165,9 @@ namespace MUSIC {
             argc = argc_;
             argv = argv_;
           }
-        comm = MPI::COMM_WORLD.Split (config_->Color (), myRank);
+		std::cerr << "MUSIC: Comm split color "
+			  << color << " at rank " << myRank << std::endl;
+        comm = MPI::COMM_WORLD.Split (color, myRank);
       }
     else
       {
@@ -263,7 +289,15 @@ namespace MUSIC {
     if (postponeSetup_)
       {
 	delete config_;
-	config_ = new Configuration ();
+	std::string config (getenv (Configuration::configEnvVarName));
+	if (!config.compare (0, 8, "POSTPONE"))
+	{
+		std::ostringstream oss;
+		oss << "MUSIC: <proper message>: ";
+		error0 (oss.str ());
+	}
+	std::cout << "Configuration env at this application is " << config << std::endl;
+	config_ = new Configuration (config);
 	fullInit ();
       }
   }
