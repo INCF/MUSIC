@@ -339,10 +339,24 @@ if test "x$have_python" = "xyes" ; then
  AC_CONFIG_FILES(pymusic/setup.py)
 fi
 
+AC_MSG_CHECKING([whether to build ROS Toolchain])
+AC_ARG_WITH([ros])
+ROS_SUBDIR=""
+AS_IF([test "x$with_ros" = "xyes"], [ROS_SUBDIR="ros"], [with_ros=no])
+AC_MSG_RESULT([$with_ros])
+
+# if ROS is to be compiled 
+if test "x$with_ros" = "xyes" ; then
+ AC_CONFIG_FILES(ros/Makefile)
+ AC_CONFIG_FILES(ros/adapters/Makefile)
+ AC_CONFIG_FILES(ros/encoder/Makefile)
+ AC_CONFIG_FILES(ros/decoder/Makefile)
+fi
 
 AC_SUBST([HAVE_PYTHON])
 AC_SUBST([MUSICCONFIGDIR])
 AC_SUBST([PYMUSIC_SUBDIR])
+AC_SUBST([ROS_SUBDIR])
 AC_SUBST([PYEXECDIR], ${pyexecdir})
 
 AC_SUBST([PYTHON])
