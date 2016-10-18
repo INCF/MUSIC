@@ -252,6 +252,8 @@ else
   OPTIONAL_UTILS=""
   EXAMPLESDIR=""
 fi
+AM_CONDITIONAL([COND_USE_MPI], [test x$MUSIC_USE_MPI = x1])
+
 AC_ARG_ENABLE(isend,
               [  --disable-isend          disable isend],
               MUSIC_ISENDWAITALL="$enableval", MUSIC_ISENDWAITALL="yes")
@@ -260,6 +262,7 @@ if test $MUSIC_ISENDWAITALL = yes ; then
 else
   MUSIC_ISENDWAITALL=0
 fi
+
 AC_ARG_ENABLE(anysource,
               [  --disable-anysource      disable any source receive],
               MUSIC_ANYSOURCE="$enableval", MUSIC_ANYSOURCE="yes")
@@ -323,12 +326,13 @@ AX_CHECK_COMPILE_FLAG([-fno-strict-aliasing],
                       [PYMUSIC_CXXFLAGS="-fno-strict-aliasing"; PYBUFFER_CXXFLAGS="-fno-strict-aliasing"],
 		      [])
 
+PYMUSIC_SUBDIR=""
+if test -z "${COND_USE_MPI_TRUE}"; then
+
 # FIXME: this means that --without-python make will not recurse into pymusic subdir
 if test "x$have_python" = "xyes"; then
     MUSICCONFIGDIR="music-config"
     PYMUSIC_SUBDIR="pymusic"
-else
-    PYMUSIC_SUBDIR=""
 fi
 
 AM_CONDITIONAL([HAVE_PYTHON], [test "x$have_python" = "xyes"])
@@ -339,6 +343,7 @@ if test "x$have_python" = "xyes" ; then
  AC_CONFIG_FILES(pymusic/setup.py)
 fi
 
+fi
 
 AC_SUBST([HAVE_PYTHON])
 AC_SUBST([MUSICCONFIGDIR])
