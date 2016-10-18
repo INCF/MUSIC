@@ -1,0 +1,3 @@
+SUBDIRS = adapters encoder decoder
+
+
