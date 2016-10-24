@@ -1,3 +1,9 @@
+* MUSIC should report an error for non-existing app label when connecting ports
+
+* MUSIC should report an error when same app label is reused for different sections
+
+* No default value for stoptime in contsink (possibly others)
+
 * Startup hangs for msgtest3.music example (with unconnected port)
 
 * Check problem with port width and random connections (should we use
