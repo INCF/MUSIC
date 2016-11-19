@@ -19,7 +19,11 @@
 // VisualiseNeurons.h written by Johannes Hjorth, hjorth@nada.kth.se
 
 
+#ifdef __APPLE__
+#include <OpenGL/gl.h>
+#else
 #include <GL/gl.h>
+#endif
 #include <GL/freeglut.h>
 #include <math.h>
 #include <mpi.h>
