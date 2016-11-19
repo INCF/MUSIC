@@ -8,6 +8,14 @@ EXTRA_PROGRAMS = eventsource eventsink eventselect \
 				eventgenerator eventcounter eventlogger \
 				contsink messagesource viewevents
 
+if DARWIN
+OPENGL = -framework OpenGL
+GLUT   = -framework GLUT
+else
+OPENGL = -lGL
+GLUT   = -lGLU
+endif
+
 MUSIC_INCLUDE = -I$(top_srcdir)/src -I$(top_builddir)/src
 
  music_SOURCES = music.cc
@@ -48,7 +56,7 @@ MUSIC_INCLUDE = -I$(top_srcdir)/src -I$(top_builddir)/src
 
  viewevents_SOURCES = viewevents.cpp VisualiseNeurons.cpp VisualiseNeurons.h
  viewevents_CXXFLAGS = $(MUSIC_INCLUDE) @MPI_CXXFLAGS@
- viewevents_LDADD = $(top_builddir)/src/libmusic.la @MPI_LDFLAGS@  -lglut -lGL -lGLU -lpthread
-
+ viewevents_LDADD = $(top_builddir)/src/libmusic.la @MPI_LDFLAGS@  -lglut -lpthread
+ viewevents_LDFLAGS = $(OPENGL) $(GLUT)
 
 MKDEP = gcc -M $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
