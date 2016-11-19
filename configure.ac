@@ -393,6 +393,8 @@ AC_SUBST(LAUNCHSTYLE)
 AM_CONDITIONAL([LAUNCHSTYLE_SET], [test ! -z "$LAUNCHSTYLE"])
 #AC_SUBST([TEST_SH_LIST])
 
+AM_CONDITIONAL([DARWIN], [test $(uname) = Darwin])
+
 AC_CONFIG_FILES([
   Makefile
   mpidep/Makefile
