@@ -61,16 +61,19 @@ namespace MUSIC
     /* remedius
      * copy ports in order to delete them afterwards (it was probably a memory leak in previous revision)
      */
+
     for (std::vector<Port *>::iterator it = s->ports ()->begin ();
         it < s->ports ()->end (); it++)
+    {
       ports.push_back ( (*it));
+    }
 
     Connections* connections = s->connections ();
 
     scheduler = new Scheduler (comm, leader_);
     if (s->launchedByMusic ())
       {
-        takeTickingPorts (s);
+        takeTickingPorts ();
 
         // create a total order for connectors and
         // establish connection to peers
@@ -110,7 +113,8 @@ namespace MUSIC
 	scheduler->initializeAgentState ();
       }
 
-    delete s;
+    s->clearSetupData();
+    //delete s;
 #ifdef MUSIC_AFTER_RUNTIME_CONSTRUCTOR_REPORT
     if (MPI::COMM_WORLD.Get_rank () == 0)
     reportMem ();
@@ -160,7 +164,7 @@ namespace MUSIC
   }
 
   void
-  Runtime::takeTickingPorts (Setup* s)
+  Runtime::takeTickingPorts ()
   {
     std::vector<Port*>::iterator p;
     for (p = ports.begin (); p != ports.end (); ++p)
@@ -439,6 +443,7 @@ namespace MUSIC
         connector != connectors.end (); ++connector)
       (*connector)->freeIntercomm ();
 
+    
     MPI::Finalize ();
   }
 

@@ -74,7 +74,7 @@ namespace MUSIC
     typedef std::vector<Connection*> Connections;
     bool needsMultiCommunication ();
     void
-    takeTickingPorts (Setup* s);
+    takeTickingPorts ();
     void
     connectToPeers (Connections* connections);
     void

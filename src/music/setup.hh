@@ -42,6 +42,48 @@ namespace MUSIC {
 
   class Runtime;
 
+  class Setup;
+
+  struct GlobalSetupData
+  {
+    GlobalSetupData()
+        : comm_(MPI::COMM_WORLD),
+        ports_(),
+        connections_(),
+        config_(NULL),
+        temporalNegotiator_(NULL),
+        argc_(),
+        argv_(NULL),
+        launchedByMusic_(false),
+        postponeSetup_(false),
+        timebase_(0.0)
+      {
+      }
+
+
+  ~GlobalSetupData()
+  {
+      if (launchedByMusic_ )
+      {
+          delete temporalNegotiator_;
+      }
+
+      delete config_;
+      delete argv_;
+  }
+
+    MPI::Intracomm comm_;
+    std::vector<Port*> ports_;
+    std::vector<Connection*> connections_;
+    Configuration* config_;
+    TemporalNegotiator* temporalNegotiator_;
+    int argc_;
+    char** argv_;
+    bool launchedByMusic_;
+    bool postponeSetup_;
+    double timebase_;
+  };
+
   /*
    * This is the Setup object in the MUSIC API
    *
@@ -52,7 +94,10 @@ namespace MUSIC {
     static const char* const configEnvVarName;
     static const char* const opConfigFileName;
     static const char* const opAppLabel;
+    static size_t instanceCount;
+
   public:
+
     Setup (int& argc, char**& argv);
 
     Setup (int& argc, char**& argv, int required, int* provided);
@@ -67,6 +112,9 @@ namespace MUSIC {
 
     bool config (string var, double* result);
 
+    bool isLastSetupInstance();
+
+
     ContInputPort* publishContInput (string identifier);
 
     ContOutputPort* publishContOutput (string identifier);
@@ -80,19 +128,7 @@ namespace MUSIC {
     MessageOutputPort* publishMessageOutput (string identifier);
 
   private:
-    MPI::Intracomm comm;
-    Configuration* config_;
-    std::vector<Port*> ports_;
-    std::vector<Connection*>* connections_;
-    TemporalNegotiator* temporalNegotiator_;
-    double timebase_;
-    static bool isInstantiated_;
-    int& argc_;
-    char**& argv_;
-
-    bool launchedByMusic_;
-    bool postponeSetup_;
-
+    static GlobalSetupData* data_;
     // Since we don't want to expose this internal interface to the
     // user we put the member functions in the private part and give
     // these classes access through a friend declaration.  Classes are
@@ -106,7 +142,8 @@ namespace MUSIC {
     friend class TemporalNegotiator;
     friend class ApplicationNode;
     
-    double timebase () { return timebase_; }
+
+    double timebase () { return data_->timebase_; }
 
     bool launchedByMusic ();
 
@@ -139,19 +176,23 @@ namespace MUSIC {
 
     std::vector<Port*>* ports ()
     {
-      return &ports_;
+      //return new std::vector<Port*>(data_->ports_.begin(), data_->ports_.end());
+      return &data_->ports_;
     }    
 
     void addPort (Port* p);
     
     std::vector<Connection*>* connections ()
     {
-      return connections_;
+      //return new std::vector<Connection*>(data_->connections_.begin(), data_->connections_.end());
+      return &data_->connections_;
     }
-    
+
     void addConnection (Connection* c);
 
-    TemporalNegotiator* temporalNegotiator () { return temporalNegotiator_; }
+    void clearSetupData();
+
+    TemporalNegotiator* temporalNegotiator () { return data_->temporalNegotiator_; }
     
     void errorChecks ();
 
