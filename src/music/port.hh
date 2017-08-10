@@ -128,7 +128,7 @@ namespace MUSIC {
     void map (DataMap* dmap, int maxBuffered);
     void tick ();
   };
-  
+
   class ContInputPort : public ContPort, public InputPort {
     double delay_;
     void mapImpl (DataMap* dmap,
@@ -182,6 +182,48 @@ namespace MUSIC {
     friend class Setup;
     friend class Implementer;
   };
+
+  class ControlOutputPort
+  {
+	  EventOutputPort eventPort_;
+	  public:
+		  void map ();
+		  void insertEvent (double t);
+		  ControlOutputPort (Setup *s, std::string id);
+
+  }
+
+  class ControlInputPort
+  {
+	  EventInputPort eventPort_;
+	  public:
+	  	void map (EventHandlerGlobalIndex* handleEvent, double accLatency);
+		ControlInputPort (Setup *s, std::string id);
+  }
+
+
+  /* class ControlOutputPort : public EventOutputPort { */
+  /* public: */
+	/* void map (); */
+	/* void insertEvent (double t); */
+	/* ControlOutputPort (Setup *s, std::string id); */
+
+  /* protected: */
+  /*   void mapImpl (); */
+
+  /* private: */
+  /*   Connector* makeConnector (ConnectorInfo connInfo); */
+  /*   void buildTable (); */
+  /*   friend class Setup; */
+  /*   friend class Implementer; */
+  /* }; */
+
+  /* class ControlInputPort : public ControlInputPort { */
+  /* public: */
+	/* void map (); */
+	/* ControlInputPort (Setup* s, std::string id); */
+
+  /* }; */
 /* remedius
  * EventInputPort constructor was hided from the user.
  * In order to give the Setup class access to EventInputPort constructor,

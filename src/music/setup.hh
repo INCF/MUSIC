@@ -47,7 +47,7 @@ namespace MUSIC {
    *
    * It is documented in section 4.3 of the MUSIC manual
    */
-  
+
   class Setup {
     static const char* const configEnvVarName;
     static const char* const opConfigFileName;
@@ -70,6 +70,10 @@ namespace MUSIC {
     ContInputPort* publishContInput (string identifier);
 
     ContOutputPort* publishContOutput (string identifier);
+
+	ControlInputPort* publishControlInput (string identifier);
+
+	ControlOutputPort* publishControlOutput (string identifier);
 
     EventInputPort* publishEventInput (string identifier);
 
@@ -105,7 +109,7 @@ namespace MUSIC {
     friend class InputPort;
     friend class TemporalNegotiator;
     friend class ApplicationNode;
-    
+
     double timebase () { return timebase_; }
 
     bool launchedByMusic ();
@@ -140,19 +144,19 @@ namespace MUSIC {
     std::vector<Port*>* ports ()
     {
       return &ports_;
-    }    
+    }
 
     void addPort (Port* p);
-    
+
     std::vector<Connection*>* connections ()
     {
       return connections_;
     }
-    
+
     void addConnection (Connection* c);
 
     TemporalNegotiator* temporalNegotiator () { return temporalNegotiator_; }
-    
+
     void errorChecks ();
 
     bool launchedWithExec (std::string &configStr);
@@ -164,7 +168,7 @@ namespace MUSIC {
     bool getOption (int argc, char** argv, std::string option, std::string& result);
 
   };
-  
+
 }
 #endif
 #define MUSIC_SETUP_HH
