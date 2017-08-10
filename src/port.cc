@@ -360,40 +360,6 @@ namespace MUSIC {
    * Event Ports
    *
    ********************************************************************/
-  ControlOutputPort::ControlOutputPort (Setup *s, std::string id)
-	  : eventPort_(s, id)
-  {
-  }
-
-  ControlOutputPort::map()
-  {
-    // Identify ourselves
-    LinearIndex indices (rank_, 1);
-    eventPort_.map(&indices,
-				       Index::GLOBAL,
-				       1);
-  }
-
-  ControlOutputPort::insertEvent(double t)
-  {
-	  eventPort_.insertEvent (t, 0);
-  }
-
-  ControlInputPort::ControlInputPort (Setup *s, std::string id)
-	  : eventPort_(s, id)
-  {
-  }
-
-
-  ControlInputPort::map (EventHandlerGlobalIndex* handleEvent, double accLatency)
-  {
-    LinearIndex indices (0, handleEvent ? Index::WILDCARD_MAX : 0);
-	eventPort_.map (indices,
-			Index::GLOBAL,
-			handleEvent,
-			accLatency,
-			1);
-  }
 
   EventOutputPort::EventOutputPort (Setup* s, std::string id)
     : Port (s, id), routingMap (new OutputRoutingMap () /* deleted in buildTable */)
@@ -656,6 +622,37 @@ namespace MUSIC {
   {
     cEventHandlerLocalIndex = EventHandlerLocalIndexProxy (eh);
     return &cEventHandlerLocalIndex;
+  }
+
+  ControlOutputPort::ControlOutputPort (Setup* s, std::string id):
+	  eventPort_(s, id),
+	  rank_ (s->communicator ().Get_rank ())
+	{
+	}
+
+
+  void ControlOutputPort::map()
+  {
+    // Identify ourselves
+    LinearIndex indices (rank_, 1);
+    eventPort_.map(&indices,
+				       Index::GLOBAL,
+				       1);
+  }
+
+  void ControlOutputPort::insertEvent(double t)
+  {
+	  eventPort_.insertEvent (t, GlobalIndex(0));
+  }
+
+
+  void ControlInputPort::map (EventHandlerGlobalIndex* handleEvent, double accLatency)
+  {
+    LinearIndex indices (0, handleEvent ? Index::WILDCARD_MAX : 0);
+	eventPort_.map (&indices,
+			handleEvent,
+			accLatency,
+			1);
   }
 
   /********************************************************************

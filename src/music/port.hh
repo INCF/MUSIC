@@ -183,23 +183,6 @@ namespace MUSIC {
     friend class Implementer;
   };
 
-  class ControlOutputPort
-  {
-	  EventOutputPort eventPort_;
-	  public:
-		  void map ();
-		  void insertEvent (double t);
-		  ControlOutputPort (Setup *s, std::string id);
-
-  }
-
-  class ControlInputPort
-  {
-	  EventInputPort eventPort_;
-	  public:
-	  	void map (EventHandlerGlobalIndex* handleEvent, double accLatency);
-		ControlInputPort (Setup *s, std::string id);
-  }
 
 
   /* class ControlOutputPort : public EventOutputPort { */
@@ -272,6 +255,26 @@ namespace MUSIC {
 
     friend class Setup;
     friend class Implementer;
+  };
+
+  class ControlOutputPort
+  {
+	  private:
+	  EventOutputPort eventPort_;
+	  int rank_;
+	  public:
+		  void map ();
+		  void insertEvent (double t);
+		  ControlOutputPort (Setup *s, std::string id);
+  };
+
+  class ControlInputPort
+  {
+	  private:
+	  EventInputPort eventPort_;
+	  public:
+	  	void map (EventHandlerGlobalIndex* handleEvent, double accLatency);
+		ControlInputPort (Setup *s, std::string id): eventPort_(s, id) {};
   };
 
 
