@@ -46,7 +46,7 @@ namespace MUSIC {
 
   }
 
-
+  
   Setup::Setup (int& argc, char**& argv, int required, int* provided)
     : argc_ (argc), argv_ (argv)
   {
@@ -299,7 +299,7 @@ namespace MUSIC {
     argv_ = parseArgs (binary, args, &argc_);
     temporalNegotiator_ = new TemporalNegotiator (this);
   }
-
+  
 
   bool
   Setup::launchedByMusic ()
@@ -307,7 +307,7 @@ namespace MUSIC {
     return launchedByMusic_;
   }
 
-
+  
   MPI::Intracomm
   Setup::communicator ()
   {
@@ -384,21 +384,21 @@ namespace MUSIC {
     return config_->lookup (var, result);
   }
 
-
+  
   bool
   Setup::config (string var, int* result)
   {
     return config_->lookup (var, result);
   }
 
-
+  
   bool
   Setup::config (string var, double* result)
   {
     return config_->lookup (var, result);
   }
 
-
+  
   ContInputPort*
   Setup::publishContInput (std::string identifier)
   {
@@ -410,18 +410,6 @@ namespace MUSIC {
   Setup::publishContOutput (std::string identifier)
   {
     return new ContOutputPort (this, identifier);
-  }
-
-  ControlInputPort*
-  Setup::publishControlInput (std::string identifier)
-  {
-	return new ControlInputPort (this, identifier);
-  }
-
-  ControlOutputPort*
-  Setup::publishControlOutput (std::string identifier)
-  {
-	return new ControlOutputPort (this, identifier);
   }
 
 
@@ -438,7 +426,7 @@ namespace MUSIC {
     return new EventOutputPort (this, identifier);
   }
 
-
+  
   MessageInputPort*
   Setup::publishMessageInput (std::string identifier)
   {
@@ -452,13 +440,13 @@ namespace MUSIC {
     return new MessageOutputPort (this, identifier);
   }
 
-
+  
   void Setup::addPort (Port* p)
   {
     ports_.push_back (p);
   }
 
-
+  
   void Setup::addConnection (Connection* c)
   {
     connections_->push_back (c);

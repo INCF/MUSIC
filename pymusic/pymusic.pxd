@@ -3,7 +3,7 @@
 cdef extern from "mpi_compat.h":
     pass
 
-include "pyconfig.pxi"
+include "pyconfig.pxi" 
 cimport mpi4py.MPI as MPI
 IF MPI4V2:
     from mpi4py.libmpi cimport *
@@ -49,7 +49,7 @@ cdef extern from "music/index_map.hh" namespace "MUSIC":
     cdef cppclass CIndex "MUSIC::Index":
         int WILDCARD_MAX
     ctypedef enum IndexType "MUSIC::Index::Type":
-            IndexGLOBAL "MUSIC::Index::GLOBAL",
+            IndexGLOBAL "MUSIC::Index::GLOBAL", 
             IndexLOCAL "MUSIC::Index::LOCAL"
 
     cdef cppclass GlobalIndex(CIndex):
@@ -84,12 +84,6 @@ cdef extern from "music/port.hh" namespace "MUSIC":
         pass
 
     cdef cppclass CContOutputPort "MUSIC::ContOutputPort"(CPort):
-        pass
-
-    cdef cppclass CControlInputPort "MUSIC:ControlInputPort"():
-        pass
-
-    cdef cppclass CControlOutputPort "MUSIC:ControlOutputPort"():
         pass
 
     cdef cppclass CEventInputPort "MUSIC::EventInputPort"(CPort):
@@ -128,8 +122,6 @@ cdef extern from "music/setup.hh" namespace "MUSIC":
 
         CContInputPort*     publishContInput(string)
         CContOutputPort*    publishContOutput(string)
-        CControlInputPort*  publishControlInput(string)
-        CControlOutputPort* publishControlOutput(string)
         CEventInputPort*    publishEventInput(string)
         CEventOutputPort*   publishEventOutput(string)
         CMessageInputPort*  publishMessageInput(string)
@@ -157,7 +149,7 @@ cdef extern from "music/music_c.h" namespace "MUSIC":
     cdef inline void mapImpl "MUSIC::Implementer::mapImpl" (
         CContOutputPort*, CDataMap*, int)
     cdef inline void mapImpl "MUSIC::Implementer::mapImpl" (
-        CEventInputPort*, CIndexMap*, IndexType,
+        CEventInputPort*, CIndexMap*, IndexType, 
         CEventHandlerPtr, double, int)
     cdef inline void mapImpl "MUSIC::Implementer::mapImpl" (
         CEventOutputPort*, CIndexMap*, IndexType, int)
@@ -174,7 +166,7 @@ cdef extern from "music/music_c.h" namespace "MUSIC":
     cdef PyObject* etype
     cdef PyObject* evalue
     cdef PyObject* etraceback
-
+    
 
 ###########################################################
 
@@ -208,12 +200,6 @@ cdef class ContInputPort(Port):
     pass
 
 cdef class ContOutputPort(Port):
-    pass
-
-cdef class ControlInputPort(object):
-    pass
-
-cdef class ControlOutputPort(object):
     pass
 
 cdef class EventInputPort(Port):
