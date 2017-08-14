@@ -143,6 +143,24 @@ namespace MUSIC {
       p->EventInputPort::mapImpl(m, t, e, d, i);
     }
 
+	static inline
+	void mapImpl(ControlInputPort* p,
+		 EventHandlerPtr e,
+		 double a) {
+	  p->ControlInputPort::mapImpl(e, a);
+	}
+
+	static inline
+	void mapImpl(ControlOutputPort* p) {
+		p->ControlOutputPort::mapImpl();
+	}
+
+	static inline
+	void insertEventImpl(ControlOutputPort* p,
+			double d) {
+	  p->ControlOutputPort::insertEventImpl(d);
+	}
+
     static inline
     void mapImpl(EventOutputPort* p,
 		 IndexMap* m,

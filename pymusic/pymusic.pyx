@@ -204,6 +204,7 @@ cdef class ContOutputPort(Port):
         cdef CContOutputPort* ptr = dc_CContOutputPort(self.ptr)
         mapImpl(ptr, d.ptr, maxBuffered)
 
+
 cdef class EventInputPort(Port):
     """
     Event sink. Maps 'events' to handlers. Events are spike-like
@@ -249,6 +250,25 @@ cdef class EventInputPort(Port):
         mapImpl(ptr, imap.ptr, t, hndl, accLatency, maxBuffered)
         self.events.add(eh)
 
+cdef class ControlInputPort(Port):
+
+    def __cinit__(self):
+        self.events = set()
+
+    cpdef null(self):
+        Port.null(self)
+        self.events = None
+
+    def map(self, func, double accLatency=0):
+        cdef IndexType t = IndexGLOBAL
+        cdef EventHandler eh = EventHandler(func, t)
+        cdef CControlInputPort* ptr = dc_CControlInputPort(self.ptr)
+        cdef CEventHandlerPtr hndl = getEventHandlerPtr(t, eh.ptr)
+        mapImpl(ptr, hndl, accLatency)
+        self.events.add(eh)
+
+
+
 cdef class EventOutputPort(Port):
     """
     Map events from this sink. See EventInputPort for description of
@@ -273,6 +293,15 @@ cdef class EventOutputPort(Port):
         """
         cdef CEventOutputPort* ptr = dc_CEventOutputPort(self.ptr)
         insertEventImpl(ptr, time, index)
+
+cdef class ControlOutputPort(Port):
+    def map(self):
+        cdef CControlOutputPort* ptr = dc_CControlOutputPort(self.ptr)
+        mapImpl(ptr)
+
+    def insertEvent(self, double time):
+        cdef CControlOutputPort* ptr = dc_CControlOutputPort(self.ptr)
+        insertEventImpl(ptr, time)
 
 cdef class MessageInputPort(Port):
     """
@@ -464,6 +493,18 @@ cdef class Setup(object):
         self.ports.add(p)
         return p
 
+    def publishControlInput(self, string s):
+        cdef ControlInputPort p = ControlInputPort()
+        p.ptr = self.ptr.publishControlInput(s)
+        # self.ports.add(p)
+        return p
+
+    def publishControlOutput(self, string s):
+        cdef ControlOutputPort p = ControlOutputPort()
+        p.ptr = self.ptr.publishControlOutput(s)
+        # self.ports.add(p)
+        return p
+
     def publishEventOutput(self, string s):
         """
         Discrete boolean source
@@ -616,7 +657,7 @@ cdef class EventHandler:
     def __cinit__(self, object func, IndexType t):
         """
         func: a callable of the form
-          func(double d, IndexType t, int i) where 
+          func(double d, IndexType t, int i) where
              double d: the event time
              IndexType t: local or global index enum
              int i: the index value
@@ -720,7 +761,7 @@ cdef cbool MessageCallback(PyObject* func,
 # And for handling errors at the C/Python interface
 #
 # pythonError: true if a python error is being stored until we get out of C
-# etype, evalue, etraceback: three bits of data to recreate the exception 
+# etype, evalue, etraceback: three bits of data to recreate the exception
 #    so that it can be thrown
 #
 pythonError = False

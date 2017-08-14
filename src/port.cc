@@ -22,6 +22,7 @@
 
 #include "music/setup.hh" // Must be included first on BG/L
 #include "music/error.hh"
+#include <stdio>
 
 namespace MUSIC {
 
@@ -624,36 +625,51 @@ namespace MUSIC {
     return &cEventHandlerLocalIndex;
   }
 
-  ControlOutputPort::ControlOutputPort (Setup* s, std::string id):
-	  eventPort_(s, id),
-	  rank_ (s->communicator ().Get_rank ())
-	{
-	}
-
-
   void ControlOutputPort::map()
   {
-    // Identify ourselves
-    LinearIndex indices (rank_, 1);
-    eventPort_.map(&indices,
-				       Index::GLOBAL,
-				       1);
+	  mapImpl();
   }
 
   void ControlOutputPort::insertEvent(double t)
   {
-	  eventPort_.insertEvent (t, GlobalIndex(0));
+	  insertEventImpl(t);
   }
 
+  void ControlOutputPort::insertEventImpl(double t)
+  {
+	  EventOutputPort::insertEvent(t, GlobalIndex(0));
+  }
+
+  void ControlOutputPort::mapImpl()
+  {
+    // Identify ourselves
+    LinearIndex indices (rank_, 1);
+	EventOutputPort::map(&indices,
+				       Index::GLOBAL,
+				       1);
+  }
+
+  ControlOutputPort::ControlOutputPort(Setup* s, std::string id): EventOutputPort(s, id), rank_ (s->communicator ().Get_rank())
+	{
+	}
 
   void ControlInputPort::map (EventHandlerGlobalIndex* handleEvent, double accLatency)
   {
-    LinearIndex indices (0, handleEvent ? Index::WILDCARD_MAX : 0);
-	eventPort_.map (&indices,
-			handleEvent,
-			accLatency,
-			1);
+	  mapImpl(EventHandlerPtr (handleEvent),
+			  accLatency);
   }
+
+  void ControlInputPort::mapImpl(EventHandlerPtr handleEvent, double accLatency)
+  {
+      LinearIndex indices (0, (EventHandlerGlobalIndex*)handleEvent ? Index::WILDCARD_MAX : 0);
+	  /* LinearIndex indices (0, Index::WILDCARD_MAX); */
+	  EventInputPort::mapImpl (&indices,
+				   Index::GLOBAL,
+				   handleEvent,
+				   accLatency,
+				   1);
+  }
+
 
   /********************************************************************
    *
