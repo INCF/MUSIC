@@ -9,6 +9,7 @@
 #include <mpi.h>
 #include "music/configuration.hh"
 #include "music/error.hh"
+#include "music/port.hh"
 
 
 namespace MUSIC
@@ -20,18 +21,29 @@ namespace MUSIC
 	class Application
 	{
 		public:
-			Application(std::string name, double h);
-			Application(std::string name, double h, MPI::MPI_Comm comm);
 			// Apply Move symantics?
 			Application(Configuration config, double h);
 			Application(Configuration config, double h, MPI::MPI_Comm comm);
+
+			// TODO disable copy constructors etc
 
 			double time() const;
 			void tick();
 			void enterSimulationLoop();
 			void exitSimulationLoop();
 			void finalize();
+			/* bool isConnected(Port& p) const; */
+			/* bool isConnected(std::string name) const; */
+			/* void disconnect(Port& p); */
+			/* void disconnect(std::string name); */
 
+			// Why pointer?
+			ContInputPort* publishContInput (std::string identifier);
+			ContOutputPort* publishContOutput (std::string identifier);
+			EventInputPort* publishEventInput (std::string identifier);
+			EventOutputPort* publishEventOutput (std::string identifier);
+			MessageInputPort* publishMessageInput (std::string identifier);
+			MessageOutputPort* publishMessageOutput (std::string identifier);
 
 		private:
 			/* void init(); */
@@ -41,7 +53,7 @@ namespace MUSIC
 			ApplicationState state_{ApplicationState::STOPPED};
 
 		private:
-			/* Runtime runtime_: */
+			Runtime* runtime_:
 			void assertValidState(std::string func_name, ApplicationState as);
 
 

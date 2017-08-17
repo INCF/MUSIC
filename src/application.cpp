@@ -31,6 +31,46 @@ namespace MUSIC
 	{
 	}
 
+	ContInputPort*
+	Application::publishContInput (std::string identifier)
+	{
+	return new ContInputPort (this, identifier);
+	}
+
+
+	ContOutputPort*
+	Application::publishContOutput (std::string identifier)
+	{
+	return new ContOutputPort (this, identifier);
+	}
+
+
+	EventInputPort*
+	Application::publishEventInput (std::string identifier)
+	{
+	return new EventInputPort (this, identifier);
+	}
+
+
+	EventOutputPort*
+	Application::publishEventOutput (std::string identifier)
+	{
+	return new EventOutputPort (this, identifier);
+	}
+
+
+	MessageInputPort*
+	Application::publishMessageInput (std::string identifier)
+	{
+	return new MessageInputPort (this, identifier);
+	}
+
+
+	MessageOutputPort*
+	Application::publishMessageOutput (std::string identifier)
+	{
+	return new MessageOutputPort (this, identifier);
+	}
 
 
 
