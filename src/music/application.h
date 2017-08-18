@@ -28,14 +28,12 @@ namespace MUSIC
 			// TODO disable copy constructors etc
 
 			double time() const;
+			double timebase() const;
 			void tick();
 			void enterSimulationLoop();
 			void exitSimulationLoop();
 			void finalize();
-			/* bool isConnected(Port& p) const; */
-			/* bool isConnected(std::string name) const; */
-			/* void disconnect(Port& p); */
-			/* void disconnect(std::string name); */
+
 
 			// Why pointer?
 			ContInputPort* publishContInput (std::string identifier);
@@ -52,9 +50,17 @@ namespace MUSIC
 			MPI::MPI_Comm comm_{MPI::COMM_WORLD};
 			ApplicationState state_{ApplicationState::STOPPED};
 
+			// Application should not manage this; this should be done by some
+			// manager class
+			std::vector<std::weak_ptr<Port>> ports_;
+
 		private:
+			friend class Port;
+
 			Runtime* runtime_:
 			void assertValidState(std::string func_name, ApplicationState as);
+			void addPort(Port* p);
+			MPI::Intracomm communicator ();
 
 
 	};

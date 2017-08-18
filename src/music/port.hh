@@ -35,7 +35,7 @@
 
 namespace MUSIC {
 
-  class Setup;
+  class Application;
 /* remedius
  * 1. Since one more type of Connector was added - CollectiveConnector,
  * to avoid branching of different Connector return types,
@@ -49,7 +49,7 @@ namespace MUSIC {
   class Port {
   public:
     Port () { }
-    Port (Setup* s, std::string identifier);
+    Port (Application& s, std::string identifier);
 
     virtual void buildTable () { };
     virtual void setupCleanup () { };
@@ -62,8 +62,10 @@ namespace MUSIC {
     IndexMap* indices_;
     Index::Type index_type_;
     std::string portName_;
-    Setup* setup_;
-    ConnectivityInfo* ConnectivityInfo_;
+    Application& application_;
+    /* ConnectivityInfo* ConnectivityInfo_; */
+	Connectivity* const connectivity_;
+	Connection* connection_;
     virtual Connector* makeConnector (ConnectorInfo connInfo) = 0;
     void assertOutput ();
     void assertInput ();
@@ -122,13 +124,13 @@ namespace MUSIC {
     friend class Implementer;
 
   public:
-    ContOutputPort (Setup* s, std::string id)
+    ContOutputPort (* s, std::string id)
       : Port (s, id) { }
     void map (DataMap* dmap);
     void map (DataMap* dmap, int maxBuffered);
     void tick ();
   };
-  
+
   class ContInputPort : public ContPort, public InputPort {
     double delay_;
     void mapImpl (DataMap* dmap,
@@ -139,7 +141,7 @@ namespace MUSIC {
     friend class Implementer;
 
   public:
-    ContInputPort (Setup* s, std::string id)
+    ContInputPort (Application& s, std::string id)
       : Port (s, id) { }
     void map (DataMap* dmap, double delay = 0.0, bool interpolate = true);
     void map (DataMap* dmap, int maxBuffered, bool interpolate = true);
@@ -164,7 +166,7 @@ namespace MUSIC {
     void map (IndexMap* indices, Index::Type type, int maxBuffered);
     void insertEvent (double t, GlobalIndex id);
     void insertEvent (double t, LocalIndex id);
-    EventOutputPort (Setup* s, std::string id);
+    EventOutputPort (Application& s, std::string id);
 
     void mapImpl (IndexMap* indices,
 		  Index::Type type,
@@ -179,7 +181,7 @@ namespace MUSIC {
   private:
     Connector* makeConnector (ConnectorInfo connInfo);
     void buildTable ();
-    friend class Setup;
+    friend class Application;
     friend class Implementer;
   };
 /* remedius
@@ -209,7 +211,7 @@ namespace MUSIC {
 	      EventHandlerLocalIndex* handleEvent,
 	      double accLatency,
 	      int maxBuffered);
-    EventInputPort (Setup* s, std::string id);
+    EventInputPort (Application& s, std::string id);
   protected:
     void mapImpl (IndexMap* indices,
 		  Index::Type type,
@@ -228,7 +230,7 @@ namespace MUSIC {
     EventHandlerGlobalIndexProxy cEventHandlerGlobalIndex;
     EventHandlerLocalIndexProxy cEventHandlerLocalIndex;
 
-    friend class Setup;
+    friend class Application;
     friend class Implementer;
   };
 
@@ -237,14 +239,14 @@ namespace MUSIC {
   protected:
     int rank_;
   public:
-    MessagePort (Setup* s);
+    MessagePort (Application& s);
   };
 
   class MessageOutputPort : public MessagePort,
 			    public OutputPort {
     std::vector<FIBO*> buffers; // one buffer per MessageOutputConnector
   public:
-    MessageOutputPort (Setup* s, std::string id);
+    MessageOutputPort (Application& s, std::string id);
     void map ();
     void map (int maxBuffered);
     void insertMessage (double t, void* msg, size_t size);
@@ -258,7 +260,7 @@ namespace MUSIC {
 			   public InputPort {
     MessageHandler* handleMessage_;
   public:
-    MessageInputPort (Setup* s, std::string id);
+    MessageInputPort (Application& s, std::string id);
     void map (MessageHandler* handler = 0, double accLatency = 0.0);
     void map (int maxBuffered);
     void map (double accLatency, int maxBuffered);

@@ -25,19 +25,22 @@
 
 namespace MUSIC {
 
-  Port::Port (Setup* s, std::string identifier)
-    : portName_ (identifier), setup_ (s), isMapped_ (false)
+  Port::Port (Application& s, std::string identifier)
+    : portName_ (identifier), application_ (s), connectivity_(s.config_.connectivityMap_), connection_ (nullptr), isMapped_ (false)
   {
-    s->maybePostponedSetup ();
-    ConnectivityInfo_ = s->portConnectivity (portName_);
-    setup_->addPort (this);
+    /* s->maybePostponedSetup (); */
+    /* ConnectivityInfo_ = s->portConnectivity (portName_); */
+	/* s.connectivityMap() */
+    /* application_->addPort (this); */
+	application.addPort(this);
   }
 
 
   bool
   Port::isConnected ()
   {
-    return ConnectivityInfo_ != Connectivity::NO_CONNECTIVITY;
+    /* return ConnectivityInfo_ != Connectivity::NO_CONNECTIVITY; */
+	return connectivity_->isConnected (portName_);
   }
 
 
@@ -52,8 +55,8 @@ namespace MUSIC {
 	error (msg);
       }
   }
-  
-  
+
+
   void
   Port::assertOutput ()
   {
@@ -61,10 +64,10 @@ namespace MUSIC {
 		     "OutputPort::map (...)",
 		     " for port " + portName_);
     checkConnected ("map");
-    if (ConnectivityInfo_->direction () != ConnectivityInfo::OUTPUT)
+    if (connectivity_->direction (portName_) != ConnectivityInfo::OUTPUT)
       {
 	std::ostringstream msg;
-	msg << "output port `" << ConnectivityInfo_->portName ()
+	msg << "output port `" << portName_
 	    << "' connected as input";
 	error (msg);
       }
@@ -78,10 +81,10 @@ namespace MUSIC {
 		     "InputPort::map (...)",
 		     " for port " + portName_);
     checkConnected ("map");
-    if (ConnectivityInfo_->direction () != ConnectivityInfo::INPUT)
+    if (connectivity_->direction (portName_) != ConnectivityInfo::INPUT)
       {
 	std::ostringstream msg;
-	msg << "input port `" << ConnectivityInfo_->portName ()
+	msg << "input port `" << portName_
 	    << "' connected as output";
 	error (msg);
       }
@@ -92,7 +95,7 @@ namespace MUSIC {
   Port::hasWidth ()
   {
     checkConnected ("ask for width of");
-    return ConnectivityInfo_->width () != ConnectivityInfo::NO_WIDTH;
+    return connectivity_->width (portName_) != ConnectivityInfo::NO_WIDTH;
   }
 
 
@@ -100,11 +103,11 @@ namespace MUSIC {
   Port::width ()
   {
     checkConnected ("ask for width of");
-    int w = ConnectivityInfo_->width ();
+    int w = connectivity_->width (portName_);
     if (w == ConnectivityInfo::NO_WIDTH)
       {
 	std::ostringstream msg;
-	msg << "width requested for port `" << ConnectivityInfo_->portName ()
+	msg << "width requested for port `" << portName_
 	    << "' which has unspecified width";
 	error (msg);
       }
@@ -151,10 +154,10 @@ namespace MUSIC {
     // ticks.
     if (maxBuffered != MAX_BUFFERED_NO_VALUE)
       maxBuffered -= 1;
-	
+
     // Retrieve info about all remote connectors of this port
     PortConnectorInfo portConnections
-      = ConnectivityInfo_->connections ();
+      = connectivity_->connections (portName_);
     indices_ = indices;
     index_type_ = type;
     for (PortConnectorInfo::iterator info = portConnections.begin ();
@@ -163,15 +166,18 @@ namespace MUSIC {
       {
 	// Create connector
 	Connector* connector = makeConnector (*info);
-	setup_->addConnection (new OutputConnection (connector,
+	/* application.addConnection(new OutputConnection (connector, */
+	/* 					     maxBuffered, */
+	/* 					     dataSize)); */
+      connection_ = new OutputConnection (connector,
 						     maxBuffered,
-						     dataSize));
+						     dataSize);
       }
   }
 
 
 
-  
+
   void
   InputPort::mapImpl (IndexMap* indices,
 		      Index::Type type,
@@ -187,28 +193,32 @@ namespace MUSIC {
     // ticks.
     if (maxBuffered != MAX_BUFFERED_NO_VALUE)
       maxBuffered -= 1;
-	
+
     // Retrieve info about all remote connectors of this port
     PortConnectorInfo portConnections
-      = ConnectivityInfo_->connections ();
+      = connectivity_->connections (portName_);
     PortConnectorInfo::iterator info = portConnections.begin ();
     indices_ = indices;
     index_type_ = type;
     Connector* connector = makeConnector (*info);
-    ClockState integerLatency (accLatency, setup_->timebase ());
-    setup_->addConnection (new InputConnection (connector,
+    ClockState integerLatency (accLatency, application.timebase ());
+    /* application.addConnection(new InputConnection (connector, */
+						/* maxBuffered, */
+						/* integerLatency, */
+						/* interpolate)); */
+    connection_ = new InputConnection (connector,
 						maxBuffered,
 						integerLatency,
-						interpolate));
+						interpolate);
   }
 
-  
+
   /********************************************************************
    *
    * Cont Ports
    *
    ********************************************************************/
-  
+
   void
   ContOutputPort::map (DataMap* dmap)
   {
@@ -217,7 +227,7 @@ namespace MUSIC {
     mapImpl (dmap, maxBuffered);
   }
 
-  
+
   void
   ContOutputPort::map (DataMap* dmap, int maxBuffered)
   {
@@ -229,7 +239,7 @@ namespace MUSIC {
     mapImpl (dmap, maxBuffered);
   }
 
-  
+
   void
   ContOutputPort::mapImpl (DataMap* dmap,
 			   int maxBuffered)
@@ -251,7 +261,7 @@ namespace MUSIC {
 		  conn =  new ContOutputConnector (connInfo,
 				  indices_,
 		  		  index_type_,
-				  setup_->communicator (),
+				  application.communicator (),
 				  sampler,
 				  type_);
 	  }
@@ -259,14 +269,14 @@ namespace MUSIC {
 		  conn = new ContOutputCollectiveConnector(connInfo,
 				  indices_,
 		  		  index_type_,
-				  setup_->communicator (),
+				  application.communicator (),
 				  sampler,
 				  type_);
 
 	  return conn;
   }
-  
-  
+
+
   void
   ContOutputPort::tick ()
   {
@@ -285,7 +295,7 @@ namespace MUSIC {
 	     interpolate);
   }
 
-  
+
   void
   ContInputPort::map (DataMap* dmap,
 		      int maxBuffered,
@@ -298,7 +308,7 @@ namespace MUSIC {
 	     interpolate);
   }
 
-  
+
   void
   ContInputPort::map (DataMap* dmap,
 		      double delay,
@@ -312,7 +322,7 @@ namespace MUSIC {
 	     interpolate);
   }
 
-  
+
   void
   ContInputPort::mapImpl (DataMap* dmap,
 			  double delay,
@@ -329,7 +339,7 @@ namespace MUSIC {
 				      interpolate);
   }
 
-  
+
   Connector*
   ContInputPort::makeConnector (ConnectorInfo connInfo)
   {
@@ -338,7 +348,7 @@ namespace MUSIC {
 		  conn = new ContInputConnector (connInfo,
 				  indices_,
 		  		  index_type_,
-				  setup_->communicator (),
+				  application.communicator (),
 				  sampler,
 				  type_,
 				  delay_);
@@ -347,21 +357,21 @@ namespace MUSIC {
 		  conn = new ContInputCollectiveConnector (connInfo,
 				  indices_,
 		  		  index_type_,
-				  setup_->communicator (),
+				  application.communicator (),
 				  sampler,
 				  type_,
 				  delay_);
 	  return conn;
   }
 
-  
+
   /********************************************************************
    *
    * Event Ports
    *
    ********************************************************************/
 
-  EventOutputPort::EventOutputPort (Setup* s, std::string id)
+  EventOutputPort::EventOutputPort (Application& s, std::string id)
     : Port (s, id), routingMap (new OutputRoutingMap () /* deleted in buildTable */)
   {
     /* remedius
@@ -378,10 +388,10 @@ namespace MUSIC {
     if (isConnected ())
       {
 	bool mixed = false;
-	PortConnectorInfo::iterator c = ConnectivityInfo_->connections ().begin ();
+	PortConnectorInfo::iterator c = connectivity_->connections (portName_).begin ();
 	int commType = c->communicationType ();
 	int procMethod = c->processingMethod ();
-	for (++c; c != ConnectivityInfo_->connections ().end (); ++c)
+	for (++c; c != connectivity_->connections (portName_).end (); ++c)
 	  {
 	    if (c->processingMethod () != procMethod)
 	      error ("MUSIC: can't use both tree and table for same port");
@@ -413,8 +423,8 @@ namespace MUSIC {
    if (router != NULL)
      delete router;
  }
-  
-  void 
+
+  void
   EventOutputPort::mapImpl (IndexMap* indices,
 			    Index::Type type,
 			    int maxBuffered)
@@ -429,7 +439,7 @@ namespace MUSIC {
     EventOutputPort::mapImpl (indices, type, MAX_BUFFERED_NO_VALUE);
   }
 
-  
+
   void
   EventOutputPort::map (IndexMap* indices,
 			Index::Type type,
@@ -443,7 +453,7 @@ namespace MUSIC {
     EventOutputPort::mapImpl (indices, type, maxBuffered);
   }
 
-  
+
   Connector*
   EventOutputPort::makeConnector (ConnectorInfo connInfo)
   {
@@ -453,20 +463,20 @@ namespace MUSIC {
       conn = new EventOutputConnector (connInfo,
 				       indices_,
 				       index_type_,
-				       setup_->communicator (),
+				       application.communicator (),
 				       routingMap);
     else
       conn = new EventOutputCollectiveConnector
 	(connInfo,
 	 indices_,
 	 index_type_,
-	 setup_->communicator (),
+	 application.communicator (),
 	 router->directRouter ());
 
     return conn;
   }
-  
-  
+
+
   void
   EventOutputPort::insertEventImpl (double t, int id)
   {
@@ -479,7 +489,7 @@ namespace MUSIC {
     insertEventImpl(t, id);
   }
 
-  
+
   void
   EventOutputPort::insertEvent (double t, LocalIndex id)
   {
@@ -495,12 +505,12 @@ namespace MUSIC {
   }
 
 
-  EventInputPort::EventInputPort (Setup* s, std::string id)
+  EventInputPort::EventInputPort (Application& s, std::string id)
     : Port (s, id)
   {
 
   }
-  
+
 
   void
   EventInputPort::map (IndexMap* indices,
@@ -516,7 +526,7 @@ namespace MUSIC {
 	     maxBuffered);
   }
 
-  
+
   void
   EventInputPort::map (IndexMap* indices,
 		       EventHandlerLocalIndex* handleEvent,
@@ -531,7 +541,7 @@ namespace MUSIC {
 	     maxBuffered);
   }
 
-  
+
   void
   EventInputPort::map (IndexMap* indices,
 		       EventHandlerGlobalIndex* handleEvent,
@@ -550,7 +560,7 @@ namespace MUSIC {
 	     maxBuffered);
   }
 
-  
+
   void
   EventInputPort::map (IndexMap* indices,
 		       EventHandlerLocalIndex* handleEvent,
@@ -569,7 +579,7 @@ namespace MUSIC {
 	     maxBuffered);
   }
 
-  
+
   void
   EventInputPort::mapImpl (IndexMap* indices,
 			   Index::Type type,
@@ -586,7 +596,7 @@ namespace MUSIC {
 				      false);
   }
 
-  
+
   Connector*
   EventInputPort::makeConnector (ConnectorInfo connInfo)
   {
@@ -596,19 +606,19 @@ namespace MUSIC {
 		  conn =   new EventInputConnector (connInfo,
 		  			  indices_,
 		  			  index_type_,
-		  			  setup_->communicator (),
+		  			  application.communicator (),
 		  			  handleEvent_);
 	  else
 		  conn = new EventInputCollectiveConnector(connInfo,
 	  	 			indices_,
 		  			index_type_,
-	  	 			setup_->communicator (),
+	  	 			application.communicator (),
 	  	 			handleEvent_);
 
 	 return conn;
   }
 
-  
+
   EventHandlerGlobalIndexProxy*
   EventInputPort::allocEventHandlerGlobalIndexProxy (void (*eh) (double, int))
   {
@@ -616,7 +626,7 @@ namespace MUSIC {
     return &cEventHandlerGlobalIndex;
   }
 
-  
+
   EventHandlerLocalIndexProxy*
   EventInputPort::allocEventHandlerLocalIndexProxy (void (*eh) (double, int))
   {
@@ -630,18 +640,18 @@ namespace MUSIC {
    *
    ********************************************************************/
 
-  MessagePort::MessagePort (Setup* s)
+  MessagePort::MessagePort (Application& s)
     : rank_ (s->communicator ().Get_rank ())
   {
   }
-  
-  
-  MessageOutputPort::MessageOutputPort (Setup* s, std::string id)
+
+
+  MessageOutputPort::MessageOutputPort (Application& s, std::string id)
     : Port (s, id), MessagePort (s)
   {
   }
 
-  
+
   void
   MessageOutputPort::map ()
   {
@@ -650,7 +660,7 @@ namespace MUSIC {
     mapImpl (maxBuffered);
   }
 
-  
+
   void
   MessageOutputPort::map (int maxBuffered)
   {
@@ -662,7 +672,7 @@ namespace MUSIC {
     mapImpl (maxBuffered);
   }
 
-  
+
   void
   MessageOutputPort::mapImpl (int maxBuffered)
   {
@@ -673,19 +683,19 @@ namespace MUSIC {
 				       maxBuffered,
 				       1);
   }
-  
-  
+
+
   Connector*
   MessageOutputPort::makeConnector (ConnectorInfo connInfo)
   {
     return new MessageOutputConnector (connInfo,
 				       indices_,
 				       index_type_,
-				       setup_->communicator (),
+				       application.communicator (),
 				       buffers);
   }
-  
-  
+
+
   void
   MessageOutputPort::insertMessage (double t, void* msg, size_t size)
   {
@@ -701,13 +711,13 @@ namespace MUSIC {
       }
   }
 
-  
-  MessageInputPort::MessageInputPort (Setup* s, std::string id)
+
+  MessageInputPort::MessageInputPort (Application& s, std::string id)
     : Port (s, id), MessagePort (s)
   {
   }
 
-  
+
   void
   MessageInputPort::map (MessageHandler* handleMessage,
 			 double accLatency)
@@ -719,7 +729,7 @@ namespace MUSIC {
 	     maxBuffered);
   }
 
-  
+
   void
   MessageInputPort::map (int maxBuffered)
   {
@@ -733,7 +743,7 @@ namespace MUSIC {
 	     maxBuffered);
   }
 
-  
+
   void
   MessageInputPort::map (double accLatency,
 			 int maxBuffered)
@@ -748,7 +758,7 @@ namespace MUSIC {
 	     maxBuffered);
   }
 
-  
+
   void
   MessageInputPort::map (MessageHandler* handleMessage,
 			 int maxBuffered)
@@ -763,7 +773,7 @@ namespace MUSIC {
 	     maxBuffered);
   }
 
-  
+
   void
   MessageInputPort::map (MessageHandler* handleMessage,
 			 double accLatency,
@@ -779,7 +789,7 @@ namespace MUSIC {
 	     maxBuffered);
   }
 
-  
+
   void
   MessageInputPort::mapImpl (MessageHandler* handleMessage,
 			     double accLatency,
@@ -795,7 +805,7 @@ namespace MUSIC {
 				      false);
   }
 
-  
+
   Connector*
   MessageInputPort::makeConnector (ConnectorInfo connInfo)
   {
@@ -803,10 +813,10 @@ namespace MUSIC {
 				      indices_,
 		  			  index_type_,
 				      handleMessage_,
-				      setup_->communicator ());
+				      application.communicator ());
   }
 
-  
+
   MessageHandlerProxy*
   MessageInputPort::allocMessageHandlerProxy (void (*mh) (double,
 								     void*,
@@ -816,6 +826,6 @@ namespace MUSIC {
     return &cMessageHandler;
   }
 
-  
+
 }
 #endif
