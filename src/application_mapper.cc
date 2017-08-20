@@ -318,17 +318,17 @@ void
              // default communication type is *point-to-point*
             int iCommType;
             if (commType.length () == 0 || !commType.compare ("point-to-point"))
-                iCommType = ConnectorInfo::POINTTOPOINT;
+                iCommType = ConnectorInfo::CommunicationType::POINTTOPOINT;
             else
-                iCommType = ConnectorInfo::COLLECTIVE;
+                iCommType = ConnectorInfo::CommunicationType::COLLECTIVE;
 
              // default processing method is *tree*
             int iProcMethod;
             if (procMethod.length () == 0 || !procMethod.compare ("tree"))
-                iProcMethod = ConnectorInfo::TREE;
+                iProcMethod = ConnectorInfo::ProcessingMethod::TREE;
 
             else
-                iProcMethod = ConnectorInfo::TABLE;
+                iProcMethod = ConnectorInfo::ProcessingMethod::TABLE;
 
             // NOTE: leader number can be not available at this stage,
             // if leader is not available, we write down the color of the application

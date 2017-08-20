@@ -31,13 +31,13 @@ namespace MUSIC {
   {
   public:
 
-    enum CommunicationType
+    enum class CommunicationType
     {
       COLLECTIVE, POINTTOPOINT
     };
 
 
-    enum ProcessingMethod
+    enum class ProcessingMethod
     {
       TREE, TABLE
     };
@@ -143,7 +143,7 @@ namespace MUSIC {
   {
 
   public:
-    enum PortDirection
+    enum class PortDirection
     {
       OUTPUT, INPUT
     };

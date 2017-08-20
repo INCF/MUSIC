@@ -1,7 +1,8 @@
+#include <map>
 #include <string>
-#include <functional>
 #include <iostream>
 #include <sstream>
+#include <memory>
 
 #include "music/music-config.hh"
 
@@ -10,56 +11,70 @@
 #include "music/configuration.hh"
 #include "music/error.hh"
 #include "music/port.hh"
+#include "music/runtime.hh"
 
 
 namespace MUSIC
 {
 
 	class enum ApplicationState {RUNNING, STOPPED, FINALIZED};
+	using Ports = std::vector<std::shared_ptr<Port>>;
+	using PortMap = std::map<std::string, std::weak_ptr<Port>>;
 
 
 	class Application
 	{
 		public:
-			// Apply Move symantics?
 			Application(Configuration config, double h);
-			Application(Configuration config, double h, MPI::MPI_Comm comm);
+			/* Application(Configuration config, double h, MPI::MPI_Comm comm); */
 
-			// TODO disable copy constructors etc
+			Application(const Application&) = delete;
+			Application& operator= (const Application&) = delete;
 
-			double time() const;
-			double timebase() const;
+			// TODO move and move-assignment constructors
+
 			void tick();
 			void enterSimulationLoop();
 			void exitSimulationLoop();
 			void finalize();
 
+			double time() const;
+			double timebase() const;
+			std::string applicationName() const;
+			Ports getConnectedPorts() const;
+			bool launchedByMusic () const;
+
+
+			// I really dont like this solution but for now it costs less time
+			// than refactoring the whole Configuration business
+			void setConfiguration(Configuration config);
+
 
 			// Why pointer?
-			ContInputPort* publishContInput (std::string identifier);
-			ContOutputPort* publishContOutput (std::string identifier);
-			EventInputPort* publishEventInput (std::string identifier);
-			EventOutputPort* publishEventOutput (std::string identifier);
-			MessageInputPort* publishMessageInput (std::string identifier);
-			MessageOutputPort* publishMessageOutput (std::string identifier);
+			std::shared_ptr<ContInputPort> publishContInput (std::string identifier);
+			std::shared_ptr<ContOutputPort> publishContOutput (std::string identifier);
+			std::shared_ptr<EventInputPort> publishEventInput (std::string identifier);
+			std::shared_ptr<EventOutputPort> publishEventOutput (std::string identifier);
+			std::shared_ptr<MessageInputPort> publishMessageInput (std::string identifier);
+			std::shared_ptr<MessageOutputPort> publishMessageOutput (std::string identifier);
 
 		private:
 			/* void init(); */
 			Configuration conf_;
 			double h_;
-			MPI::MPI_Comm comm_{MPI::COMM_WORLD};
-			ApplicationState state_{ApplicationState::STOPPED};
-
-			// Application should not manage this; this should be done by some
-			// manager class
-			std::vector<std::weak_ptr<Port>> ports_;
+			MPI::MPI_Comm comm_ {MPI::COMM_WORLD};
+			ApplicationState state_ {ApplicationState::STOPPED};
+			PortMap port_map_;
+			bool launchedByMusic_ {false};
 
 		private:
 			friend class Port;
 
-			Runtime* runtime_:
+			std::unique_ptr<Runtime> runtime_:
 			void assertValidState(std::string func_name, ApplicationState as);
-			void addPort(Port* p);
+			void checkConnectedPortMissing(const Configuration& c) const;
+			bool isPortConnected(std::string identifier) const;
+			/* void addPort(Port* p); */
 			MPI::Intracomm communicator ();
 
 
@@ -76,6 +91,11 @@ namespace MUSIC
 		runtime_->tick();
 	}
 
+	inline void Application::finalize()
+	{
+		runtime_->finalize();
+	}
+
 	void assertValidState(std::string func_name, ApplicationState as)
 	{
 		if (as == state_)
@@ -85,5 +105,6 @@ namespace MUSIC
 		std::string s = ss.str();
 		errorRank(s);
 	}
+
 }
 #endif

@@ -32,7 +32,7 @@ namespace MUSIC {
     /* ConnectivityInfo_ = s->portConnectivity (portName_); */
 	/* s.connectivityMap() */
     /* application_->addPort (this); */
-	application.addPort(this);
+	/* application.addPort(this); */
   }
 
 
@@ -137,6 +137,11 @@ namespace MUSIC {
 	    last = *i;
 	  }
       }
+  }
+
+  Connection* Port::getConnection() const
+  {
+	  return connection_;
   }
 
 
@@ -400,16 +405,16 @@ namespace MUSIC {
 	  }
 	if (!mixed)
 	  {
-	    if (commType == ConnectorInfo::COLLECTIVE)
+	    if (commType == ConnectorInfo::CommunicationType::COLLECTIVE)
 	      router = new DirectRouter ();
-	    else if (procMethod == ConnectorInfo::TREE)
+	    else if (procMethod == ConnectorInfo::ProcessingMethod::TREE)
 	      router = new TreeProcessingOutputRouter ();
 	    else
 	      router = new TableProcessingOutputRouter ();
 	  }
 	else
 	  {
-	    if (procMethod == ConnectorInfo::TREE)
+	    if (procMethod == ConnectorInfo::ProcessingMethod::TREE)
 	      router = new HybridTreeProcessingOutputRouter ();
 	    else
 	      router = new HybridTableProcessingOutputRouter ();

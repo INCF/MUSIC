@@ -64,7 +64,7 @@ namespace MUSIC {
     std::string portName_;
     Application& application_;
     /* ConnectivityInfo* ConnectivityInfo_; */
-	Connectivity* const connectivity_;
+	Connectivity* connectivity_;
 	Connection* connection_;
     virtual Connector* makeConnector (ConnectorInfo connInfo) = 0;
     void assertOutput ();
@@ -75,6 +75,7 @@ namespace MUSIC {
 
   private:
 
+	Connection* getConnection() const;
     void checkConnected (std::string action);
     bool isMapped_;
     friend class Runtime;
@@ -120,15 +121,15 @@ namespace MUSIC {
 			 public OutputPort,
 			 public TickingPort {
     void mapImpl (DataMap* indices, int maxBuffered);
-    Connector* makeConnector (ConnectorInfo connInfo);
+    Connector* makeConnector (ConnectorInfo connInfo) override;
     friend class Implementer;
 
   public:
-    ContOutputPort (* s, std::string id)
+    ContOutputPort (Application& s, std::string id)
       : Port (s, id) { }
     void map (DataMap* dmap);
     void map (DataMap* dmap, int maxBuffered);
-    void tick ();
+    void tick () override;
   };
 
   class ContInputPort : public ContPort, public InputPort {
@@ -137,7 +138,7 @@ namespace MUSIC {
 		  double delay,
 		  int maxBuffered,
 		  bool interpolate);
-    Connector* makeConnector (ConnectorInfo connInfo);
+    Connector* makeConnector (ConnectorInfo connInfo) override;
     friend class Implementer;
 
   public:
@@ -179,7 +180,7 @@ namespace MUSIC {
     ~EventOutputPort();
 
   private:
-    Connector* makeConnector (ConnectorInfo connInfo);
+    Connector* makeConnector (ConnectorInfo connInfo) override;
     void buildTable ();
     friend class Application;
     friend class Implementer;
@@ -219,7 +220,7 @@ namespace MUSIC {
 		  double accLatency,
 		  int maxBuffered);
 
-    Connector* makeConnector (ConnectorInfo connInfo);
+    Connector* makeConnector (ConnectorInfo connInfo) override;
     // Facilities to support the C interface
   public:
     EventHandlerGlobalIndexProxy*
@@ -252,7 +253,7 @@ namespace MUSIC {
     void insertMessage (double t, void* msg, size_t size);
   protected:
     void mapImpl (int maxBuffered);
-    Connector* makeConnector (ConnectorInfo connInfo);
+    Connector* makeConnector (ConnectorInfo connInfo) override;
     friend class Implementer;
   };
 
@@ -270,7 +271,7 @@ namespace MUSIC {
     void mapImpl (MessageHandler* handleEvent,
 		  double accLatency,
 		  int maxBuffered);
-    Connector* makeConnector (ConnectorInfo connInfo);
+    Connector* makeConnector (ConnectorInfo connInfo) override;
     friend class Implementer;
 
   public:
