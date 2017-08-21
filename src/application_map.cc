@@ -38,8 +38,8 @@ namespace MUSIC {
       n += i->nProc ();
     return n;
   }
-  
-  
+
+
   ApplicationInfo*
   ApplicationMap::lookup (std::string appName)
   {
@@ -48,7 +48,7 @@ namespace MUSIC {
 	if (i->name () == appName)
 	  return &*i;
       }
-    return 0;
+    return nullptr;
   }
 
 
@@ -58,7 +58,7 @@ namespace MUSIC {
     push_back (ApplicationInfo (name, n, c));
   }
 
-  
+
   void
   ApplicationMap::write (std::ostringstream& out)
   {
@@ -110,7 +110,7 @@ namespace MUSIC {
         if (i->color () == color)
           return &*i;
       }
-    return 0;
+    return nullptr;
 
   }
 

@@ -80,19 +80,19 @@ namespace MUSIC {
     ConnectivityInfo* info;
     if (cmapInfo == connectivityMap.end ())
       {
-	MUSIC_LOG ("creating new entry for " << localPort);
-	int index = connections_.size ();
-	connections_.push_back (ConnectivityInfo (localPort, dir, width));
-	info = &connections_.back ();
-	MUSIC_LOG ("ci = " << info);
-	connectivityMap.insert (std::make_pair (localPort, index));
+		MUSIC_LOG ("creating new entry for " << localPort);
+		int index = connections_.size ();
+		connections_.push_back (ConnectivityInfo (localPort, dir, width));
+		info = &connections_.back ();
+		MUSIC_LOG ("ci = " << info);
+		connectivityMap.insert (std::make_pair (localPort, index));
       }
     else
       {
-	MUSIC_LOG ("found old entry for " << localPort);
-	info = &connections_[cmapInfo->second];
-	if (info->direction () != dir)
-	  error ("port " + localPort + " used both as output and input");
+		MUSIC_LOG ("found old entry for " << localPort);
+		info = &connections_[cmapInfo->second];
+		if (info->direction () != dir)
+		  error ("port " + localPort + " used both as output and input");
       }
     info->addConnection (recApp,
 			 recPort,
@@ -130,14 +130,14 @@ namespace MUSIC {
     return connections_[connectivityMap[portName]].direction ();
   }
 
-  
+
   int
   Connectivity::width (std::string portName)
   {
     return connections_[connectivityMap[portName]].width ();
   }
 
-  
+
   PortConnectorInfo
   Connectivity::connections (std::string portName)
   {
@@ -172,7 +172,7 @@ namespace MUSIC {
 	  }
       }
   }
-  
+
 
   void
   Connectivity::read (std::istringstream& in, std::map<int, int> leaders)
@@ -243,5 +243,5 @@ namespace MUSIC {
       }
   }
 
-  
+
 }

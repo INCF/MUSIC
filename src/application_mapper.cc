@@ -295,12 +295,12 @@ void
             ApplicationInfo* remoteInfo;
             if (config_->Name () == senderApp)
               {
-                dir = ConnectivityInfo::OUTPUT;
+                dir = ConnectivityInfo::PortDirection::OUTPUT;
                 remoteInfo = applications_->lookup (receiverApp);
               }
             else if (config_->Name () == receiverApp)
               {
-                dir = ConnectivityInfo::INPUT;
+                dir = ConnectivityInfo::PortDirection::INPUT;
                 remoteInfo = applications_->lookup (senderApp);
               }
             else
@@ -334,7 +334,7 @@ void
             // if leader is not available, we write down the color of the application
             int leader = leaders ? remoteInfo->leader () : remoteInfo->color ();
             connectivityMap_->add (
-                dir == ConnectivityInfo::OUTPUT ? senderPort : receiverPort,
+                dir == ConnectivityInfo::PortDirection::OUTPUT ? senderPort : receiverPort,
                 dir, w, receiverApp, receiverPort, portCode, leader,
                 remoteInfo->nProc (), iCommType, iProcMethod);
           }

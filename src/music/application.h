@@ -12,6 +12,7 @@
 #include "music/error.hh"
 #include "music/port.hh"
 #include "music/runtime.hh"
+#include "music/connectivity.hh"
 
 
 namespace MUSIC
@@ -24,8 +25,13 @@ namespace MUSIC
 
 	class Application
 	{
+		private:
+			Application(Configuration config, double timebase, MPI::MPI_Comm comm);
+
 		public:
-			Application(Configuration config, double h);
+			Application(int& argc, char**& argv, double timebase);
+			Application(int& argc, char**& argv, int required, int* provided, double timebase);
+
 			/* Application(Configuration config, double h, MPI::MPI_Comm comm); */
 
 			Application(const Application&) = delete;
@@ -47,7 +53,12 @@ namespace MUSIC
 
 			// I really dont like this solution but for now it costs less time
 			// than refactoring the whole Configuration business
-			void setConfiguration(Configuration config);
+			/* void setConfiguration(Configuration config); */
+			void connect(std::string senderApp, std::string senderPort,
+					std::string receiverApp, std::string receiverPort,
+					int width,
+					ConnectorInfo::CommunicationType commType,
+					ConnectorInfo::ProcessingMethod procMethod);
 
 
 			// Why pointer?
@@ -61,7 +72,7 @@ namespace MUSIC
 		private:
 			/* void init(); */
 			Configuration conf_;
-			double h_;
+			double timebase_;
 			MPI::MPI_Comm comm_ {MPI::COMM_WORLD};
 			ApplicationState state_ {ApplicationState::STOPPED};
 			PortMap port_map_;

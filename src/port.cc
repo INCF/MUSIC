@@ -28,13 +28,7 @@ namespace MUSIC {
   Port::Port (Application& s, std::string identifier)
     : portName_ (identifier), application_ (s), connectivity_(s.config_.connectivityMap_), connection_ (nullptr), isMapped_ (false)
   {
-    /* s->maybePostponedSetup (); */
-    /* ConnectivityInfo_ = s->portConnectivity (portName_); */
-	/* s.connectivityMap() */
-    /* application_->addPort (this); */
-	/* application.addPort(this); */
   }
-
 
   bool
   Port::isConnected ()

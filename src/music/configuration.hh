@@ -31,7 +31,7 @@ namespace MUSIC {
   class Configuration {
   public:
       static const char* const configEnvVarName;
-      typedef std::map<std::string, std::string> ConfigDict;
+      using ConfigDict = std::map<std::string, std::string>;
   private:
 
     std::string app_name_;

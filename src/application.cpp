@@ -4,14 +4,40 @@
 namespace MUSIC
 {
     static std::string err_not_runtime = "Application not in running state";
+	static std::string err_MPI_Init = "MPI_Init was called before the Setup constructor";
 
-	Application::Application(Configuration config, double h):
-		conf_(config), h_(h), runtime_(nullptr)
+	void initialize_MPI(int& argc, char**& argv, int required, int* provided)
+	{
+		// TODO check if this if-block is symantically correct
+		if (!MPI::Is_initialized ())
+		{
+			  /* errorRank (err_MPI_Init); */
+#ifdef HAVE_CXX_MPI_INIT_THREAD
+			*provided = MPI::Init_thread (argc, argv, required);
+#else
+			// Only C version provided in libmpich
+			MPI_Init_thread (&argc, &argv, required, provided);
+		}
+#endif
+	}
+
+	void initialize_MPI(int& argc, char**& argv)
+	{
+		// TODO check if auto-init is desireable
+		if (!MPI::Is_initialized ())
+		  /* errorRank (err_MPI_Init); */
+			MPI::Init (argc, argv);
+	}
+
+	// TODO rewrite constructors
+	Application::Application(int& argc, char**& argv, int required, int* provided, double timebase, MPI::MPI_Comm comm):
+		initialize_MPI (argc, argv, required, provided),
 	{
 	}
 
-	Application::Application(Configuration config, double h, MPI::MPI_Comm comm):
-		Application(config, h), comm_(comm)
+	// TODO Maybe overload with move constructor?
+	Application::Application(Configuration config, double timebase, MPI::MPI_Comm comm):
+		conf_(config), timebase_(timebase), comm_(comm), runtime_(nullptr)
 	{
 	}
 
@@ -74,7 +100,7 @@ namespace MUSIC
 
 	double Application::timebase() const
 	{
-		return h_;
+		return timebase_;
 	}
 
 	MPI::Intracomm Application::communicator()
@@ -82,19 +108,19 @@ namespace MUSIC
 		return comm_;
 	}
 
-	void Application::setConfiguration(Configuration config)
-	{
-		if (state_ != ApplicationState::STOPPED)
-			errorRank(std::string("Setting new Configuration outside STOPPED state is illegal"));
-		if (!config.Name().compare(conf_.Name()))
-		{
-			std::stringstream ss;
-			ss << "Application name specified in the new Configuration object does not match the name of this Application";
-			errorRank(ss.str());
-		}
-		checkConnectedPortMissing(config);
-		conf_ = config;
-	}
+	/* void Application::setConfiguration(Configuration config) */
+	/* { */
+	/* 	if (state_ != ApplicationState::STOPPED) */
+	/* 		errorRank(std::string("Setting new Configuration outside STOPPED state is illegal")); */
+	/* 	if (!config.Name().compare(conf_.Name())) */
+	/* 	{ */
+	/* 		std::stringstream ss; */
+	/* 		ss << "Application name specified in the new Configuration object does not match the name of this Application"; */
+	/* 		errorRank(ss.str()); */
+	/* 	} */
+	/* 	checkConnectedPortMissing(config); */
+	/* 	conf_ = config; */
+	/* } */
 
 	bool Application::isPortConnected(std::string identifier) const
 	{
@@ -126,13 +152,52 @@ namespace MUSIC
 	Ports Application::getConnectedPorts() const
 	{
 		// TODO
-		for ()
+	/* for () */
 	}
 
 	bool Application::launchedByMusic () const
 	{
 		return launchedByMusic_;
 	}
+
+	void Application::connect(
+			std::string senderApp, std::string senderPort,
+			std::string receiverApp, std::string receiverPort,
+			const int width,
+			ConnectorInfo::CommunicationType commType,
+			ConnectorInfo::ProcessingMethod procMethod)
+	{
+		// TODO
+		// check if Port is ready to connect
+
+		// Copy-Pasta from application_mapper
+		ConnectivityInfo::PortDirection dir;
+		ApplicationInfo* remoteInfo;
+		if (conf_.Name () == senderApp)
+		{
+			// if this app is sender
+			dir = ConnectivityInfo::PortDirection::OUTPUT;
+			remoteInfo = conf_.applications()->lookup (receiverApp);
+		}
+		else if (config_.Name () == receiverApp)
+		{
+			// if this app is receiver
+			dir = ConnectivityInfo::PortDirection::INPUT;
+			remoteInfo = conf_.applications()->lookup (senderApp);
+		}
+		else
+		{
+			return;
+		}
+
+		// where to get the portCode from?
+		int leader = remoteInfo->leader ();
+		conf_.connectivityMap()->add (
+			dir == ConnectivityInfo::PortDirection::OUTPUT ? senderPort : receiverPort,
+			dir, width, receiverApp, receiverPort, portCode, leader,
+			remoteInfo->nProc (), commType, procMethod);
+	}
+
 
 }
 
