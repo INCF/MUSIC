@@ -22,7 +22,6 @@
 
 #include "music/setup.hh" // Must be included first on BG/L
 #include "music/error.hh"
-#include <stdio>
 
 namespace MUSIC {
 
@@ -53,8 +52,8 @@ namespace MUSIC {
 	error (msg);
       }
   }
-
-
+  
+  
   void
   Port::assertOutput ()
   {
@@ -152,7 +151,7 @@ namespace MUSIC {
     // ticks.
     if (maxBuffered != MAX_BUFFERED_NO_VALUE)
       maxBuffered -= 1;
-
+	
     // Retrieve info about all remote connectors of this port
     PortConnectorInfo portConnections
       = ConnectivityInfo_->connections ();
@@ -172,7 +171,7 @@ namespace MUSIC {
 
 
 
-
+  
   void
   InputPort::mapImpl (IndexMap* indices,
 		      Index::Type type,
@@ -188,7 +187,7 @@ namespace MUSIC {
     // ticks.
     if (maxBuffered != MAX_BUFFERED_NO_VALUE)
       maxBuffered -= 1;
-
+	
     // Retrieve info about all remote connectors of this port
     PortConnectorInfo portConnections
       = ConnectivityInfo_->connections ();
@@ -203,13 +202,13 @@ namespace MUSIC {
 						interpolate));
   }
 
-
+  
   /********************************************************************
    *
    * Cont Ports
    *
    ********************************************************************/
-
+  
   void
   ContOutputPort::map (DataMap* dmap)
   {
@@ -218,7 +217,7 @@ namespace MUSIC {
     mapImpl (dmap, maxBuffered);
   }
 
-
+  
   void
   ContOutputPort::map (DataMap* dmap, int maxBuffered)
   {
@@ -230,7 +229,7 @@ namespace MUSIC {
     mapImpl (dmap, maxBuffered);
   }
 
-
+  
   void
   ContOutputPort::mapImpl (DataMap* dmap,
 			   int maxBuffered)
@@ -266,8 +265,8 @@ namespace MUSIC {
 
 	  return conn;
   }
-
-
+  
+  
   void
   ContOutputPort::tick ()
   {
@@ -286,7 +285,7 @@ namespace MUSIC {
 	     interpolate);
   }
 
-
+  
   void
   ContInputPort::map (DataMap* dmap,
 		      int maxBuffered,
@@ -299,7 +298,7 @@ namespace MUSIC {
 	     interpolate);
   }
 
-
+  
   void
   ContInputPort::map (DataMap* dmap,
 		      double delay,
@@ -313,7 +312,7 @@ namespace MUSIC {
 	     interpolate);
   }
 
-
+  
   void
   ContInputPort::mapImpl (DataMap* dmap,
 			  double delay,
@@ -330,7 +329,7 @@ namespace MUSIC {
 				      interpolate);
   }
 
-
+  
   Connector*
   ContInputPort::makeConnector (ConnectorInfo connInfo)
   {
@@ -355,7 +354,7 @@ namespace MUSIC {
 	  return conn;
   }
 
-
+  
   /********************************************************************
    *
    * Event Ports
@@ -414,8 +413,8 @@ namespace MUSIC {
    if (router != NULL)
      delete router;
  }
-
-  void
+  
+  void 
   EventOutputPort::mapImpl (IndexMap* indices,
 			    Index::Type type,
 			    int maxBuffered)
@@ -430,7 +429,7 @@ namespace MUSIC {
     EventOutputPort::mapImpl (indices, type, MAX_BUFFERED_NO_VALUE);
   }
 
-
+  
   void
   EventOutputPort::map (IndexMap* indices,
 			Index::Type type,
@@ -444,7 +443,7 @@ namespace MUSIC {
     EventOutputPort::mapImpl (indices, type, maxBuffered);
   }
 
-
+  
   Connector*
   EventOutputPort::makeConnector (ConnectorInfo connInfo)
   {
@@ -466,8 +465,8 @@ namespace MUSIC {
 
     return conn;
   }
-
-
+  
+  
   void
   EventOutputPort::insertEventImpl (double t, int id)
   {
@@ -480,7 +479,7 @@ namespace MUSIC {
     insertEventImpl(t, id);
   }
 
-
+  
   void
   EventOutputPort::insertEvent (double t, LocalIndex id)
   {
@@ -501,7 +500,7 @@ namespace MUSIC {
   {
 
   }
-
+  
 
   void
   EventInputPort::map (IndexMap* indices,
@@ -517,7 +516,7 @@ namespace MUSIC {
 	     maxBuffered);
   }
 
-
+  
   void
   EventInputPort::map (IndexMap* indices,
 		       EventHandlerLocalIndex* handleEvent,
@@ -532,7 +531,7 @@ namespace MUSIC {
 	     maxBuffered);
   }
 
-
+  
   void
   EventInputPort::map (IndexMap* indices,
 		       EventHandlerGlobalIndex* handleEvent,
@@ -551,7 +550,7 @@ namespace MUSIC {
 	     maxBuffered);
   }
 
-
+  
   void
   EventInputPort::map (IndexMap* indices,
 		       EventHandlerLocalIndex* handleEvent,
@@ -570,7 +569,7 @@ namespace MUSIC {
 	     maxBuffered);
   }
 
-
+  
   void
   EventInputPort::mapImpl (IndexMap* indices,
 			   Index::Type type,
@@ -587,7 +586,7 @@ namespace MUSIC {
 				      false);
   }
 
-
+  
   Connector*
   EventInputPort::makeConnector (ConnectorInfo connInfo)
   {
@@ -609,7 +608,7 @@ namespace MUSIC {
 	 return conn;
   }
 
-
+  
   EventHandlerGlobalIndexProxy*
   EventInputPort::allocEventHandlerGlobalIndexProxy (void (*eh) (double, int))
   {
@@ -617,59 +616,13 @@ namespace MUSIC {
     return &cEventHandlerGlobalIndex;
   }
 
-
+  
   EventHandlerLocalIndexProxy*
   EventInputPort::allocEventHandlerLocalIndexProxy (void (*eh) (double, int))
   {
     cEventHandlerLocalIndex = EventHandlerLocalIndexProxy (eh);
     return &cEventHandlerLocalIndex;
   }
-
-  void ControlOutputPort::map()
-  {
-	  mapImpl();
-  }
-
-  void ControlOutputPort::insertEvent(double t)
-  {
-	  insertEventImpl(t);
-  }
-
-  void ControlOutputPort::insertEventImpl(double t)
-  {
-	  EventOutputPort::insertEvent(t, GlobalIndex(0));
-  }
-
-  void ControlOutputPort::mapImpl()
-  {
-    // Identify ourselves
-    LinearIndex indices (rank_, 1);
-	EventOutputPort::map(&indices,
-				       Index::GLOBAL,
-				       1);
-  }
-
-  ControlOutputPort::ControlOutputPort(Setup* s, std::string id): EventOutputPort(s, id), rank_ (s->communicator ().Get_rank())
-	{
-	}
-
-  void ControlInputPort::map (EventHandlerGlobalIndex* handleEvent, double accLatency)
-  {
-	  mapImpl(EventHandlerPtr (handleEvent),
-			  accLatency);
-  }
-
-  void ControlInputPort::mapImpl(EventHandlerPtr handleEvent, double accLatency)
-  {
-      LinearIndex indices (0, (EventHandlerGlobalIndex*)handleEvent ? Index::WILDCARD_MAX : 0);
-	  /* LinearIndex indices (0, Index::WILDCARD_MAX); */
-	  EventInputPort::mapImpl (&indices,
-				   Index::GLOBAL,
-				   handleEvent,
-				   accLatency,
-				   1);
-  }
-
 
   /********************************************************************
    *
@@ -681,14 +634,14 @@ namespace MUSIC {
     : rank_ (s->communicator ().Get_rank ())
   {
   }
-
-
+  
+  
   MessageOutputPort::MessageOutputPort (Setup* s, std::string id)
     : Port (s, id), MessagePort (s)
   {
   }
 
-
+  
   void
   MessageOutputPort::map ()
   {
@@ -697,7 +650,7 @@ namespace MUSIC {
     mapImpl (maxBuffered);
   }
 
-
+  
   void
   MessageOutputPort::map (int maxBuffered)
   {
@@ -709,7 +662,7 @@ namespace MUSIC {
     mapImpl (maxBuffered);
   }
 
-
+  
   void
   MessageOutputPort::mapImpl (int maxBuffered)
   {
@@ -720,8 +673,8 @@ namespace MUSIC {
 				       maxBuffered,
 				       1);
   }
-
-
+  
+  
   Connector*
   MessageOutputPort::makeConnector (ConnectorInfo connInfo)
   {
@@ -731,8 +684,8 @@ namespace MUSIC {
 				       setup_->communicator (),
 				       buffers);
   }
-
-
+  
+  
   void
   MessageOutputPort::insertMessage (double t, void* msg, size_t size)
   {
@@ -748,13 +701,13 @@ namespace MUSIC {
       }
   }
 
-
+  
   MessageInputPort::MessageInputPort (Setup* s, std::string id)
     : Port (s, id), MessagePort (s)
   {
   }
 
-
+  
   void
   MessageInputPort::map (MessageHandler* handleMessage,
 			 double accLatency)
@@ -766,7 +719,7 @@ namespace MUSIC {
 	     maxBuffered);
   }
 
-
+  
   void
   MessageInputPort::map (int maxBuffered)
   {
@@ -780,7 +733,7 @@ namespace MUSIC {
 	     maxBuffered);
   }
 
-
+  
   void
   MessageInputPort::map (double accLatency,
 			 int maxBuffered)
@@ -795,7 +748,7 @@ namespace MUSIC {
 	     maxBuffered);
   }
 
-
+  
   void
   MessageInputPort::map (MessageHandler* handleMessage,
 			 int maxBuffered)
@@ -810,7 +763,7 @@ namespace MUSIC {
 	     maxBuffered);
   }
 
-
+  
   void
   MessageInputPort::map (MessageHandler* handleMessage,
 			 double accLatency,
@@ -826,7 +779,7 @@ namespace MUSIC {
 	     maxBuffered);
   }
 
-
+  
   void
   MessageInputPort::mapImpl (MessageHandler* handleMessage,
 			     double accLatency,
@@ -842,7 +795,7 @@ namespace MUSIC {
 				      false);
   }
 
-
+  
   Connector*
   MessageInputPort::makeConnector (ConnectorInfo connInfo)
   {
@@ -853,7 +806,7 @@ namespace MUSIC {
 				      setup_->communicator ());
   }
 
-
+  
   MessageHandlerProxy*
   MessageInputPort::allocMessageHandlerProxy (void (*mh) (double,
 								     void*,
@@ -863,6 +816,6 @@ namespace MUSIC {
     return &cMessageHandler;
   }
 
-
+  
 }
 #endif

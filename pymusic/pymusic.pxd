@@ -3,7 +3,7 @@
 cdef extern from "mpi_compat.h":
     pass
 
-include "pyconfig.pxi"
+include "pyconfig.pxi" 
 cimport mpi4py.MPI as MPI
 IF MPI4V2:
     from mpi4py.libmpi cimport *
@@ -49,7 +49,7 @@ cdef extern from "music/index_map.hh" namespace "MUSIC":
     cdef cppclass CIndex "MUSIC::Index":
         int WILDCARD_MAX
     ctypedef enum IndexType "MUSIC::Index::Type":
-            IndexGLOBAL "MUSIC::Index::GLOBAL",
+            IndexGLOBAL "MUSIC::Index::GLOBAL", 
             IndexLOCAL "MUSIC::Index::LOCAL"
 
     cdef cppclass GlobalIndex(CIndex):
@@ -86,12 +86,6 @@ cdef extern from "music/port.hh" namespace "MUSIC":
     cdef cppclass CContOutputPort "MUSIC::ContOutputPort"(CPort):
         pass
 
-    cdef cppclass CControlInputPort "MUSIC::ControlInputPort"(CPort):
-        pass
-
-    cdef cppclass CControlOutputPort "MUSIC::ControlOutputPort"(CPort):
-        pass
-
     cdef cppclass CEventInputPort "MUSIC::EventInputPort"(CPort):
         pass
 
@@ -110,10 +104,6 @@ cdef extern from *:
         "dynamic_cast<MUSIC::ContInputPort*>" (CPort*)
     CContOutputPort*  dc_CContOutputPort  \
         "dynamic_cast<MUSIC::ContOutputPort*>"(CPort*)
-    CControlInputPort*   dc_CControlInputPort   \
-        "dynamic_cast<MUSIC::ControlInputPort*>" (CPort*)
-    CControlOutputPort*  dc_CControlOutputPort  \
-        "dynamic_cast<MUSIC::ControlOutputPort*>" (CPort*)
     CEventInputPort*  dc_CEventInputPort  \
         "dynamic_cast<MUSIC::EventInputPort*>" (CPort*)
     CEventOutputPort* dc_CEventOutputPort \
@@ -132,8 +122,6 @@ cdef extern from "music/setup.hh" namespace "MUSIC":
 
         CContInputPort*     publishContInput(string)
         CContOutputPort*    publishContOutput(string)
-        CControlInputPort*  publishControlInput(string)
-        CControlOutputPort* publishControlOutput(string)
         CEventInputPort*    publishEventInput(string)
         CEventOutputPort*   publishEventOutput(string)
         CMessageInputPort*  publishMessageInput(string)
@@ -160,22 +148,13 @@ cdef extern from "music/music_c.h" namespace "MUSIC":
         CContInputPort*, CDataMap*, double, int, cbool)
     cdef inline void mapImpl "MUSIC::Implementer::mapImpl" (
         CContOutputPort*, CDataMap*, int)
-
     cdef inline void mapImpl "MUSIC::Implementer::mapImpl" (
-        CEventInputPort*, CIndexMap*, IndexType,
+        CEventInputPort*, CIndexMap*, IndexType, 
         CEventHandlerPtr, double, int)
     cdef inline void mapImpl "MUSIC::Implementer::mapImpl" (
         CEventOutputPort*, CIndexMap*, IndexType, int)
     cdef inline void insertEventImpl "MUSIC::Implementer::insertEventImpl" (
         CEventOutputPort*, double, int)
-
-    cdef inline void mapImpl "MUSIC::Implementer::mapImpl" (
-        CControlInputPort*, CEventHandlerPtr, double)
-    cdef inline void mapImpl "MUSIC::Implementer::mapImpl" (
-        CControlOutputPort*)
-    cdef inline void insertEventImpl "MUSIC::Implementer::insertEventImpl" (
-        CControlOutputPort*, double)
-
     cdef inline void mapImpl "MUSIC::Implementer::mapImpl" (
         CMessageInputPort*, CMessageHandler*, double, int)
     cdef inline void mapImpl "MUSIC::Implementer::mapImpl" (
@@ -187,7 +166,7 @@ cdef extern from "music/music_c.h" namespace "MUSIC":
     cdef PyObject* etype
     cdef PyObject* evalue
     cdef PyObject* etraceback
-
+    
 
 ###########################################################
 
@@ -221,13 +200,6 @@ cdef class ContInputPort(Port):
     pass
 
 cdef class ContOutputPort(Port):
-    pass
-
-cdef class ControlInputPort(Port):
-    cdef set events
-    cpdef object null(self)
-
-cdef class ControlOutputPort(Port):
     pass
 
 cdef class EventInputPort(Port):

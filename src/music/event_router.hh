@@ -90,7 +90,6 @@ namespace MUSIC {
     virtual void insertRoutingData (Interval& i, OutputRoutingData& data) {}
     virtual void insertRoutingData (Interval& i, InputRoutingData<EventHandlerGlobalIndex>& data) {}
     virtual void insertRoutingData (Interval& i, InputRoutingData<EventHandlerLocalIndex>& data) {}
-	// TODO ggf anpassen an verschiedene eventtypen
     virtual void processEvent (double t, int id) {};
     virtual bool needFewPoints () const { return false; }
     virtual DirectRouter* directRouter () { return 0; }; //Remove this later
@@ -98,14 +97,12 @@ namespace MUSIC {
 
   template<class RoutingData, class IntervalLookup>
   class IntervalProcessingRouter : public EventRouter {
-	// Inner class which will be used in IntervalProcessingRouter::processEvent(t, id) where it is passed to the IntervalLookup object (e.g. IntervalTree) to search for the (id, RoutingData) pair and the corresponding RoutingData is passed to the operator() of this inner class.
     class Processor : public IntervalLookup::Action {
     protected:
       double t_;
       int id_;
     public:
       Processor (double t, int id) : t_ (t), id_ (id) { };
-
       void operator() (RoutingData& data)
       {
 	/* remedius
@@ -115,7 +112,7 @@ namespace MUSIC {
 	data.process (t_, id_ - data.offset ());
       }
     };
-
+    
     IntervalLookup routingTable;
   public:
     void insertRoutingData (Interval& i, RoutingData& data);

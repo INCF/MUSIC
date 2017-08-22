@@ -35,12 +35,12 @@ namespace MUSIC {
     virtual ~EventHandlerGlobalIndex() { }
     virtual void operator () (double t, GlobalIndex id) = 0;
   };
-
+  
   class EventHandlerGlobalIndexDummy : public EventHandlerGlobalIndex {
   public:
     virtual void operator () (double t, GlobalIndex id) { };
   };
-
+  
   class EventHandlerGlobalIndexProxy
     : public EventHandlerGlobalIndex {
     void (*eventHandler) (double t, int id);
@@ -53,7 +53,7 @@ namespace MUSIC {
       eventHandler (t, id);
     }
   };
-
+  
   class EventHandlerLocalIndex {
   public:
     virtual ~EventHandlerLocalIndex() { }
@@ -93,7 +93,7 @@ namespace MUSIC {
     operator EventHandlerLocalIndex* () { return ptr.local; }
     Index::Type getType(){return type_;}
   };
-
+  
 }
 #define MUSIC_EVENT_HH
 #endif
