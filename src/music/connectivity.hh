@@ -21,6 +21,7 @@
 #include <sstream>
 #include <vector>
 #include <map>
+#include <limits>
 
 namespace MUSIC {
 /*
@@ -74,6 +75,9 @@ namespace MUSIC {
     static int
     allocPortCode ()
     {
+	   // TODO emit error msg
+	  /* if (maxPortCode_  == std::numeric_limits<int>::max() ) */
+		// Error
       return ++maxPortCode_;
     }
 
@@ -172,7 +176,7 @@ namespace MUSIC {
 
 
     PortDirection
-    direction ()
+    )
     {
       return dir_;
     }
@@ -185,22 +189,29 @@ namespace MUSIC {
     } // NO_WIDTH if no width specified
 
 
-    PortConnectorInfo&
+    PortConnectorInfo
     connections ()
     {
-      return portConnections_;
+      /* return portConnections_; */
+	  PortConnectorInfo tmp;
+	  std::transform(connectivityMap.begin(), connectivityMap.end(),
+			  std::back_inserter(tmp),
+			  [](auto& e) {return e.second;});
+	  return tmp;
     }
 
 
-    void  addConnection (std::string recApp, std::string recName, int recCode,
+    void addConnection (std::string recApp, std::string recName, int recCode,
         int rLeader, int nProc, int commType, int procMethod);
+
+	void removeConnection (std::string recApp, std::string recName);
   };
 
 
   class Connectivity
   {
-    std::vector<ConnectivityInfo> connections_;
-    std::map<std::string, int> connectivityMap;
+    /* std::vector<ConnectivityInfo> connections_; */
+    std::map<std::string, ConnectivityInfo> connectivityMap;
 
   public:
     Connectivity ()
@@ -208,16 +219,20 @@ namespace MUSIC {
     }
 
 #if __cplusplus > 199711L
-    static constexpr ConnectivityInfo* NO_CONNECTIVITY = nullptr;
+    static constexpr ConnectivityInfo NO_CONNECTIVITY = nullptr;
 #else
-    static ConnectivityInfo* const NO_CONNECTIVITY;
+    static ConnectivityInfo const NO_CONNECTIVITY;
 #endif
 
     void  add (std::string localPort, ConnectivityInfo::PortDirection dir, int width,
         std::string recApp, std::string recPort, int recPortCode,
         int remoteLeader, int remoteNProc, int commType, int procMethod);
 
-    ConnectivityInfo* info (std::string portName);
+	void remove (std::string localPort, std::string recApp, std::string recPort);
+
+	void remove (std::string localPort);
+
+	ConnectivityInfo info (std::string portName);
 
     bool isConnected (std::string portName);
 

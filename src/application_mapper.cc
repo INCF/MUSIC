@@ -28,6 +28,7 @@
 #include <algorithm>
 #include <assert.h>
 #include "music/application_mapper.hh"
+#include "music/connectivity.hh"
 
 #include "rudeconfig/src/config.h"
 
@@ -212,7 +213,7 @@ void
   {
 
     std::map<std::string, int> receiverPortCodes;
-    int nextPortCode = 0;
+    /* int nextPortCode = 0; */
 
     int nSections = cfile_->getNumSections ();
     for (int s = 0; s < nSections; ++s)
@@ -284,7 +285,8 @@ void
             int portCode;
             if (pos == receiverPortCodes.end ())
               {
-                portCode = nextPortCode++;
+                /* portCode = nextPortCode++; */
+				portCode = ConnectorInfo.allocPortCode();
                 receiverPortCodes.insert (
                     std::make_pair (receiverPortFullName, portCode));
               }

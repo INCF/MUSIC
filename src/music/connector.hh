@@ -66,13 +66,16 @@ namespace MUSIC {
     Index::Type type_;
     MPI::Intracomm comm;
     MPI::Intercomm intercomm;
+	// TODO check
     std::vector<Subconnector*> rsubconn;
     ClockState latency_;
     // interpolate rather than picking value closest in time
     bool interpolate_;
     int width_;
     int maxLocalWidth_;
+	// TODO what for?
     unsigned int idFlag_;
+	// TODO what for exactly
     bool finalized_;
 
     Connector () { };

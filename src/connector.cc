@@ -73,7 +73,7 @@ namespace MUSIC {
     return comm.Get_rank () == 0;
   }
 
-  
+
   void
   Connector::createIntercomm ()
   {
@@ -311,7 +311,7 @@ namespace MUSIC {
       connector = new PlainContOutputConnector (this);
   }
 
-  
+
   void
   ContOutputConnector::addRoutingInterval (IndexInterval i,
 					   Subconnector* subconn)
@@ -326,7 +326,7 @@ namespace MUSIC {
     for (std::vector<Subconnector*>::iterator s = rsubconn.begin (); s != rsubconn.end (); ++s)
       (*s)->initialCommunication (0.0);
   }
-  
+
 
   void
   PlainContOutputConnector::initialize ()
@@ -504,7 +504,7 @@ namespace MUSIC {
     ClockState delay (delay_, localTime.timebase ());
     return (delay % localTime.tickInterval ()) == 0;
   }
-  
+
 
   void
   ContInputConnector::specialize (Clock& localTime)
@@ -593,7 +593,7 @@ namespace MUSIC {
     collector_.configure (sampler_.dataMap (),  CONT_BUFFER_MAX);
     collector_.initialize ();
   }
-  
+
 
   void
   PlainContInputConnector::postCommunication ()
@@ -769,7 +769,7 @@ error( "LOCAL Indices are not supported with MUSIC_ANYSOURCE");
    * Message Connectors
    *
    ********************************************************************/
-  
+
   MessageOutputConnector::MessageOutputConnector (ConnectorInfo connInfo,
 		  	  	  	  	  IndexMap* indices,
 		  	  	  	  	  Index::Type type,
@@ -782,7 +782,7 @@ error( "LOCAL Indices are not supported with MUSIC_ANYSOURCE");
   {
   }
 
-  
+
   Subconnector*
   MessageOutputConnector::makeSubconnector (int remoteRank)
   {
@@ -805,17 +805,17 @@ error( "LOCAL Indices are not supported with MUSIC_ANYSOURCE");
 	bufferAdded = true;
       }
   }
-  
-  
 
 
-  
+
+
+
   void
   MessageOutputConnector::postCommunication ()
   {
   }
 
-  
+
   MessageInputConnector::MessageInputConnector (ConnectorInfo connInfo,
 						IndexMap* indices,
 						Index::Type type,
@@ -828,7 +828,7 @@ error( "LOCAL Indices are not supported with MUSIC_ANYSOURCE");
 
 
 
-  
+
   Subconnector*
   MessageInputConnector::makeSubconnector (int remoteRank)
   {
@@ -855,6 +855,7 @@ error( "LOCAL Indices are not supported with MUSIC_ANYSOURCE");
   }
 
 
+  // TODO that should be 'createIntracomm' or am I wrong?
   void
   CollectiveConnector::createIntercomm ()
   {

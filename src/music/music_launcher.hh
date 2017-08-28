@@ -29,9 +29,6 @@ namespace MUSIC
 			int argc_ {0};
 			char** argv_ {nullptr};
 			MPI::MPI_Comm comm_ {MPI::COMM_WORLD};
-			/* static std::vector<MusicLauncher> classes_ {}; */
-		/* protected: */
-		/* 	static registerSubClass() */
 	};
 
 
@@ -76,7 +73,7 @@ namespace MUSIC
 		public:
 			MUSICLauncherFactory ():
 				launchers_ { MPMDLauncher(), ExecLauncher() } {};
-			MusicLauncher create(int argc, char** argv, MPI::MPI_Comm comm = MPI::COMM_WORLD);
+			void create (int argc, char** argv, MPI::MPI_Comm comm = MPI::COMM_WORLD);
 			void addLauncher(MusicLauncher s);
 
 		private:

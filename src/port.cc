@@ -20,21 +20,21 @@
 #if MUSIC_USE_MPI
 #include "music/event_router.hh"
 
-#include "music/setup.hh" // Must be included first on BG/L
+#include "music/application.hh" // Must be included first on BG/L
 #include "music/error.hh"
 
 namespace MUSIC {
 
-  Port::Port (Application& s, std::string identifier)
-    : portName_ (identifier), application_ (s), connectivity_(s.config_.connectivityMap_), connection_ (nullptr), isMapped_ (false)
+  Port::Port (Application& app, std::string identifier)
+    : indices_ (nullptr), portName_ (identifier), app_ (app), isMapped_ (false)
   {
   }
+
 
   bool
   Port::isConnected ()
   {
-    /* return ConnectivityInfo_ != Connectivity::NO_CONNECTIVITY; */
-	return connectivity_->isConnected (portName_);
+	return app_.getPortConnectivityManager ().isConnected ( portName_ );
   }
 
 
@@ -50,6 +50,11 @@ namespace MUSIC {
       }
   }
 
+  void getConnectivityInfo () const
+  {
+	  return app_.getPortConnectivityManager ().portConnectivity (portName_ );
+  }
+
 
   void
   Port::assertOutput ()
@@ -58,10 +63,11 @@ namespace MUSIC {
 		     "OutputPort::map (...)",
 		     " for port " + portName_);
     checkConnected ("map");
-    if (connectivity_->direction (portName_) != ConnectivityInfo::OUTPUT)
+	ConnectorInfo conn_info = getConnectivityInfo();
+    if (conn_info.direction () != ConnectivityInfo::OUTPUT)
       {
 	std::ostringstream msg;
-	msg << "output port `" << portName_
+	msg << "output port `" << conn_info.portName ()
 	    << "' connected as input";
 	error (msg);
       }
@@ -75,10 +81,11 @@ namespace MUSIC {
 		     "InputPort::map (...)",
 		     " for port " + portName_);
     checkConnected ("map");
-    if (connectivity_->direction (portName_) != ConnectivityInfo::INPUT)
+	ConnectorInfo conn_info = getConnectivityInfo();
+    if (conn_info.direction () != ConnectivityInfo::INPUT)
       {
 	std::ostringstream msg;
-	msg << "input port `" << portName_
+	msg << "input port `" << conn_info.portName ()
 	    << "' connected as output";
 	error (msg);
       }
@@ -89,19 +96,26 @@ namespace MUSIC {
   Port::hasWidth ()
   {
     checkConnected ("ask for width of");
-    return connectivity_->width (portName_) != ConnectivityInfo::NO_WIDTH;
+	ConnectorInfo conn_info = getConnectivityInfo();
+    return conn_info.width () != ConnectivityInfo::NO_WIDTH;
   }
 
+  std::string
+  Port::name ()
+  {
+	  return portName_;
+  }
 
   int
   Port::width ()
   {
     checkConnected ("ask for width of");
-    int w = connectivity_->width (portName_);
+	ConnectorInfo conn_info = getConnectivityInfo();
+    int w = conn_info.width ();
     if (w == ConnectivityInfo::NO_WIDTH)
       {
 	std::ostringstream msg;
-	msg << "width requested for port `" << portName_
+	msg << "width requested for port `" << conn_info.portName ()
 	    << "' which has unspecified width";
 	error (msg);
       }
@@ -133,11 +147,6 @@ namespace MUSIC {
       }
   }
 
-  Connection* Port::getConnection() const
-  {
-	  return connection_;
-  }
-
 
   void
   OutputPort::mapImpl (IndexMap* indices,
@@ -155,23 +164,22 @@ namespace MUSIC {
       maxBuffered -= 1;
 
     // Retrieve info about all remote connectors of this port
+	ConnectorInfo conn_info = getConnectivityInfo();
     PortConnectorInfo portConnections
-      = connectivity_->connections (portName_);
+      = conn_info.connections ();
     indices_ = indices;
     index_type_ = type;
     for (PortConnectorInfo::iterator info = portConnections.begin ();
 	 info != portConnections.end ();
 	 ++info)
       {
-	// Create connector
-	Connector* connector = makeConnector (*info);
-	/* application.addConnection(new OutputConnection (connector, */
-	/* 					     maxBuffered, */
-	/* 					     dataSize)); */
-      connection_ = new OutputConnection (connector,
-						     maxBuffered,
-						     dataSize);
-      }
+		// Create connector
+		Connector* connector = makeConnector (*info);
+		connections_.push_back (new OutputConnection (connector,
+								 maxBuffered,
+								 dataSize));
+
+	  }
   }
 
 
@@ -195,20 +203,16 @@ namespace MUSIC {
 
     // Retrieve info about all remote connectors of this port
     PortConnectorInfo portConnections
-      = connectivity_->connections (portName_);
+      = conn_info.connections ();
     PortConnectorInfo::iterator info = portConnections.begin ();
     indices_ = indices;
     index_type_ = type;
     Connector* connector = makeConnector (*info);
-    ClockState integerLatency (accLatency, application.timebase ());
-    /* application.addConnection(new InputConnection (connector, */
-						/* maxBuffered, */
-						/* integerLatency, */
-						/* interpolate)); */
-    connection_ = new InputConnection (connector,
+    ClockState integerLatency (accLatency, app_.timebase ());
+    connections_.push_back (new InputConnection (connector,
 						maxBuffered,
 						integerLatency,
-						interpolate);
+						interpolate));
   }
 
 
@@ -260,7 +264,7 @@ namespace MUSIC {
 		  conn =  new ContOutputConnector (connInfo,
 				  indices_,
 		  		  index_type_,
-				  application.communicator (),
+				  app_.communicator (),
 				  sampler,
 				  type_);
 	  }
@@ -268,7 +272,7 @@ namespace MUSIC {
 		  conn = new ContOutputCollectiveConnector(connInfo,
 				  indices_,
 		  		  index_type_,
-				  application.communicator (),
+				  app_.communicator (),
 				  sampler,
 				  type_);
 
@@ -347,7 +351,7 @@ namespace MUSIC {
 		  conn = new ContInputConnector (connInfo,
 				  indices_,
 		  		  index_type_,
-				  application.communicator (),
+				  app_.communicator (),
 				  sampler,
 				  type_,
 				  delay_);
@@ -356,7 +360,7 @@ namespace MUSIC {
 		  conn = new ContInputCollectiveConnector (connInfo,
 				  indices_,
 		  		  index_type_,
-				  application.communicator (),
+				  app_.communicator (),
 				  sampler,
 				  type_,
 				  delay_);
@@ -387,10 +391,11 @@ namespace MUSIC {
     if (isConnected ())
       {
 	bool mixed = false;
-	PortConnectorInfo::iterator c = connectivity_->connections (portName_).begin ();
+	ConnectorInfo conn_info = getConnectivityInfo();
+	PortConnectorInfo::iterator c = conn_info.connections ().begin ();
 	int commType = c->communicationType ();
 	int procMethod = c->processingMethod ();
-	for (++c; c != connectivity_->connections (portName_).end (); ++c)
+	for (++c; c != conn_info.connections ().end (); ++c)
 	  {
 	    if (c->processingMethod () != procMethod)
 	      error ("MUSIC: can't use both tree and table for same port");
@@ -399,16 +404,16 @@ namespace MUSIC {
 	  }
 	if (!mixed)
 	  {
-	    if (commType == ConnectorInfo::CommunicationType::COLLECTIVE)
+	    if (commType == ConnectorInfo::COLLECTIVE)
 	      router = new DirectRouter ();
-	    else if (procMethod == ConnectorInfo::ProcessingMethod::TREE)
+	    else if (procMethod == ConnectorInfo::TREE)
 	      router = new TreeProcessingOutputRouter ();
 	    else
 	      router = new TableProcessingOutputRouter ();
 	  }
 	else
 	  {
-	    if (procMethod == ConnectorInfo::ProcessingMethod::TREE)
+	    if (procMethod == ConnectorInfo::TREE)
 	      router = new HybridTreeProcessingOutputRouter ();
 	    else
 	      router = new HybridTableProcessingOutputRouter ();
@@ -462,14 +467,14 @@ namespace MUSIC {
       conn = new EventOutputConnector (connInfo,
 				       indices_,
 				       index_type_,
-				       application.communicator (),
+				       app_.communicator (),
 				       routingMap);
     else
       conn = new EventOutputCollectiveConnector
 	(connInfo,
 	 indices_,
 	 index_type_,
-	 application.communicator (),
+	 app_.communicator (),
 	 router->directRouter ());
 
     return conn;
@@ -605,13 +610,13 @@ namespace MUSIC {
 		  conn =   new EventInputConnector (connInfo,
 		  			  indices_,
 		  			  index_type_,
-		  			  application.communicator (),
+		  			  app_.communicator (),
 		  			  handleEvent_);
 	  else
 		  conn = new EventInputCollectiveConnector(connInfo,
 	  	 			indices_,
 		  			index_type_,
-	  	 			application.communicator (),
+	  	 			app_.communicator (),
 	  	 			handleEvent_);
 
 	 return conn;
@@ -690,7 +695,7 @@ namespace MUSIC {
     return new MessageOutputConnector (connInfo,
 				       indices_,
 				       index_type_,
-				       application.communicator (),
+				       app_.communicator (),
 				       buffers);
   }
 
@@ -812,7 +817,7 @@ namespace MUSIC {
 				      indices_,
 		  			  index_type_,
 				      handleMessage_,
-				      application.communicator ());
+				      app_.communicator ());
   }
 
 

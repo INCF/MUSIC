@@ -28,10 +28,11 @@
 
 namespace MUSIC {
 
+  using CMapIterator = std::map<std::string, ConnectivityInfo>::iterator;
   int ConnectorInfo::maxPortCode_;
 
 #if __cplusplus <=199711L
-  ConnectivityInfo* const Connectivity::NO_CONNECTIVITY = NULL;
+  ConnectivityInfo const Connectivity::NO_CONNECTIVITY = NULL;
 #endif
 
   void
@@ -61,6 +62,22 @@ namespace MUSIC {
 					       procMethod));
   }
 
+  // TODO assymetric right now, fix it!
+  void
+  ConnectivityInfo::removeConnection (std::string recApp, std::string recName)
+  {
+	// iterate over all connectorInfos and remove the corresponding ones
+		// TODO reconsider using a std::list instead of vector. Removing
+		// from vector is really expensive
+		portConnections_.erase(
+				std::remove_if(portConnections_.begin(), portConnections_.end(),
+					   [&](ConnectorInfo& ci) {
+					   return (ci.receiverAppName() == recApp
+							   && ci.receiverPortName() == recName);
+					   }), portConnections_.end());
+
+  }
+
 
   void
   Connectivity::add (std::string localPort,
@@ -75,22 +92,23 @@ namespace MUSIC {
 			 int procMethod
 				)
   {
-    std::map<std::string, int>::iterator cmapInfo
+    CMapIterator cmapInfo
       = connectivityMap.find (localPort);
-    ConnectivityInfo* info;
+	ConnectivityInfo info;
     if (cmapInfo == connectivityMap.end ())
       {
 		MUSIC_LOG ("creating new entry for " << localPort);
-		int index = connections_.size ();
-		connections_.push_back (ConnectivityInfo (localPort, dir, width));
-		info = &connections_.back ();
-		MUSIC_LOG ("ci = " << info);
-		connectivityMap.insert (std::make_pair (localPort, index));
+		connectivityMap.insert (
+				std::make_pair {localPort,
+					ConnectivityInfo (localPort, dir, width)});
+		info = connectivityMap.find (localPort)->second;
+
       }
     else
       {
 		MUSIC_LOG ("found old entry for " << localPort);
-		info = &connections_[cmapInfo->second];
+		/* info = &connections_[cmapInfo->second]; */
+		info = cmapInfo->second;
 		if (info->direction () != dir)
 		  error ("port " + localPort + " used both as output and input");
       }
@@ -104,16 +122,39 @@ namespace MUSIC {
 				);
   }
 
+  // TODO assymetric right now, fix it!
+  void
+  Connectivity::remove (std::string localPort, std::string recApp, std::string recPort)
+  {
+	auto cmapInfo = connectivityMap.find (localPort);
+	if (cmapInfo == connectivityMap.end ())
+		return;
+	ConnectivityInfo* info = cmapInfo->second;
+	info->removeConnection (recApp, recPort);
+	if (info->connections ().empty())
+		remove (localPort);
 
-  ConnectivityInfo*
+  }
+
+  void
+  ConnectivityInfo::remove (std::string localPort)
+  {
+	auto cmapInfo = connectivityMap.find (localPort);
+	if (cmapInfo == connectivityMap.end ())
+		return;
+	connectivityMap.erase (localPort);
+  }
+
+
+  ConnectivityInfo
   Connectivity::info (std::string portName)
   {
-    std::map<std::string, int>::iterator info
+    CMapIterator info
       = connectivityMap.find (portName);
     if (info == connectivityMap.end ())
       return NO_CONNECTIVITY;
     else
-      return &connections_[info->second];
+	  return info->second;
   }
 
 
@@ -127,21 +168,22 @@ namespace MUSIC {
   ConnectivityInfo::PortDirection
   Connectivity::direction (std::string portName)
   {
-    return connections_[connectivityMap[portName]].direction ();
+    return connectivityMap[portName]->direction ();
   }
 
 
   int
   Connectivity::width (std::string portName)
   {
-    return connections_[connectivityMap[portName]].width ();
+    return connectivityMap[portName]->width ();
   }
 
 
+  // TODO as copy or share ptr?
   PortConnectorInfo
   Connectivity::connections (std::string portName)
   {
-    return connections_[connectivityMap[portName]].connections ();
+    return connectivityMap[portName]->connections ();
   }
 
 
@@ -149,13 +191,13 @@ namespace MUSIC {
   Connectivity::write (std::ostringstream& out)
   {
     out << connectivityMap.size ();
-    std::map<std::string, int>::iterator i;
+    CMapIterator i;
     for (i = connectivityMap.begin ();
 	 i != connectivityMap.end ();
 	 ++i)
       {
 	out << ':' << i->first << ':';
-	ConnectivityInfo* ci = &connections_[i->second];
+	ConnectivityInfo ci = i->second;
 	out << ci->direction () << ':' << ci->width () << ':';
 	PortConnectorInfo conns = ci->connections ();
 	out << conns.size ();

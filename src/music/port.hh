@@ -48,7 +48,7 @@ namespace MUSIC {
  */
   class Port {
   public:
-    Port () { }
+    /* Port () { } */
     Port (Application& s, std::string identifier);
 
     virtual void buildTable () { };
@@ -57,25 +57,29 @@ namespace MUSIC {
     bool hasWidth ();
     int width ();
     void checkIndexMap (IndexMap* indexMap);
+	std::string name ();
 
   protected:
     IndexMap* indices_;
     Index::Type index_type_;
     std::string portName_;
-    Application& application_;
-    /* ConnectivityInfo* ConnectivityInfo_; */
-	Connectivity* connectivity_;
-	Connection* connection_;
+    Application& app_;
+	std::vector<Connection*> connections_;
     virtual Connector* makeConnector (ConnectorInfo connInfo) = 0;
     void assertOutput ();
     void assertInput ();
 
   public: // MDJ 2012-08-07 public for now---see comment in runtime.cc
-    virtual ~Port(){};
+    virtual ~Port()
+	{
+		std::for_each (connections_.begin(), connections_.end(),
+				[](Connection* c) {del c;}
+				);
+	};
 
   private:
 
-	Connection* getConnection() const;
+	void getConnectivityInfo () const;
     void checkConnected (std::string action);
     bool isMapped_;
     friend class Runtime;
@@ -121,7 +125,7 @@ namespace MUSIC {
 			 public OutputPort,
 			 public TickingPort {
     void mapImpl (DataMap* indices, int maxBuffered);
-    Connector* makeConnector (ConnectorInfo connInfo) override;
+    Connector* makeConnector (ConnectorInfo connInfo);
     friend class Implementer;
 
   public:
@@ -129,7 +133,7 @@ namespace MUSIC {
       : Port (s, id) { }
     void map (DataMap* dmap);
     void map (DataMap* dmap, int maxBuffered);
-    void tick () override;
+    void tick ();
   };
 
   class ContInputPort : public ContPort, public InputPort {
@@ -138,7 +142,7 @@ namespace MUSIC {
 		  double delay,
 		  int maxBuffered,
 		  bool interpolate);
-    Connector* makeConnector (ConnectorInfo connInfo) override;
+    Connector* makeConnector (ConnectorInfo connInfo);
     friend class Implementer;
 
   public:
@@ -180,9 +184,9 @@ namespace MUSIC {
     ~EventOutputPort();
 
   private:
-    Connector* makeConnector (ConnectorInfo connInfo) override;
+    Connector* makeConnector (ConnectorInfo connInfo);
     void buildTable ();
-    friend class Application;
+    friend class Setup;
     friend class Implementer;
   };
 /* remedius
@@ -220,7 +224,7 @@ namespace MUSIC {
 		  double accLatency,
 		  int maxBuffered);
 
-    Connector* makeConnector (ConnectorInfo connInfo) override;
+    Connector* makeConnector (ConnectorInfo connInfo);
     // Facilities to support the C interface
   public:
     EventHandlerGlobalIndexProxy*
@@ -231,7 +235,7 @@ namespace MUSIC {
     EventHandlerGlobalIndexProxy cEventHandlerGlobalIndex;
     EventHandlerLocalIndexProxy cEventHandlerLocalIndex;
 
-    friend class Application;
+    friend class Setup;
     friend class Implementer;
   };
 
@@ -253,7 +257,7 @@ namespace MUSIC {
     void insertMessage (double t, void* msg, size_t size);
   protected:
     void mapImpl (int maxBuffered);
-    Connector* makeConnector (ConnectorInfo connInfo) override;
+    Connector* makeConnector (ConnectorInfo connInfo);
     friend class Implementer;
   };
 
@@ -271,7 +275,7 @@ namespace MUSIC {
     void mapImpl (MessageHandler* handleEvent,
 		  double accLatency,
 		  int maxBuffered);
-    Connector* makeConnector (ConnectorInfo connInfo) override;
+    Connector* makeConnector (ConnectorInfo connInfo);
     friend class Implementer;
 
   public:

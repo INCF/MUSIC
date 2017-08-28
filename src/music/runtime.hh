@@ -23,7 +23,7 @@
 #include <mpi.h>
 #include <vector>
 
-#include "music/application.hh"
+#include "music/setup.hh"
 #include "music/port.hh"
 #include "music/clock.hh"
 #include "music/connector.hh"
@@ -37,17 +37,11 @@ namespace MUSIC
    *
    * It is documented in section 4.4 of the MUSIC manual
    */
-  using Connections = std::vector<Connection*>;
-  using TickingPorts = std::vector<std::shared_ptr<TickingPort>>;
 
   class Runtime
   {
   public:
-    Runtime (Application& s, Configuration& c, double h);
-
-	Runtime (const Application&) = delete;
-	Runtime& operator= (const Application&) = delete;
-
+    Runtime (Application* s, double h);
     ~Runtime ();
 
     MPI::Intracomm
@@ -61,18 +55,14 @@ namespace MUSIC
     time ();
 
   private:
-	Configuration& config_;
-    TemporalNegotiator temporalNegotiator_;
     Clock localTime;
     //Clock nextComm;
     std::string app_name;
     int leader_;
     std::vector<std::pair<double, Connector *> > schedule;
     MPI::Intracomm comm;
-    /* std::vector<Port*> ports; */
-	/* Ports ports_; */
-    /* std::vector<std::shared_ptr<TickingPort>> tickingPorts; */
-	TickingPorts tickingPorts_;
+    std::vector<Port*> ports;
+    std::vector<TickingPort*> tickingPorts;
     std::vector<Connector*> connectors;
     std::vector<PostCommunicationConnector*> postCommunication;
     std::vector<PreCommunicationConnector*> preCommunication;
@@ -81,9 +71,10 @@ namespace MUSIC
     MulticommAgent* mAgent;
     static bool isInstantiated_;
 
+    typedef std::vector<Connection*> Connections;
     bool needsMultiCommunication ();
     void
-    takeTickingPorts ();
+    takeTickingPorts (Application* s);
     void
     connectToPeers (Connections* connections);
     void
@@ -95,11 +86,11 @@ namespace MUSIC
     void
     takePostCommunicators ();
     void
-    buildTables ();
+    buildTables (Application* s);
     void
-    temporalNegotiation (Connections* connections);
+    temporalNegotiation (Application* s, Connections* connections);
     void
-    initialize ();
+    initialize (Application* s);
   };
 
 }
