@@ -33,7 +33,7 @@
 #include "rudeconfig/src/config.h"
 
 #if MUSIC_USE_MPI
-  #include <mpi.h>
+#include <mpi.h>
 #endif
 
 #if HAVE_SYS_STAT_H
@@ -318,14 +318,14 @@ void
               }
 
              // default communication type is *point-to-point*
-            int iCommType;
+			ConnectorInfo::CommunicationType iCommType;
             if (commType.length () == 0 || !commType.compare ("point-to-point"))
                 iCommType = ConnectorInfo::CommunicationType::POINTTOPOINT;
             else
                 iCommType = ConnectorInfo::CommunicationType::COLLECTIVE;
 
              // default processing method is *tree*
-            int iProcMethod;
+			ConnectorInfo::ProcessingMethod iProcMethod;
             if (procMethod.length () == 0 || !procMethod.compare ("tree"))
                 iProcMethod = ConnectorInfo::ProcessingMethod::TREE;
 

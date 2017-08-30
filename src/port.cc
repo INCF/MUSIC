@@ -393,8 +393,8 @@ namespace MUSIC {
 	bool mixed = false;
 	ConnectorInfo conn_info = getConnectivityInfo();
 	PortConnectorInfo::iterator c = conn_info.connections ().begin ();
-	int commType = c->communicationType ();
-	int procMethod = c->processingMethod ();
+	ConnectorInfo::CommunicationType commType = c->communicationType ();
+	ConnectorInfo::ProcessingMethod procMethod = c->processingMethod ();
 	for (++c; c != conn_info.connections ().end (); ++c)
 	  {
 	    if (c->processingMethod () != procMethod)

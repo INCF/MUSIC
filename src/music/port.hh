@@ -186,7 +186,7 @@ namespace MUSIC {
   private:
     Connector* makeConnector (ConnectorInfo connInfo);
     void buildTable ();
-    friend class Setup;
+    friend class Application;
     friend class Implementer;
   };
 /* remedius
@@ -224,6 +224,7 @@ namespace MUSIC {
 		  double accLatency,
 		  int maxBuffered);
 
+
     Connector* makeConnector (ConnectorInfo connInfo);
     // Facilities to support the C interface
   public:
@@ -235,7 +236,7 @@ namespace MUSIC {
     EventHandlerGlobalIndexProxy cEventHandlerGlobalIndex;
     EventHandlerLocalIndexProxy cEventHandlerLocalIndex;
 
-    friend class Setup;
+    friend class Application;
     friend class Implementer;
   };
 

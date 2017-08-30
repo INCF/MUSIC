@@ -131,6 +131,7 @@ namespace MUSIC {
 	   ++subconnector)
 	delete *subconnector;
     }
+	// Decides whether Connector is Interpolating or Plain
     virtual void specialize (Clock& localTime) { }
 
     unsigned int idFlag () const { return idFlag_; }

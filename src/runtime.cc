@@ -39,38 +39,50 @@ namespace MUSIC
 
   bool Runtime::isInstantiated_ = false;
 
-
-  Runtime::Runtime (Application* s, double h)
-    : mAgent (0)
+  Runtime::Runtime (const Runtime& other)
+	  : app_ (other.app_),
+	  portMgr_ (other.portMgr_),
+	  localTime (other.localTime),
+	  // here: new temporalNegotiator
+	  temporalNegotiator_ (other.app_),
+	  leader_ (other.leader_),
+	  comm (other.comm),
+	  scheduler (new Scheduler (comm, leader_)),
+	  mAgent (0)
   {
-    /* checkInstantiatedOnce (isInstantiated_, "Runtime"); */
-    /* s->maybePostponedApplication (); */
+	setup ();
+  }
 
-    app_name = s->applicationName ();
-    leader_ = s->leader ();
+  Runtime::Runtime (Application& app, PortConnectivityManager& portMgr, double h)
+    : app_ (app),
+	portMgr_ (portMgr),
+	localTime (Clock (app_.timebase (), h)),
+	temporalNegotiator_ (app_),
+	leader_ (app_.leader ()),
+	comm (app_.communicator ()),
+	scheduler (new Scheduler (comm, leader_)),
+	mAgent (0),
+  {
+	setup ();
+  }
 
-    /* remedius
-     * new type of subconnectors for collective communication was created.
-     */
-    //CollectiveSubconnectors collectiveSubconnectors;
-    // Application the MUSIC clock
-    localTime = Clock (s->timebase (), h);
 
-    comm = s->communicator ();
+  // TODO passing connections directly to setup() instead of extracting them
+  // inside
+  void Runtime::setup ()
+  {
+	Connections* connections = new Connections ();
+	auto& ports = portMgr_.getPorts ();
 
-    /* remedius
-     * copy ports in order to delete them afterwards (it was probably a memory leak in previous revision)
-     */
-    for (std::vector<Port *>::iterator it = s->ports ()->begin ();
-        it < s->ports ()->end (); it++)
-      ports.push_back ( (*it));
+	std::for_each (ports.begin (), ports.end (),
+			[connections](auto& port_ptr)
+			{
+				connections->push_back (port_ptr->connections_);
+			});
 
-    Connections* connections = s->connections ();
-
-    scheduler = new Scheduler (comm, leader_);
-    if (s->launchedByMusic ())
+    if (app_.launchedByMusic ())
       {
-        takeTickingPorts (s);
+        takeTickingPorts ();
 
         // create a total order for connectors and
         // establish connection to peers
@@ -84,11 +96,11 @@ namespace MUSIC
         spatialNegotiation ();
 
         // build data routing tables
-        buildTables (s);
+        buildTables ();
         takePreCommunicators ();
         takePostCommunicators ();
         // negotiate timing constraints for synchronizers
-        temporalNegotiation (s, connections);
+        temporalNegotiation (connections);
 #if 0
         if (needsMultiCommunication ())
           {
@@ -102,7 +114,7 @@ namespace MUSIC
         scheduler->setAgent (sAgents[sAgents.size () - 1]);
 
         // final initialization before simulation starts
-        initialize (s);
+        initialize ();
       }
     else
       {
@@ -128,10 +140,11 @@ namespace MUSIC
 
   Runtime::~Runtime ()
   {
+
     // delete connectors
-    for (std::vector<Connector*>::iterator connector = connectors.begin ();
-        connector != connectors.end (); ++connector)
-      delete *connector;
+    /* for (std::vector<Connector*>::iterator connector = connectors.begin (); */
+    /*     connector != connectors.end (); ++connector) */
+    /*   delete *connector; */
 #if 0
     /* MDJ 2012-08-07
      Some applications assume that they need to delete the ports.
@@ -146,7 +159,6 @@ namespace MUSIC
         it != sAgents.end (); it++)
       delete (*it);
     delete scheduler;
-    isInstantiated_ = false;
   }
 
 
@@ -161,13 +173,14 @@ namespace MUSIC
   }
 
   void
-  Runtime::takeTickingPorts (Application* s)
+  Runtime::takeTickingPorts ()
   {
-    std::vector<Port*>::iterator p;
+	SPVec<Port>::iterator p;
     for (p = ports.begin (); p != ports.end (); ++p)
       {
         TickingPort* tp = dynamic_cast<TickingPort*> (*p);
-        if (tp != NULL)
+		std::shared_ptr<TickingPort> tp (std::dynamic_pointer_cast<TickingPort> (port));
+        if (tp != nullptr)
           tickingPorts.push_back (tp);
       }
   }
@@ -263,7 +276,7 @@ namespace MUSIC
 
 
   void
-  Runtime::buildTables (Application* s)
+  Runtime::buildTables ()
   {
     for (std::vector<Port*>::iterator p = ports.begin (); p != ports.end ();
         ++p)
@@ -272,11 +285,11 @@ namespace MUSIC
 
 
   void
-  Runtime::temporalNegotiation (Application* s, Connections* connections)
+  Runtime::temporalNegotiation (Connections* connections)
   {
     // Temporal negotiation is done globally by a serial algorithm
     // which yields the same result in each process
-    s->temporalNegotiator ()->negotiate (localTime, connections);
+    temporalNegotiator_.negotiate (localTime, connections);
   }
 
 
@@ -288,9 +301,9 @@ namespace MUSIC
 
 
   void
-  Runtime::initialize (Application* s)
+  Runtime::initialize ()
   {
-    scheduler->initialize (s->temporalNegotiator ()->applicationGraph (),
+    scheduler->initialize (temporalNegotiator_.applicationGraph (),
         connectors);
 #if 0
     if (mAgent)
@@ -333,7 +346,7 @@ namespace MUSIC
     // Update local time
     localTime.tick ();
     // ContPorts do some per-tick initialization here
-    std::vector<TickingPort*>::iterator p;
+	SPVec<TickingPort>::iterator p;
     for (p = tickingPorts.begin (); p != tickingPorts.end (); ++p)
       (*p)->tick ();
     // ContOutputConnectors sample data

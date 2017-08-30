@@ -31,7 +31,8 @@
 namespace MUSIC
 {
 
-  class Setup;
+  /* class app; */
+	class Application;
 
   class ConnectionDescriptor
   {
@@ -96,7 +97,7 @@ namespace MUSIC
   // with all other applications.
   class TemporalNegotiator
   {
-    Setup* setup_;
+    Application& app_;
     MPI::Group groupWorld;
     MPI::Group applicationLeaders;
     MPI::Intracomm negotiationComm;
@@ -114,7 +115,7 @@ namespace MUSIC
     TemporalNegotiationData* negotiationData;
 
   public:
-    TemporalNegotiator (Setup* setup);
+    TemporalNegotiator (Application& app);
     ~TemporalNegotiator ();
     void
     negotiate (Clock& localTime, std::vector<Connection*>* connections);

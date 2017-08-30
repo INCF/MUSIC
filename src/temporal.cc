@@ -21,18 +21,18 @@
 
 #if MUSIC_USE_MPI
 
-#include "music/setup.hh"
+#include "music/application.hh"
 
 namespace MUSIC
 {
 
-  TemporalNegotiator::TemporalNegotiator (Setup* setup) :
-      setup_ (setup), negotiationBuffer (NULL)
+  TemporalNegotiator::TemporalNegotiator (Application& app) :
+      app_ (app), negotiationBuffer (NULL)
   {
-    nApplications_ = setup_->applicationMap ()->size ();
+    nApplications_ = app_.applicationMap ()->size ();
     nAllConnections = 0;
-    nodes = new TemporalNegotiatorGraph (setup_->timebase (), nApplications_,
-        setup_->applicationColor ());
+    nodes = new TemporalNegotiatorGraph (app_.timebase (), nApplications_,
+        app_.applicationColor ());
   }
 
 
@@ -75,21 +75,21 @@ namespace MUSIC
   bool
   TemporalNegotiator::isLeader ()
   {
-    return setup_->communicator ().Get_rank () == 0;
+    return app_.communicator ().Get_rank () == 0;
   }
 
 
   bool
   TemporalNegotiator::hasPeers ()
   {
-    return setup_->communicator ().Get_size () > 1;
+    return app_.communicator ().Get_size () > 1;
   }
 
 
   void
   TemporalNegotiator::createNegotiationCommunicator ()
   {
-    ApplicationMap* applicationMap = setup_->applicationMap ();
+    ApplicationMap* applicationMap = app_.applicationMap ();
     int* ranks = new int[nApplications_];
 
     for (int i = 0; i < nApplications_; ++i)
@@ -169,7 +169,7 @@ namespace MUSIC
   TemporalNegotiator::findNodeColor (int leader)
   {
     int color = -1;
-    ApplicationMap* applicationMap = setup_->applicationMap ();
+    ApplicationMap* applicationMap = app_.applicationMap ();
     for (int i = 0; i < nApplications_; ++i)
       if (leader == (*applicationMap)[i].leader ())
         color = (*applicationMap)[i].color ();
@@ -188,11 +188,11 @@ namespace MUSIC
         << ", nOut = " << nOut
         << ", nIn = " << nIn);
     negotiationData = allocNegotiationData (1, nLocalConnections);
-    negotiationData->timebase = setup_->timebase ();
+    negotiationData->timebase = app_.timebase ();
     negotiationData->tickInterval = ti;
-    negotiationData->color = setup_->applicationColor ();
-    negotiationData->leader = setup_->leader ();
-    negotiationData->nProcs = setup_->nProcs ();
+    negotiationData->color = app_.applicationColor ();
+    negotiationData->leader = app_.leader ();
+    negotiationData->nProcs = app_.nProcs ();
     negotiationData->nOutConnections = outputConnections.size ();
     negotiationData->nInConnections = inputConnections.size ();
 
@@ -208,7 +208,7 @@ namespace MUSIC
             outputConnections[i].maxBuffered ();
         negotiationData->connection[i].defaultMaxBuffered =
             computeDefaultMaxBuffered (connector->maxLocalWidth (),
-                outputConnections[i].elementSize (), ti, setup_->timebase ());
+                outputConnections[i].elementSize (), ti, app_.timebase ());
 
         negotiationData->connection[i].accLatency = 0;
       }
@@ -390,7 +390,7 @@ namespace MUSIC
   void
   TemporalNegotiator::broadcastNegotiationData ()
   {
-    MPI::Intracomm comm = setup_->communicator ();
+    MPI::Intracomm comm = app_.communicator ();
 
     if (hasPeers ())
       {
@@ -407,7 +407,7 @@ namespace MUSIC
   void
   TemporalNegotiator::receiveNegotiationData ()
   {
-    MPI::Intracomm comm = setup_->communicator ();
+    MPI::Intracomm comm = app_.communicator ();
     comm.Bcast (&nAllConnections, 1, MPI::INT, 0);
     negotiationBuffer = allocNegotiationData (nApplications_, nAllConnections);
     char* memory = static_cast<char*> (static_cast<void*> (negotiationBuffer));

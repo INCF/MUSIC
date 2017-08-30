@@ -24,16 +24,16 @@
 
 #include "music/connectivity.hh"
 #include "music/ioutils.hh"
-#include "music/error.hh"
+#include "music/misc.hh"
 
 namespace MUSIC {
 
-  using CMapIterator = std::map<std::string, ConnectivityInfo>::iterator;
+  using CMapIterator = std::map<std::string, ConnectivityInfo*>::iterator;
   int ConnectorInfo::maxPortCode_;
 
-#if __cplusplus <=199711L
-  ConnectivityInfo const Connectivity::NO_CONNECTIVITY = NULL;
-#endif
+/* #if __cplusplus <=199711L */
+/*   ConnectivityInfo const Connectivity::NO_CONNECTIVITY = NULL; */
+/* #endif */
 
   void
   ConnectorInfo::registerPortCode (int portCode)
@@ -88,13 +88,13 @@ namespace MUSIC {
 		     int recPortCode,
 		     int remoteLeader,
 		     int remoteNProc,
-		     int commType,
-			 int procMethod
+		     ConnectorInfo::CommunicationType commType,
+			 ConnectorInfo::ProcessingMethod procMethod
 				)
   {
     CMapIterator cmapInfo
       = connectivityMap.find (localPort);
-	ConnectivityInfo info;
+	ConnectivityInfo* info;
     if (cmapInfo == connectivityMap.end ())
       {
 		MUSIC_LOG ("creating new entry for " << localPort);
@@ -123,12 +123,13 @@ namespace MUSIC {
   }
 
   // TODO assymetric right now, fix it!
+  // TODO shouldnt the naming of the params be "remApp and remPort" instead?
   void
   Connectivity::remove (std::string localPort, std::string recApp, std::string recPort)
   {
 	auto cmapInfo = connectivityMap.find (localPort);
 	if (cmapInfo == connectivityMap.end ())
-		return;
+		error (std::string ("Could not find localPort"));
 	ConnectivityInfo* info = cmapInfo->second;
 	info->removeConnection (recApp, recPort);
 	if (info->connections ().empty())
@@ -136,17 +137,18 @@ namespace MUSIC {
 
   }
 
-  void
-  ConnectivityInfo::remove (std::string localPort)
+ void
+  Connectivity::remove (std::string localPort)
   {
 	auto cmapInfo = connectivityMap.find (localPort);
 	if (cmapInfo == connectivityMap.end ())
-		return;
+		error (std::string ("Could not find localPort"));
+	delete cmapInfo->second;
 	connectivityMap.erase (localPort);
   }
 
 
-  ConnectivityInfo
+  ConnectivityInfo*
   Connectivity::info (std::string portName)
   {
     CMapIterator info
@@ -155,6 +157,26 @@ namespace MUSIC {
       return NO_CONNECTIVITY;
     else
 	  return info->second;
+  }
+
+  std::list<std::string> Connectivity::getConnectedLocalPorts (std::string remotePort, std::string remoteApp)
+  {
+	// I assume that a localPort is not connected multiple times to the
+	// remotePort
+
+	// TODO if this becomes a bottleneck, we need to use another set of packing
+	// and indexing connections
+	std::list<std::string> lst;
+	for (auto& e : connectivityMap)
+	{
+		for (auto& con_info : e.second->connections ())
+		{
+			if (con_info.receiverAppName () == remoteApp
+					&& con_info.receiverPortName () == remotePort)
+				lst.push_front (e.first);
+		}
+	}
+	return lst;
   }
 
 
@@ -186,7 +208,6 @@ namespace MUSIC {
     return connectivityMap[portName]->connections ();
   }
 
-
   void
   Connectivity::write (std::ostringstream& out)
   {
@@ -197,7 +218,7 @@ namespace MUSIC {
 	 ++i)
       {
 	out << ':' << i->first << ':';
-	ConnectivityInfo ci = i->second;
+	ConnectivityInfo* ci = i->second;
 	out << ci->direction () << ':' << ci->width () << ':';
 	PortConnectorInfo conns = ci->connections ();
 	out << conns.size ();

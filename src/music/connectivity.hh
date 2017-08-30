@@ -21,7 +21,10 @@
 #include <sstream>
 #include <vector>
 #include <map>
+#include <list>
 #include <limits>
+
+#include "music/error.hh"
 
 namespace MUSIC {
 /*
@@ -32,13 +35,13 @@ namespace MUSIC {
   {
   public:
 
-    enum class CommunicationType
+    enum class CommunicationType : int
     {
       COLLECTIVE, POINTTOPOINT
     };
 
 
-    enum class ProcessingMethod
+    enum class ProcessingMethod : int
     {
       TREE, TABLE
     };
@@ -50,8 +53,8 @@ namespace MUSIC {
     int recCode_;
     int remoteLeader_;
     int nProc_;
-    int commType_;
-    int procMethod_;
+    CommunicationType commType_;
+    ProcessingMethod procMethod_;
 
   public:
     ConnectorInfo ()
@@ -60,7 +63,7 @@ namespace MUSIC {
 
 
     ConnectorInfo (std::string recApp, std::string recName, int recCode,
-        int rLeader, int nProc, int commType, int procMethod) :
+        int rLeader, int nProc, CommunicationType commType, ProcessingMethod procMethod) :
         recApp_ (recApp), recPort_ (recName), recCode_ (recCode), remoteLeader_ (
             rLeader), nProc_ (nProc), commType_ (commType), procMethod_ (
             procMethod)
@@ -76,8 +79,8 @@ namespace MUSIC {
     allocPortCode ()
     {
 	   // TODO emit error msg
-	  /* if (maxPortCode_  == std::numeric_limits<int>::max() ) */
-		// Error
+	  if (maxPortCode_  == std::numeric_limits<int>::max() )
+		  error (std::string ("Maximum number of ports allocated. Aborting."));
       return ++maxPortCode_;
     }
 
@@ -125,14 +128,14 @@ namespace MUSIC {
     }
 
 
-    int
+    CommunicationType
     communicationType () const
     {
       return commType_;
     }
 
 
-    int
+    ProcessingMethod
     processingMethod () const
     {
       return procMethod_;
@@ -142,15 +145,15 @@ namespace MUSIC {
 
   typedef std::vector<ConnectorInfo> PortConnectorInfo;
 
-
   class ConnectivityInfo
   {
 
   public:
-    enum class PortDirection
+    enum class PortDirection : int
     {
       OUTPUT, INPUT
     };
+
 
 
     static const int NO_WIDTH = -1;
@@ -175,8 +178,7 @@ namespace MUSIC {
     }
 
 
-    PortDirection
-    )
+    PortDirection direction()
     {
       return dir_;
     }
@@ -189,15 +191,15 @@ namespace MUSIC {
     } // NO_WIDTH if no width specified
 
 
-    PortConnectorInfo
+    PortConnectorInfo&
     connections ()
     {
-      /* return portConnections_; */
-	  PortConnectorInfo tmp;
-	  std::transform(connectivityMap.begin(), connectivityMap.end(),
-			  std::back_inserter(tmp),
-			  [](auto& e) {return e.second;});
-	  return tmp;
+      return portConnections_;
+	  /* PortConnectorInfo tmp; */
+	  /* std::transform(connectivityMap.begin(), connectivityMap.end(), */
+			  /* std::back_inserter(tmp), */
+			  /* [](auto& e) {return e.second;}); */
+	  /* return tmp; */
     }
 
 
@@ -205,34 +207,46 @@ namespace MUSIC {
         int rLeader, int nProc, int commType, int procMethod);
 
 	void removeConnection (std::string recApp, std::string recName);
+
   };
+
+
 
 
   class Connectivity
   {
     /* std::vector<ConnectivityInfo> connections_; */
-    std::map<std::string, ConnectivityInfo> connectivityMap;
+    std::map<std::string, ConnectivityInfo*> connectivityMap;
 
   public:
     Connectivity ()
     {
     }
 
-#if __cplusplus > 199711L
-    static constexpr ConnectivityInfo NO_CONNECTIVITY = nullptr;
-#else
-    static ConnectivityInfo const NO_CONNECTIVITY;
-#endif
+	~Connectivity ()
+	{
+		for (auto& e : connectivityMap)
+		{
+			delete e.second;
+		}
+	}
+
+/* #if __cplusplus > 199711L */
+	static constexpr ConnectivityInfo* NO_CONNECTIVITY = nullptr;
+/* #else */
+/*     static ConnectivityInfo* const NO_CONNECTIVITY; */
+/* #endif */
 
     void  add (std::string localPort, ConnectivityInfo::PortDirection dir, int width,
         std::string recApp, std::string recPort, int recPortCode,
-        int remoteLeader, int remoteNProc, int commType, int procMethod);
+        int remoteLeader, int remoteNProc, ConnectorInfo::CommunicationType commType, ConnectorInfo::ProcessingMethod procMethod);
 
 	void remove (std::string localPort, std::string recApp, std::string recPort);
 
 	void remove (std::string localPort);
 
-	ConnectivityInfo info (std::string portName);
+	ConnectivityInfo* info (std::string portName);
+
 
     bool isConnected (std::string portName);
 
@@ -245,6 +259,9 @@ namespace MUSIC {
     void write (std::ostringstream& out);
 
     void read (std::istringstream& in, std::map<int, int> leaders);
+
+    std::list<std::string> getConnectedLocalPorts (std::string remotePort, std::string remoteApp);
+
   };
 
 }

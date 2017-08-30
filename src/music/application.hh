@@ -9,7 +9,6 @@
 #include <memory>
 #include <mpi.h>
 #include "music/configuration.hh"
-#include "music/configuration_api.hh"
 #include "music/error.hh"
 #include "music/port.hh"
 #include "music/runtime.hh"
@@ -53,13 +52,6 @@ namespace MUSIC
 			std::string applicationName() const;
 			bool launchedByMusic () const;
 
-			// We return shared_ptr here and weak_ptr in the
-			// PortConnectivityManager class. A cleaner solution would be to return
-			// unique_ptr<T, decltype(customDeleter)> whereas customDeleter is a
-			// (lambda) function that unregisters the port in the
-			// PortConnectivityManager. Unfortunately, it does not seem to be
-			// easy to integrate that type in the Cython interface, so we stick
-			// to the simple shared_ptrs.
 			std::shared_ptr<ContInputPort> publishContInput (std::string identifier);
 			std::shared_ptr<ContOutputPort> publishContOutput (std::string identifier);
 			std::shared_ptr<EventInputPort> publishEventInput (std::string identifier);
@@ -70,6 +62,8 @@ namespace MUSIC
 		private:
 			double timebase_;
 			MPI::MPI_Comm comm_ {MPI::COMM_WORLD};
+			int app_color_;
+			int leader_;
 			ApplicationState state_ {ApplicationState::STOPPED};
 			bool launchedByMusic_ {false};
 			std::unique_ptr<ApplicationMap> application_map_;
@@ -78,34 +72,40 @@ namespace MUSIC
 
 		private:
 			friend class Port;
+			friend class temporal;
 
-			std::unique_ptr<Runtime> runtime_:
+			Runtime runtime_;
 			void assertValidState(std::string func_name, ApplicationState as);
 			/* void checkConnectedPortMissing(const Configuration& c) const; */
 
 			/* void addPort(Port* p); */
 			MPI::Intracomm communicator ();
 			PortConnectivityManager& getPortConnectivityManager () const;
+			int applicationColor();
+			int nProcs () const;
+			int leader () const;
+
 
 	};
 
 	inline double Application::time() const
 	{
-		return runtime_->time();
+		return runtime_.time();
 	}
 
 	inline void Application::tick()
 	{
 		assertValidState("tick", ApplicationState::RUNNING);
-		runtime_->tick();
+		runtime_.tick();
 	}
 
 	inline void Application::finalize()
 	{
-		runtime_->finalize();
+		// TODO what else?
+		runtime_.finalize();
 	}
 
-	void assertValidState(std::string func_name, ApplicationState as)
+	inline void assertValidState(std::string func_name, ApplicationState as)
 	{
 		if (as == state_)
 			return;

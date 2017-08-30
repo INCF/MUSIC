@@ -3,23 +3,21 @@
 #if MUSIC_USE_MPI
 #include <mpi.h>
 
-#include "music/runtime.hh"
 #include "music/parse.hh"
-#include "music/error.hh"
 #include "music/application_mapper.hh"
 #include <strings.h>
 #include <fstream>
 
 namespace MUSIC
 {
-	static std::string err_no_app_info = "No ApplicationInfo object available"
+	static std::string err_no_app_info = "No ApplicationInfo object available";
 
-	const ConnectivityInfo* portConnectivity (const std::string identifier) const
+	const ConnectivityInfo* PortConnectivityManager::portConnectivity (const std::string identifier) const
 	{
 		return connectivityMap_->info (identifier);
 	}
 
-	void isInstantiated (std::string identifier)
+	bool PortConnectivityManager::isInstantiated (std::string identifier)
 	{
 		auto map_iterator = portMap_.find (identifier);
 		if (map_iterator == portMap_.end())
@@ -27,7 +25,19 @@ namespace MUSIC
 		return true;
 	}
 
-	void removePort (std::string identifier)
+	SPVec<Port> PortConnectivityManager::getPorts ()
+	{
+		SPVec<Port> v;
+		for (auto& p : portMap_)
+		{
+			auto spt = p.second.lock ();
+			if (spt)
+				v.push_back (spt);
+		}
+		return v;
+	}
+
+	void PortConnectivityManager::removePort (std::string identifier)
 	{
 		if (!isInstantiated (identifier))
 			error (std::string ("Can not remove port. \
@@ -38,11 +48,11 @@ namespace MUSIC
 		portMap_.erase (identifier);
 	}
 
-	void connect(std::string senderApp, std::string senderPort,
+	void PortConnectivityManager::connect (std::string senderApp, std::string senderPort,
 			std::string receiverApp, std::string receiverPort,
 			int width,
 			ConnectorInfo::CommunicationType commType,
-			ConnectorInfo::ProcessingMethod procMethod);
+			ConnectorInfo::ProcessingMethod procMethod)
 	{
 		// To keep the maxPortCode synchron over all MPI processes,
 		// this must be executed on all processes (even if they do not handle the
@@ -83,9 +93,25 @@ namespace MUSIC
 
 	}
 
-	void PortConnectivityManager::disconnect (std::string identifier)
+	void PortConnectivityManager::disconnect (std::string appName, std::string portName)
 	{
-		connectivityMap_.remove (identifier);
+		if (app_.applicationName () == appName)
+			connectivityMap_.remove (portName);
+		else
+		{
+			auto connectedPorts = connectivityMap_.getConnectedLocalPorts (portName, appName);
+			for (auto& localPort : connectedPorts)
+				connectivityMap_.remove (localPort, appName, portName);
+		}
+
+	}
+
+	void PortConnectivityManager::disconnect (std::string senderApp, std::string senderPort, std::string receiverApp, std::string receiverPort)
+	{
+		if (app_.applicationName () == senderApp)
+			connectivityMap_.remove (senderPort, recApp, recPort);
+		else if (app_.applicationName () == receiverApp)
+			connectivityMap_.remove (receiverPort, senderApp, senderPort);
 	}
 
 	bool PortConnectivityManager::isConnected (std::string identifier) const

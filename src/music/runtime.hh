@@ -23,6 +23,7 @@
 #include <mpi.h>
 #include <vector>
 
+#include "music/misc.hh"
 #include "music/setup.hh"
 #include "music/port.hh"
 #include "music/clock.hh"
@@ -38,10 +39,14 @@ namespace MUSIC
    * It is documented in section 4.4 of the MUSIC manual
    */
 
+using Connections = std::vector<Connection*>;
+
   class Runtime
   {
   public:
-    Runtime (Application* s, double h);
+    Runtime (Application& app, PortConnectivityManager& portMgr, double h);
+	Runtime (const Runtime& other);
+
     ~Runtime ();
 
     MPI::Intracomm
@@ -55,14 +60,17 @@ namespace MUSIC
     time ();
 
   private:
+	Application& app_;
+	PortConnectivityManager& portMgr_;
     Clock localTime;
     //Clock nextComm;
-    std::string app_name;
+    /* std::string app_name; */
+    TemporalNegotiator temporalNegotiator_;
     int leader_;
     std::vector<std::pair<double, Connector *> > schedule;
     MPI::Intracomm comm;
-    std::vector<Port*> ports;
-    std::vector<TickingPort*> tickingPorts;
+    SPVec<Port> ports;
+	SPVec<TickingPort> tickingPorts;
     std::vector<Connector*> connectors;
     std::vector<PostCommunicationConnector*> postCommunication;
     std::vector<PreCommunicationConnector*> preCommunication;
@@ -71,10 +79,11 @@ namespace MUSIC
     MulticommAgent* mAgent;
     static bool isInstantiated_;
 
-    typedef std::vector<Connection*> Connections;
+	void setup ();
+
     bool needsMultiCommunication ();
     void
-    takeTickingPorts (Application* s);
+    takeTickingPorts ();
     void
     connectToPeers (Connections* connections);
     void
@@ -86,11 +95,11 @@ namespace MUSIC
     void
     takePostCommunicators ();
     void
-    buildTables (Application* s);
+    buildTables ();
     void
-    temporalNegotiation (Application* s, Connections* connections);
+    temporalNegotiation (Connections* connections);
     void
-    initialize (Application* s);
+    initialize ();
   };
 
 }

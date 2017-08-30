@@ -1,4 +1,5 @@
 #include "music/application.hh"
+
 #if MUSIC_USE_MPI
 
 namespace MUSIC
@@ -47,16 +48,19 @@ namespace MUSIC
 			bool launchedByMusic, double timebase):
 		conf_(config),
 		comm_ (comm),
+		app_color_ (config->Color ()),
+		leader_ (config->Leader ()),
 		launchedByMusic_ (launchedByMusic),
 		application_map_ (config->applications ()),
 		timebase_ (timebase),
 		port_manager_ (config->connectivityMap (), &this),
-		runtime_(nullptr)
+		runtime_(&this, port_manager_, timebase)
 	{
 	}
 
 	void Application::enterSimulationLoop()
 	{
+		runtime_ = Runtime();
 		// TODO
 		// Eventually run negotiators etc. again
 		// Prepare port_manager
@@ -71,6 +75,8 @@ namespace MUSIC
 		state_ = ApplicationState::STOPPED;
 	}
 
+	// TODO all of this repetetive stuff could be realized as template function
+	// but then we have to use a single function name for all of them
 	std::shared_ptr<ContInputPort>
 	Application::publishContInput (std::string identifier)
 	{
@@ -127,6 +133,16 @@ namespace MUSIC
 	double Application::timebase() const
 	{
 		return timebase_;
+	}
+
+	int Application::nProcs () const
+	{
+		return comm_.Get_size ();
+	}
+
+	int Application::leader () const
+	{
+		return leader_;
 	}
 
 	MPI::Intracomm Application::communicator()
