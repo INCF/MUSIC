@@ -202,6 +202,7 @@ namespace MUSIC {
       maxBuffered -= 1;
 
     // Retrieve info about all remote connectors of this port
+	ConnectorInfo conn_info = getConnectivityInfo();
     PortConnectorInfo portConnections
       = conn_info.connections ();
     PortConnectorInfo::iterator info = portConnections.begin ();
