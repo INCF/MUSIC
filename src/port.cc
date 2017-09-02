@@ -37,6 +37,13 @@ namespace MUSIC {
 	return app_.getPortConnectivityManager ().isConnected ( portName_ );
   }
 
+  void reconnect ()
+  {
+	  for (auto connection_ptr : connections_)
+		  delete *connection_ptr;
+	  connections_.clear ();
+  }
+
 
   void
   Port::checkConnected (std::string action)
@@ -182,7 +189,24 @@ namespace MUSIC {
 	  }
   }
 
+  void
+  OutputPort::reconnect ()
+  {
+	  auto connection_it = connections_.begin ();
+	  if (connection_it != connections_.end ())
+	  {
+		  int maxBuffered = connection_it->maxBuffered ();
+		  int elementSize = connection_it->elementSize ();
+		  connection_it = connections_.end ();
 
+		  Connector::reconnect ();
+		  mapImpl (indices_,
+				  index_type_,
+				  maxBuffered,
+				  elementSize);
+	  }
+
+  }
 
 
   void
@@ -214,6 +238,27 @@ namespace MUSIC {
 						maxBuffered,
 						integerLatency,
 						interpolate));
+  }
+
+  void
+  InputPort::reconnect ()
+  {
+	  auto connection_it = connections_.begin ();
+	  if (connection_it != connections_.end ())
+	  {
+		  int accLatency = connection_it->accLatency ();
+		  int maxBuffered = connection_it->maxBuffered ();
+		  bool interpolate = connection_it->interpolate ();
+		  connection_it = connections_.end ();
+
+		  Connector::reconnect ();
+		  mapImpl (indices_,
+				  index_type_,
+				  accLatency,
+				  maxBuffered,
+				  interpolate);
+	  }
+
   }
 
 
@@ -428,6 +473,17 @@ namespace MUSIC {
    if (router != NULL)
      delete router;
  }
+
+  void
+  EventOutputPort::reconnect ()
+  {
+	  if (routingMap != NULL)
+	  {
+		delete routingMap;
+		routingMap = new OutputRoutingMap ();
+	  }
+	  OutputPort::reconnect ();
+  }
 
   void
   EventOutputPort::mapImpl (IndexMap* indices,

@@ -25,12 +25,19 @@ namespace MUSIC
 	{
 		public:
 			PortConnectivityManager ()
-				: connectivityMap_ (std::make_unique<Connectivity> ()),
-				app_ () {}
+				: connectivityMap_ (std::make_unique<Connectivity> ())
+				, portMap_ ()
+				, app_ ()
+	            , isConnectivityModified (false)
+			{}
 
 			PortConnectivityManager (std::unique_ptr<Connectivity> connectivityMap,
 					Application& app)
-				: connectivityMap_ (std::move (connectivityMap)), portMap_ (), app_ (app) {}
+				  : connectivityMap_ (std::move (connectivityMap))
+				  , portMap_ ()
+				  , app_ (app)
+	              , isConnectivityModified (false)
+			{}
 
 			PortConnectivityManager(const PortConnectivityManager&) = delete;
 			PortConnectivityManager& operator= (const PortConnectivityManager&) = delete;
@@ -48,6 +55,7 @@ namespace MUSIC
 
 			bool isConnected (std::string identifier) const;
 			bool isInstantiated (std::string identifier);
+			void updatePorts();
 
 			SPVec<Port> getPorts ();
 
@@ -59,6 +67,7 @@ namespace MUSIC
 			std::unique_ptr<Connectivity> connectivityMap_;
 			PortMap portMap_;
 			Application& app_;
+			bool isConnectivityModified;
 
 			// TODO move impl to cpp file
 			template <typename T>
@@ -68,6 +77,14 @@ namespace MUSIC
 				if (isInstantiated (ptr->name ()))
 					error (std::string ("Port already has been instantiated."));
 				portMap_.emplace (port->name (), port);
+			}
+
+			template <typename T>
+		    std::shared_ptr<T> createPort (std::string identifier)
+			{
+				auto ptr (std::make_shared<T> (app_, identifier));
+				port_manager_.addPort(ptr);
+				return ptr;
 			}
 
 			void removePort (std::string identifier);

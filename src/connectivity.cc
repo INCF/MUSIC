@@ -62,7 +62,6 @@ namespace MUSIC {
 					       procMethod));
   }
 
-  // TODO assymetric right now, fix it!
   void
   ConnectivityInfo::removeConnection (std::string recApp, std::string recName)
   {
@@ -122,7 +121,6 @@ namespace MUSIC {
 				);
   }
 
-  // TODO assymetric right now, fix it!
   // TODO shouldnt the naming of the params be "remApp and remPort" instead?
   void
   Connectivity::remove (std::string localPort, std::string recApp, std::string recPort)

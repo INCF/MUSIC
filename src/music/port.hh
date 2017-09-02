@@ -52,7 +52,6 @@ namespace MUSIC {
     Port (Application& s, std::string identifier);
 
     virtual void buildTable () { };
-    virtual void setupCleanup () { };
     bool isConnected ();
     bool hasWidth ();
     int width ();
@@ -66,6 +65,7 @@ namespace MUSIC {
     Application& app_;
 	std::vector<Connection*> connections_;
     virtual Connector* makeConnector (ConnectorInfo connInfo) = 0;
+	virtual void reconnect ();
     void assertOutput ();
     void assertInput ();
 
@@ -97,6 +97,7 @@ namespace MUSIC {
   class OutputPort :  public  virtual Port {
   protected:
 	OutputPort () { }
+	void reconnect ();
     virtual void mapImpl (IndexMap* indices,
 			  Index::Type type,
 			  int maxBuffered,
@@ -107,6 +108,7 @@ namespace MUSIC {
   class InputPort :   public  virtual Port {
   protected:
     InputPort (){ }
+	void reconnect ();
     void mapImpl (IndexMap* indices,
 		  Index::Type type,
 		  double accLatency,
@@ -176,10 +178,9 @@ namespace MUSIC {
     void mapImpl (IndexMap* indices,
 		  Index::Type type,
 		  int maxBuffered);
+	void reconnect ();
     void insertEventImpl (double t, int id);
 
-  private:
-    void setupCleanup () { };
   public: // MDJ 2012-08-07 public for now---see comment in runtime.cc
     ~EventOutputPort();
 

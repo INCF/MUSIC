@@ -39,7 +39,7 @@ namespace MUSIC
    * It is documented in section 4.4 of the MUSIC manual
    */
 
-using Connections = std::vector<Connection*>;
+  using Connections = std::vector<Connection*>;
 
   class Runtime
   {
@@ -77,7 +77,6 @@ using Connections = std::vector<Connection*>;
     Scheduler *scheduler;
     std::vector<SchedulerAgent*> sAgents;
     MulticommAgent* mAgent;
-    static bool isInstantiated_;
 
 	void setup ();
 

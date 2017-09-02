@@ -173,6 +173,8 @@ namespace MUSIC {
 
     virtual bool isFinalized () { return finalized_; }
 
+	virtual void reset ();
+
     /* remedius
      * tick method iterates its subconnectors and call according function to perform communication;
      * requestCommunication method argument was removed since there is no need anymore to check for next communication.

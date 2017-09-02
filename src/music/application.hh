@@ -13,27 +13,31 @@
 #include "music/port.hh"
 #include "music/runtime.hh"
 #include "music/connectivity.hh"
+#include "music/port_manager.hh"
+#include "music/music_luncher.hh"
+#include "music/misc.hh"
 
 
 namespace MUSIC
 {
 
-	class enum ApplicationState {RUNNING, STOPPED, FINALIZED};
+	enum class ApplicationState {RUNNING, STOPPED, FINALIZED};
+	const double MUSIC_DEFAULT_TIMEBASE = 1e-9;
 
 	class Application
 	{
 		private:
-			Application(Configuration config, double timebase, MPI::MPI_Comm comm);
+			Application(Configuration config, double timebase, MPI_Comm comm);
 
 		public:
 			Application ()
 				: Application(0, nullptr, 1., MUSICLauncherFactory ().create ()) {}
 			Application (int& argc, char**& argv,
-					double timebase,
-					MUSICLauncher launcher = MUSICLauncherFactory ().create());
+					double timebase = MUSIC_DEFAULT_TIMEBASE,
+					MUSICLauncher launcher = MUSICLauncherFactory ().create ());
 			Application (int& argc, char**& argv, int required, int* provided,
-					double timebase,
-					MUSICLauncher launcher = MUSICLauncherFactory ().create());
+					double timebase = MUSIC_DEFAULT_TIMEBASE,
+					MUSICLauncher launcher = MUSICLauncherFactory ().create ());
 
 			/* Application(Configuration config, double h, MPI::MPI_Comm comm); */
 
@@ -47,7 +51,7 @@ namespace MUSIC
 			void exitSimulationLoop();
 			void finalize();
 
-			double time() const;
+			double time();
 			double timebase() const;
 			std::string applicationName() const;
 			bool launchedByMusic () const;
@@ -76,9 +80,9 @@ namespace MUSIC
 
 			Runtime runtime_;
 			void assertValidState(std::string func_name, ApplicationState as);
-			/* void checkConnectedPortMissing(const Configuration& c) const; */
+			void initialize_MPI(int& argc, char**& argv, int required, int* provided);
+			void initialize_MPI(int& argc, char**& argv);
 
-			/* void addPort(Port* p); */
 			MPI::Intracomm communicator ();
 			PortConnectivityManager& getPortConnectivityManager () const;
 			int applicationColor();
@@ -88,7 +92,7 @@ namespace MUSIC
 
 	};
 
-	inline double Application::time() const
+	inline double Application::time()
 	{
 		return runtime_.time();
 	}
@@ -99,13 +103,8 @@ namespace MUSIC
 		runtime_.tick();
 	}
 
-	inline void Application::finalize()
-	{
-		// TODO what else?
-		runtime_.finalize();
-	}
 
-	inline void assertValidState(std::string func_name, ApplicationState as)
+	inline void Application::assertValidState(std::string func_name, ApplicationState as)
 	{
 		if (as == state_)
 			return;

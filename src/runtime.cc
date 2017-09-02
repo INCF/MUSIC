@@ -24,6 +24,7 @@
 
 #include <mpi.h>
 
+#include "music/application.hh"
 #include "music/temporal.hh"
 #include "music/error.hh"
 #include "music/connection.hh"
@@ -36,8 +37,6 @@
 
 namespace MUSIC
 {
-
-  bool Runtime::isInstantiated_ = false;
 
   Runtime::Runtime (const Runtime& other)
 	  : app_ (other.app_),
@@ -72,7 +71,7 @@ namespace MUSIC
   void Runtime::setup ()
   {
 	Connections* connections = new Connections ();
-	auto& ports = portMgr_.getPorts ();
+	auto ports = portMgr_.getPorts ();
 
 	std::for_each (ports.begin (), ports.end (),
 			[connections](auto& port_ptr)
@@ -123,7 +122,6 @@ namespace MUSIC
 	scheduler->initializeAgentState ();
       }
 
-    delete s;
 #ifdef MUSIC_AFTER_RUNTIME_CONSTRUCTOR_REPORT
     if (MPI::COMM_WORLD.Get_rank () == 0)
     reportMem ();
@@ -168,7 +166,7 @@ namespace MUSIC
     std::vector<Connector*>::iterator c;
     for (c = connectors.begin (); c != connectors.end (); ++c)
       if ((*c)->needsMultiCommunication ())
-	return true;
+		return true;
     return false;
   }
 
@@ -278,7 +276,7 @@ namespace MUSIC
   void
   Runtime::buildTables ()
   {
-    for (std::vector<Port*>::iterator p = ports.begin (); p != ports.end ();
+    for (SPVec<Port>:iterator p = ports.begin (); p != ports.end ();
         ++p)
       (*p)->buildTable ();
   }
@@ -321,6 +319,7 @@ namespace MUSIC
   void
   Runtime::finalize ()
   {
+	  // TODO move MPI finalize to application
 #if 1
     scheduler->finalize (localTime, connectors);
 #else
@@ -331,11 +330,7 @@ namespace MUSIC
     // intercommunicators to go well
     MPI::COMM_WORLD.Barrier ();
 #endif
-    for (std::vector<Connector*>::iterator connector = connectors.begin ();
-        connector != connectors.end (); ++connector)
-      (*connector)->freeIntercomm ();
 
-    MPI::Finalize ();
   }
 
 

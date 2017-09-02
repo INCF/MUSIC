@@ -191,6 +191,14 @@ namespace MUSIC {
     finalized_ = !dataStillFlowing;
   }
 
+  void
+  Connector::reset ()
+  {
+	  freeIntercomm ();
+	  for (auto subconnector : rsubconn)
+		  delete *subconnector;
+	  finalized_ = false;
+  }
 
   void Connector::tick ()
   {

@@ -7,7 +7,7 @@ namespace MUSIC
     static std::string err_not_runtime = "Application not in running state";
 	static std::string err_MPI_Init = "MPI_Init was called before the Setup constructor";
 
-	static void initialize_MPI(int& argc, char**& argv, int required, int* provided)
+	void Application::initialize_MPI(int& argc, char**& argv, int required, int* provided)
 	{
 		// TODO check if this if-block is symantically correct
 		if (!MPI::Is_initialized ())
@@ -22,7 +22,7 @@ namespace MUSIC
 #endif
 	}
 
-	static void initialize_MPI(int& argc, char**& argv)
+	void Application::initialize_MPI(int& argc, char**& argv)
 	{
 		if (!MPI::Is_initialized ())
 			MPI::Init (argc, argv);
@@ -46,32 +46,28 @@ namespace MUSIC
 
 	Application::Application(std::unique_ptr<Configuration> config, MPI::MPI_Comm comm,
 			bool launchedByMusic, double timebase):
-		conf_(config),
+		timebase_ (timebase),
 		comm_ (comm),
 		app_color_ (config->Color ()),
 		leader_ (config->Leader ()),
 		launchedByMusic_ (launchedByMusic),
 		application_map_ (config->applications ()),
-		timebase_ (timebase),
-		port_manager_ (config->connectivityMap (), &this),
-		runtime_(&this, port_manager_, timebase)
+		port_manager_ (config->connectivityMap (), *this),
+		runtime_(*this, port_manager_, timebase)
 	{
 	}
 
 	void Application::enterSimulationLoop()
 	{
-		runtime_ = Runtime();
-		// TODO
-		// Eventually run negotiators etc. again
-		// Prepare port_manager
-		// Prepare runtime
-		//
+
+		port_manager_.updatePorts ();
+		runtime_ = Runtime(runtime_);
 		state_ = ApplicationState::RUNNING;
-		// start runtime
 	}
 
 	void Application::exitSimulationLoop()
 	{
+		runtime_.finalize ();
 		state_ = ApplicationState::STOPPED;
 	}
 
@@ -80,54 +76,42 @@ namespace MUSIC
 	std::shared_ptr<ContInputPort>
 	Application::publishContInput (std::string identifier)
 	{
-		auto ptr (std::make_shared<ContInputPort> (&this, identifier));
-		port_manager_.addPort(ptr);
-		return ptr;
+		return port_manager_.createPort<ContInputPort> (*this, identifier);
 	}
 
 
 	std::shared_ptr<ContOutputPort>
 	Application::publishContOutput (std::string identifier)
 	{
-		auto ptr (std::make_shared<ContOutputPort> (&this, identifier));
-		port_manager_.addPort(ptr);
-		return ptr;
+		return port_manager_.createPort<ContOutputPort> (*this, identifier);
 	}
 
 
 	std::shared_ptr<EventInputPort>
 	Application::publishEventInput (std::string identifier)
 	{
-	    auto ptr (std::make_shared<EventInputPort> (&this, identifier));
-		port_manager_.addPort(ptr);
-		return ptr;
+		return port_manager_.createPort<EventInputPort> (*this, identifier);
 	}
 
 
 	std::shared_ptr<EventOutputPort>
 	Application::publishEventOutput (std::string identifier)
 	{
-		auto ptr (std::make_shared<EventOutputPort> (&this, identifier));
-		port_manager_.addPort(ptr);
-		return ptr;
+		return port_manager_.createPort<EventOutputPort> (*this, identifier);
 	}
 
 
 	std::shared_ptr<MessageInputPort>
 	Application::publishMessageInput (std::string identifier)
 	{
-		auto ptr (std::make_shared<MessageInputPort> (&this, identifier));
-		port_manager_.addPort(ptr);
-		return ptr;
+		return port_manager_.createPort<MessageInputPort> (*this, identifier);
 	}
 
 
 	std::shared_ptr<MessageOutputPort>
 	Application::publishMessageOutput (std::string identifier)
 	{
-		auto ptr (std::make_shared<MessageOutputPort> (&this, identifier));
-		port_manager_.addPort(ptr);
-		return ptr;
+		return port_manager_.createPort<MessageOutputPort> (*this, identifier);
 	}
 
 	double Application::timebase() const
@@ -153,6 +137,15 @@ namespace MUSIC
 	bool Application::launchedByMusic () const
 	{
 		return launchedByMusic_;
+	}
+
+	void Application::finalize()
+	{
+		// TODO what else?
+		if (state_ == ApplicationState::RUNNING)
+			exitSimulationLoop ();
+		state_ = ApplicationState::FINALIZED;
+		MPI::Finalize ();
 	}
 
 
