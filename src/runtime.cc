@@ -44,9 +44,9 @@ namespace MUSIC
 	  localTime (other.localTime),
 	  // here: new temporalNegotiator
 	  temporalNegotiator_ (other.app_),
-	  leader_ (other.leader_),
-	  comm (other.comm),
-	  scheduler (new Scheduler (comm, leader_)),
+	  /* leader_ (other.leader_), */
+	  /* comm (other.comm), */
+	  scheduler (new Scheduler (app_.communicator (), other.leader_)),
 	  mAgent (0)
   {
 	setup ();
@@ -57,9 +57,9 @@ namespace MUSIC
 	portMgr_ (portMgr),
 	localTime (Clock (app_.timebase (), h)),
 	temporalNegotiator_ (app_),
-	leader_ (app_.leader ()),
-	comm (app_.communicator ()),
-	scheduler (new Scheduler (comm, leader_)),
+	/* leader_ (app_.leader ()), */
+	/* comm (app_.communicator ()), */
+	scheduler (new Scheduler (app_.communicator(), app_.leader ())),
 	mAgent (0)
   {
 	setup ();
@@ -76,7 +76,10 @@ namespace MUSIC
 	std::for_each (ports.begin (), ports.end (),
 			[connections](auto& port_ptr)
 			{
-				connections->push_back (port_ptr->connections_);
+				for (auto& c : port_ptr->connections_)
+				{
+					connections->push_back (c);
+				}
 			});
 
     if (app_.launchedByMusic ())
@@ -297,11 +300,11 @@ namespace MUSIC
   }
 
 
-  MPI::Intracomm
-  Runtime::communicator ()
-  {
-    return comm;
-  }
+  /* MPI::Intracomm */
+  /* Runtime::communicator () */
+  /* { */
+  /*   return app_.communicator (); */
+  /* } */
 
 
   void

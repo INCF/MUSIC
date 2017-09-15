@@ -76,9 +76,6 @@ namespace MUSIC
 	class DefaultLauncher : public MusicLauncher
 	{
 		public:
-			DefaultLauncher (int argc, char** argv, MPI_Comm comm = MPI::COMM_WORLD)
-				: MusicLauncher (argc, argv, false, comm)
-			{}
 			/* bool isResponsible()  override; */
 			std::unique_ptr<Configuration> getConfiguration()  override;
 			MPI_Comm getComm()  override;
@@ -104,7 +101,7 @@ namespace MUSIC
 
 	LauncherSelectionHandler DefaultHandler = [] (int argc, char** argv)
 	{
-		return std::unique_ptr<MusicLauncher> {new DefaultLauncher (argc, argv)};
+		return std::unique_ptr<MusicLauncher> {new DefaultLauncher ()};
 	};
 
 
