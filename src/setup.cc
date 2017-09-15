@@ -206,7 +206,7 @@ namespace MUSIC {
         if (!config.is_open ())
           {
             std::ostringstream oss;
-            oss << "MUSIC: Couldn't open configuration file: " << filename;
+            oss << "MUSIC: Couldn't open configuration file: " << filename << '\n';
             error0 (oss.str ());
           }
 
