@@ -28,6 +28,7 @@
 #include <music/event.hh>
 #include <music/message.hh>
 #include <music/connector.hh>
+#include <music/connection.hh>
 #include <music/sampler.hh>
 #include <music/event_routing_map.hh>
 #include <music/connectivity.hh>
@@ -49,7 +50,7 @@ namespace MUSIC {
   class Port {
   public:
     /* Port () { } */
-    Port (Application& s, std::string identifier);
+    explicit Port (Application& s, std::string identifier);
 
     virtual void buildTable () { };
     bool isConnected ();
@@ -57,6 +58,7 @@ namespace MUSIC {
     int width ();
     void checkIndexMap (IndexMap* indexMap);
 	std::string name ();
+	virtual void reconnect ();
 
   protected:
     IndexMap* indices_;
@@ -65,7 +67,6 @@ namespace MUSIC {
     Application& app_;
 	std::vector<Connection*> connections_;
     virtual Connector* makeConnector (ConnectorInfo connInfo) = 0;
-	virtual void reconnect ();
     void assertOutput ();
     void assertInput ();
 
@@ -73,8 +74,7 @@ namespace MUSIC {
     virtual ~Port()
 	{
 		std::for_each (connections_.begin(), connections_.end(),
-				[](Connection* c) {del c;}
-				);
+				[](Connection* c) {delete c;});
 	};
 
   private:
@@ -90,13 +90,15 @@ namespace MUSIC {
 
   class TickingPort : public virtual Port {
   public:
+	using Port::Port;
     virtual void tick () = 0;
   };
 
 
   class OutputPort :  public  virtual Port {
+  public:
+	  using Port::Port;
   protected:
-	OutputPort () { }
 	void reconnect ();
     virtual void mapImpl (IndexMap* indices,
 			  Index::Type type,
@@ -106,8 +108,9 @@ namespace MUSIC {
   };
 
   class InputPort :   public  virtual Port {
+  public:
+	  using Port::Port;
   protected:
-    InputPort (){ }
 	void reconnect ();
     void mapImpl (IndexMap* indices,
 		  Index::Type type,
@@ -118,6 +121,8 @@ namespace MUSIC {
   };
 
   class ContPort :  public virtual Port {
+  public:
+	using Port::Port;
   protected:
     Sampler sampler;
     MPI::Datatype type_;

@@ -10,9 +10,8 @@
 #include "music/configuration.hh"
 #include "music/error.hh"
 #include "music/port.hh"
-#include "music/runtime.hh"
 #include "music/misc.hh"
-#include "music/application.hh"
+
 
 namespace MUSIC
 {
@@ -20,16 +19,12 @@ namespace MUSIC
 	/* using PortMap = std::map<std::string, std::shared_ptr<Port>>; */
 	using PortMap = std::map<std::string, std::weak_ptr<Port>>;
 
+	class Runtime;
+	class Application;
 
 	class PortConnectivityManager
 	{
 		public:
-			PortConnectivityManager ()
-				: connectivityMap_ (std::make_unique<Connectivity> ())
-				, portMap_ ()
-				, app_ ()
-	            , isConnectivityModified (false)
-			{}
 
 			PortConnectivityManager (std::unique_ptr<Connectivity> connectivityMap,
 					Application& app)
@@ -83,7 +78,7 @@ namespace MUSIC
 		    std::shared_ptr<T> createPort (std::string identifier)
 			{
 				auto ptr (std::make_shared<T> (app_, identifier));
-				port_manager_.addPort(ptr);
+				addPort(ptr);
 				return ptr;
 			}
 

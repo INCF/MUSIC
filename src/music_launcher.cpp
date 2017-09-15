@@ -1,31 +1,43 @@
+#include <fstream>
+#include <cassert>
 #include "music/music_launcher.hh"
+#include "music/application_mapper.hh"
+#include "music/parse.hh"
+#include "music/misc.hh"
+#include "music/error.hh"
 
 namespace MUSIC
 {
-  const char* const MPMDLauncher::opConfigFileName = "--music-config";
-  const char* const ConfigurationFactory::opAppLabel = "--app-label";
-  static std::string err_env_invalid = "The given environment variable is not set!;
+  const char* const opConfigFileName = "--music-config";
+  const char* const opAppLabel = "--app-label";
+  static std::string err_env_invalid = "The given environment variable is not set!";
   static std::string err_handler_not_responsible = "Attempt to perform an action on unresponsible LaunchLauncher";
+  char* read_env(std::string envVarName)
+  {
+	  return std::getenv(envVarName.c_str());
+  }
 
-  bool MPMDLauncher::isResponsible()
+  bool MPMDLauncher::isResponsible (int argc, char** argv)
   {
     std::string config = "";
-    if (!getOption(argc_, argv_, opConfigFileName, config) )
+    if (!getOption(argc, argv, opConfigFileName, config) )
       return false;
     else
       return true;
   }
 
-  std::unique_ptr<Configuration> MPMDLauncher::getConfiguration()
+  std::unique_ptr<Configuration> MPMDLauncher::assembleConfiguration ()
   {
+		std::string config_str = "";
         std::string config_file;
-        loadConfigFile (config, config_file);
+		getOption(argc_, argv_, opConfigFileName, config_str);
+        loadConfigFile (config_str, config_file);
 
         std::string app_label;
-        std::string binary (argv[0]);
+        std::string binary (argv_[0]);
         // argv[0] is the name of the program,
         // or an empty string if the name is not available
-        if (!getOption (argc, argv, opAppLabel, app_label)
+        if (!getOption (argc_, argv_, opAppLabel, app_label)
             && binary.length () == 0)
           {
             std::ostringstream oss;
@@ -34,18 +46,19 @@ namespace MUSIC
           }
 
         std::istringstream config_istream (config_file);
-        config_ = new Configuration ();
-        ApplicationMapper app_mapper(config_);
-		// TODO get PortCodes
+        Configuration* config = new Configuration ();
+        ApplicationMapper app_mapper(config);
         app_mapper.map(&config_istream, binary, app_label);
-		return std::unique_ptr<Configuration> (config_);
+		return std::unique_ptr<Configuration> (config);
+  }
+
+  std::unique_ptr<Configuration> MPMDLauncher::getConfiguration ()
+  {
+	  return std::move (config_);
   }
 
   void MPMDLauncher::loadConfigFile (std::string filename, std::string &result)
   {
-	if (!isResponsible())
-		error(err_handler_not_responsible);
-
     std::ifstream config;
     char* buffer;
     int size = 0;
@@ -96,23 +109,16 @@ namespace MUSIC
   }
 
 
-  MPI::MPI_Comm MPMDLauncher::getComm()
+  MPI_Comm MPMDLauncher::getComm()
   {
     int myRank = MPI::COMM_WORLD.Get_rank ();
-	if (!isResponsible())
-		error(err_handler_not_responsible);
 	return MPI::COMM_WORLD.Split (config_->Color (), myRank);
   }
 
-  char* ExecLauncher::read_env(std::string envVarName)
-  {
-	  return getenv(envVarName);
-  }
 
   bool ExecLauncher::isResponsible()
   {
     // is _MUSIC_CONFIG_ env variable is set ?
-    char* res = read_env (Configuration::configEnvVarName);
 	if (read_env(Configuration::configEnvVarName) != NULL)
 		return true;
 	return false;
@@ -120,58 +126,40 @@ namespace MUSIC
 
   std::unique_ptr<Configuration> ExecLauncher::getConfiguration()
   {
-	if (!isResponsible())
-		error(err_handler_not_responsible);
 	std::string config_str;
 	config_str.assign(read_env(Configuration::configEnvVarName));
 	assert(config_str.length() > 0);
 	return std::make_unique<Configuration> (config_str);
   }
 
-  MPI::MPI_Comm ExecLauncher::getComm()
+  MPI_Comm ExecLauncher::getComm()
   {
-	if (!isResponsible())
-		error(err_handler_not_responsible);
 	return MPI::COMM_WORLD;
-  }
-
-  bool DefaultLauncher::isResponsible()
-  {
-	return true;
   }
 
   std::unique_ptr<Configuration> DefaultLauncher::getConfiguration()
   {
-	if (!isResponsible())
-		error(err_handler_not_responsible);
 	return std::make_unique<Configuration> ();
   }
 
-  MPI::MPI_Comm DefaultLauncher::getComm()
+  MPI_Comm DefaultLauncher::getComm()
   {
-	if (!isResponsible())
-		error(err_handler_not_responsible);
 	return MPI::COMM_WORLD;
   }
 
-  MusicLauncher MUSICLauncherFactory::create(int argc, char** argv, MPI::MPI_Comm comm)
+  std::unique_ptr<MusicLauncher> MusicLauncherFactory::create(int argc, char** argv) const
   {
-	for (auto& e : launchers_)
+	for (auto& h : handler_)
 	{
-		e.init (argc, argv, comm);
-		if (e.isResponsible())
-			return e;
-
+		if ((std::unique_ptr ptr = h (argc, argv)) != nullptr)
+			return std::move (ptr);
 	}
-	// Default case
-	MusicLauncher default_launcher =  DefaultLauncher();
-	default_launcher.init(argc, argv);
-	return default_launcher;
+	return nullptr;
   }
 
-  void MUSICLauncherFactory::addLauncher(MusicLauncher s)
+  void MusicLauncherFactory::addHandler(LauncherSelectionHandler handler)
   {
-	  launchers_.insert(launchers_.begin(), s);
+	  launchers_.insert(launchers_.begin(), handler);
   }
 
 }

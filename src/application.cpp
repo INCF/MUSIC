@@ -7,7 +7,7 @@ namespace MUSIC
     static std::string err_not_runtime = "Application not in running state";
 	static std::string err_MPI_Init = "MPI_Init was called before the Setup constructor";
 
-	void Application::initialize_MPI(int& argc, char**& argv, int required, int* provided)
+	void Application::initialize_MPI(int argc, char** argv, int required, int* provided)
 	{
 		// TODO check if this if-block is symantically correct
 		if (!MPI::Is_initialized ())
@@ -17,30 +17,30 @@ namespace MUSIC
 			*provided = MPI::Init_thread (argc, argv, required);
 #else
 			// Only C version provided in libmpich
-			MPI_Init_thread (&argc, &argv, required, provided);
+			MPI::MPI_Init_thread (&argc, &argv, required, provided);
 		}
 #endif
 	}
 
-	void Application::initialize_MPI(int& argc, char**& argv)
+	void Application::initialize_MPI(int argc, char** argv)
 	{
 		if (!MPI::Is_initialized ())
 			MPI::Init (argc, argv);
 	}
 
-	Application::Application(int& argc, char**& argv,
-			double timebase, MUSICLauncher launcher):
-		initialize_MPI (argc, argv),
-		Application(launcher.getConfiguration(), launcher.getComm(),
-				launcher.launchedByMusic(), timebase)
+	Application::Application(int argc, char** argv,
+			 std::unique_ptr<MusicLauncher> launcher, double timebase)
+		: initialize_MPI (argc, argv)
+		, Application(launcher->getConfiguration(), launcher->getComm(),
+				launcher->launchedByMusic(), timebase)
 	{
 	}
 
-	Application::Application(int& argc, char**& argv, int required, int* provided,
-			double timebase, MUSICLauncher launcher):
+	Application::Application(int argc, char** argv, int required, int* provided,
+			double timebase, std::unique_ptr<MusicLauncher> launcher):
 		initialize_MPI (argc, argv, required, provided),
-		Application(launcher.getConfiguration(), launcher.getComm(),
-				launcher.launchedByMusic(), timebase)
+		Application(launcher->getConfiguration(), launcher->getComm(),
+				launcher->launchedByMusic(), timebase)
 	{
 	}
 
@@ -73,46 +73,49 @@ namespace MUSIC
 
 	// TODO all of this repetetive stuff could be realized as template function
 	// but then we have to use a single function name for all of them
-	std::shared_ptr<ContInputPort>
-	Application::publishContInput (std::string identifier)
-	{
-		return port_manager_.createPort<ContInputPort> (*this, identifier);
-	}
+	// o
 
 
-	std::shared_ptr<ContOutputPort>
-	Application::publishContOutput (std::string identifier)
-	{
-		return port_manager_.createPort<ContOutputPort> (*this, identifier);
-	}
+	/* std::shared_ptr<ContInputPort> */
+	/* Application::publishContInput (std::string identifier) */
+	/* { */
+	/* 	return port_manager_.createPort<ContInputPort> (*this, identifier); */
+	/* } */
 
 
-	std::shared_ptr<EventInputPort>
-	Application::publishEventInput (std::string identifier)
-	{
-		return port_manager_.createPort<EventInputPort> (*this, identifier);
-	}
+	/* std::shared_ptr<ContOutputPort> */
+	/* Application::publishContOutput (std::string identifier) */
+	/* { */
+	/* 	return port_manager_.createPort<ContOutputPort> (*this, identifier); */
+	/* } */
 
 
-	std::shared_ptr<EventOutputPort>
-	Application::publishEventOutput (std::string identifier)
-	{
-		return port_manager_.createPort<EventOutputPort> (*this, identifier);
-	}
+	/* std::shared_ptr<EventInputPort> */
+	/* Application::publishEventInput (std::string identifier) */
+	/* { */
+	/* 	return port_manager_.createPort<EventInputPort> (*this, identifier); */
+	/* } */
 
 
-	std::shared_ptr<MessageInputPort>
-	Application::publishMessageInput (std::string identifier)
-	{
-		return port_manager_.createPort<MessageInputPort> (*this, identifier);
-	}
+	/* std::shared_ptr<EventOutputPort> */
+	/* Application::publishEventOutput (std::string identifier) */
+	/* { */
+	/* 	return port_manager_.createPort<EventOutputPort> (*this, identifier); */
+	/* } */
 
 
-	std::shared_ptr<MessageOutputPort>
-	Application::publishMessageOutput (std::string identifier)
-	{
-		return port_manager_.createPort<MessageOutputPort> (*this, identifier);
-	}
+	/* std::shared_ptr<MessageInputPort> */
+	/* Application::publishMessageInput (std::string identifier) */
+	/* { */
+	/* 	return port_manager_.createPort<MessageInputPort> (*this, identifier); */
+	/* } */
+
+
+	/* std::shared_ptr<MessageOutputPort> */
+	/* Application::publishMessageOutput (std::string identifier) */
+	/* { */
+	/* 	return port_manager_.createPort<MessageOutputPort> (*this, identifier); */
+	/* } */
 
 	double Application::timebase() const
 	{

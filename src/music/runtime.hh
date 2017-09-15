@@ -24,12 +24,13 @@
 #include <vector>
 
 #include "music/misc.hh"
-#include "music/setup.hh"
+/* #include "music/setup.hh" */
 #include "music/port.hh"
 #include "music/clock.hh"
 #include "music/connector.hh"
 #include "music/scheduler.hh"
 #include "music/scheduler_agent.hh"
+
 namespace MUSIC
 {
 
@@ -40,6 +41,9 @@ namespace MUSIC
    */
 
   using Connections = std::vector<Connection*>;
+
+  class Application;
+  class PortConnectivityManager;
 
   class Runtime
   {

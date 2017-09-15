@@ -24,11 +24,11 @@
 
 #include <mpi.h>
 
-#include "music/application.hh"
 #include "music/temporal.hh"
 #include "music/error.hh"
 #include "music/connection.hh"
 #include "music/memory.hh"
+#include "music/application.hh"
 
 #include <algorithm>
 #include <iostream>
@@ -60,7 +60,7 @@ namespace MUSIC
 	leader_ (app_.leader ()),
 	comm (app_.communicator ()),
 	scheduler (new Scheduler (comm, leader_)),
-	mAgent (0),
+	mAgent (0)
   {
 	setup ();
   }
@@ -174,13 +174,19 @@ namespace MUSIC
   Runtime::takeTickingPorts ()
   {
 	SPVec<Port>::iterator p;
-    for (p = ports.begin (); p != ports.end (); ++p)
-      {
-        TickingPort* tp = dynamic_cast<TickingPort*> (*p);
-		std::shared_ptr<TickingPort> tp (std::dynamic_pointer_cast<TickingPort> (port));
+	for (auto& sp : ports)
+	{
+		std::shared_ptr<TickingPort> tp (std::dynamic_pointer_cast<TickingPort> (sp));
         if (tp != nullptr)
           tickingPorts.push_back (tp);
-      }
+	}
+    /* for (p = ports.begin (); p != ports.end (); ++p) */
+    /*   { */
+    /*     TickingPort* tp = dynamic_cast<TickingPort*> (*p); */
+		/* std::shared_ptr<TickingPort> tp (std::dynamic_pointer_cast<TickingPort> (port)); */
+    /*     if (tp != nullptr) */
+    /*       tickingPorts.push_back (tp); */
+    /*   } */
   }
 
 
@@ -276,7 +282,7 @@ namespace MUSIC
   void
   Runtime::buildTables ()
   {
-    for (SPVec<Port>:iterator p = ports.begin (); p != ports.end ();
+    for (SPVec<Port>::iterator p = ports.begin (); p != ports.end ();
         ++p)
       (*p)->buildTable ();
   }

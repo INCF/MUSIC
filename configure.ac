@@ -182,13 +182,13 @@ Could not determine proper value for MPI_LDFLAGS.  Please see README.])
   echo "$MPI_LDFLAGS"
 fi
 
-CXXFLAGS="-g -O3"
+# CXXFLAGS="-g -O3"
 
 AC_LANG([C])
 AC_LANG([C++])
 AC_CONFIG_MACRO_DIR([m4])
 m4_include([m4/ax_cxx_compile_stdcxx.m4])
-AX_CXX_COMPILE_STDCXX(11, noext, mandatory)
+AX_CXX_COMPILE_STDCXX(14, noext, mandatory)
 #if test "$ac_test_CXXFLAGS" != set; then
 #  if test "$CXXFLAGS" = "-O2"; then
 #    CXXFLAGS="-O3"
