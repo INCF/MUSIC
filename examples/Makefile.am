@@ -3,7 +3,7 @@
 ACLOCAL = $(top_srcdir)/aclocal.sh
 
 exbindir = $(libdir)/@PACKAGE@-@PACKAGE_VERSION@
-exbin_PROGRAMS = waveproducer waveconsumer 	 
+exbin_PROGRAMS = waveproducer waveconsumer
 
 exdatadir = $(datadir)/@PACKAGE@-@PACKAGE_VERSION@/examples
 dist_exdata_DATA = messages.music wavetest.music \

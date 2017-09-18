@@ -47,10 +47,6 @@ namespace MUSIC
 			void exitSimulationLoop ();
 			void finalize();
 
-			double time();
-			double timebase() const;
-			std::string name () const;
-			bool launchedByMusic () const;
 
 			template <class PortT>
 			std::shared_ptr<PortT> publish (std::string identifier)
@@ -59,6 +55,16 @@ namespace MUSIC
 			}
 
 			PortConnectivityManager& getPortConnectivityManager ();
+
+		    bool Application::config (std::string var, double* result);
+			bool Application::config (std::string var, int* result);
+		    bool Application::config (std::string var, std::string* result);
+
+			double time();
+			double timebase() const;
+			std::string name () const;
+			bool launchedByMusic () const;
+			MPI::Intracomm communicator () const;
 
 			/* std::shared_ptr<ContInputPort> publishContInput (std::string identifier); */
 			/* std::shared_ptr<ContOutputPort> publishContOutput (std::string identifier); */
@@ -86,7 +92,6 @@ namespace MUSIC
 			void assertValidState(std::string func_name, ApplicationState as);
 
 			const ApplicationMap& applicationMap () const;
-			MPI::Intracomm communicator () const;
 			int color () const;
 			int nProcs () const;
 			int leader () const;

@@ -11,17 +11,17 @@ double* data;
 int
 main (int args, char* argv[])
 {
-  MUSIC::Setup* setup = new MUSIC::Setup (args, argv);
+  auto context = MUSIC::MusicContextFactory ().createContext (args, argv);
+  MUSIC::Application app (context);
 
-  MUSIC::ContInputPort* wavedata =
-    setup->publishContInput ("wavedata");
+  auto wavePort= app.publish<MUSIC::ContInputPort> ("wavedata");
 
-  comm = setup->communicator ();
+  comm = app.communicator ();
   int nProcesses = comm.Get_size (); // how many processes are there?
   int rank = comm.Get_rank ();       // which process am I?
   int width = 0;
-  if (wavedata->hasWidth ())
-    width = wavedata->width ();
+  if (wavePort->hasWidth ())
+    width = wavePort->width ();
   else
     comm.Abort (1);
 
@@ -31,29 +31,28 @@ main (int args, char* argv[])
   std::ostringstream filename;
   filename << argv[1] << rank << ".out";
   std::ofstream file (filename.str ().data ());
-    
+
   // Declare where in memory to put data
   MUSIC::ArrayData dmap (data,
 			 MPI::DOUBLE,
 			 rank * nLocalVars,
 			 nLocalVars);
-  wavedata->map (&dmap);
+  wavePort->map (&dmap);
 
   double stoptime;
-  setup->config ("stoptime", &stoptime);
-  MUSIC::Runtime* runtime = new MUSIC::Runtime (setup, TIMESTEP);
-  for (int j =0; runtime->time () < stoptime; j++)
+  app.config ("stoptime", &stoptime);
+  app.enterSimulationLoop (TIMESTEP);
+
+  for (int j =0; app.time () < stoptime; j++)
     {
-	  runtime->tick ();
+	  app.tick ();
       // Dump to file
       for (int i = 0; i < nLocalVars; ++i)
     	  file << data[i] << ' ';
       file << std::endl;
 
     }
-  runtime->finalize ();
-  
-  delete runtime;
+  app.finalize ();
 
   return 0;
 }

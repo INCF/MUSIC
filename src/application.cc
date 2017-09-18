@@ -136,8 +136,30 @@ namespace MUSIC
 		if (state_ == ApplicationState::RUNNING)
 			exitSimulationLoop ();
 		state_ = ApplicationState::FINALIZED;
+
+		// TODO move to music_context
 		MPI::Finalize ();
 	}
+
+	  bool
+	  Application::config (std::string var, std::string* result)
+	  {
+		return config_->lookup (var, result);
+	  }
+
+
+	  bool
+	  Application::config (std::string var, int* result)
+	  {
+		return config_->lookup (var, result);
+	  }
+
+
+	  bool
+	  Application::config (std::string var, double* result)
+	  {
+		return config_->lookup (var, result);
+	  }
 
 
 }

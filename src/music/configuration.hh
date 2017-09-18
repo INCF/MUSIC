@@ -56,13 +56,13 @@ namespace MUSIC {
 
     void writeEnv ();
 
-    bool lookup (std::string name);
+    bool lookup (std::string name) const;
 
-    bool lookup (std::string name, int* result);
+    bool lookup (std::string name, int* result) const;
 
-    bool lookup (std::string name, double* result);
+    bool lookup (std::string name, double* result) const;
 
-    bool lookup(std::string name, std::string* result);
+    bool lookup(std::string name, std::string* result) const;
 
     void insert (std::string name, std::string value);
 
@@ -72,13 +72,13 @@ namespace MUSIC {
 
     void resetDict();
 
-    std::string Name();
+    std::string Name() const;
 
     void setName( std::string name);
 
-    int Color ();
+    int Color () const;
 
-    int Leader ();
+    int Leader () const;
 
 	// TODO why pointers? they should not be able to be NULL
     ApplicationMap* applications ();

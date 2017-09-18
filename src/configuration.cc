@@ -178,15 +178,15 @@ namespace MUSIC {
 
 
   bool
-  Configuration::lookup(std::string name)
+  Configuration::lookup(std::string name) const
   {
     return dict_.find(name) != dict_.end();
   }
 
   bool
-  Configuration::lookup(std::string name, std::string* result)
+  Configuration::lookup(std::string name, std::string* result) const
   {
-    std::map<std::string, std::string>::iterator pos = dict_.find(name);
+    std::map<std::string, std::string>::const_iterator pos = dict_.find(name);
     if (pos == dict_.end())
       return defaultConfig_ && defaultConfig_->lookup(name, result);
 
@@ -195,9 +195,9 @@ namespace MUSIC {
   }
 
   bool
-  Configuration::lookup(std::string name, int* result)
+  Configuration::lookup(std::string name, int* result) const
   {
-    std::map<std::string, std::string>::iterator pos = dict_.find(name);
+    std::map<std::string, std::string>::const_iterator pos = dict_.find(name);
     if (pos == dict_.end())
       return defaultConfig_ && defaultConfig_->lookup(name, result);
 
@@ -213,9 +213,9 @@ namespace MUSIC {
   }
 
   bool
-  Configuration::lookup(std::string name, double* result)
+  Configuration::lookup(std::string name, double* result) const
   {
-    std::map<std::string, std::string>::iterator pos = dict_.find(name);
+    std::map<std::string, std::string>::const_iterator pos = dict_.find(name);
     if (pos == dict_.end())
       return defaultConfig_ && defaultConfig_->lookup (name, result);
 

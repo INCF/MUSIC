@@ -18,8 +18,8 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "music/runtime.hh"
-#include "music/setup.hh"
+#include "music/application.hh"
+#include "music/music_context.hh"
 #include "music/permutation_index.hh"
 #include "music/array_data.hh"
 

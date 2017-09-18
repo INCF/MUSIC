@@ -11,14 +11,13 @@ double* data;
 int
 main (int argc, char* argv[])
 {
-  MUSIC::Setup* setup = new MUSIC::Setup (argc, argv);
-  
+  auto context = MUSIC::MusicContextFactory ().createContext (argc, argv);
+  MUSIC::Application app (context);
+
   int width = atoi (argv[1]); // command line arg gives width
+  auto wave_port = app.publish<MUSIC::ContOutputPort> ("wavedata");
 
-  MUSIC::ContOutputPort* wavedata =
-    setup->publishContOutput ("wavedata");
-
-  comm = setup->communicator ();
+  comm = app.communicator ();
   int nProcesses = comm.Get_size (); // how many processes are there?
   int rank = comm.Get_rank ();       // which process am I?
 
@@ -27,26 +26,26 @@ main (int argc, char* argv[])
   data = new double[nLocalVars];
   for (int i = 0; i < nLocalVars; ++i)
     data[i] = 0.0;
-    
+
   // Declare what data we have to export
   MUSIC::ArrayData dmap (data,
 			 MPI::DOUBLE,
 			 rank * nLocalVars,
 			 nLocalVars);
-  wavedata->map (&dmap);
-  
+  wave_port->map (&dmap);
+
+  auto configDict = app.getConfigDict ();
   double stoptime;
-  setup->config ("stoptime", &stoptime);
+  app.config ("stoptime", &stoptime);
+  app.enterSimulationLoop (TIMESTEP);
 
-  MUSIC::Runtime* runtime = new MUSIC::Runtime (setup, TIMESTEP);
-
-  for (; runtime->time () < stoptime; runtime->tick ())
+  for (; app.time () < stoptime; app.tick ())
     {
       if (rank == 0)
 	{
 	  // Generate original data on master node
 	  int i;
-	  double time = runtime->time ();
+	  double time = app.time ();
 
 	  for (i = 0; i < nLocalVars; ++i)
 	    data[i] = sin (2 * M_PI * time * i);
@@ -56,9 +55,7 @@ main (int argc, char* argv[])
       comm.Bcast (data, nLocalVars, MPI::DOUBLE, 0);
     }
 
-  runtime->finalize ();
-
-  delete runtime;
+  app.finalize ();
 
   return 0;
 }
