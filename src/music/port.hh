@@ -50,7 +50,7 @@ namespace MUSIC {
   class Port {
   public:
     /* Port () { } */
-    explicit Port (Application& s, std::string identifier);
+    explicit Port (const Application& app, std::string identifier);
 
     virtual void buildTable () { };
     bool isConnected ();
@@ -64,22 +64,16 @@ namespace MUSIC {
     IndexMap* indices_;
     Index::Type index_type_;
     std::string portName_;
-    Application& app_;
-	std::vector<Connection*> connections_;
+    const Application& app_;
     virtual Connector* makeConnector (ConnectorInfo connInfo) = 0;
+	const ConnectivityInfo& getConnectivityInfo () const;
     void assertOutput ();
     void assertInput ();
 
   public: // MDJ 2012-08-07 public for now---see comment in runtime.cc
-    virtual ~Port()
-	{
-		std::for_each (connections_.begin(), connections_.end(),
-				[](Connection* c) {delete c;});
-	};
+    virtual ~Port() {};
 
   private:
-
-	void getConnectivityInfo () const;
     void checkConnected (std::string action);
     bool isMapped_;
     friend class Runtime;
@@ -99,7 +93,9 @@ namespace MUSIC {
   public:
 	  using Port::Port;
   protected:
-	void reconnect ();
+	std::vector<OutputConnection*> connections_;
+
+	void reconnect () override;
     virtual void mapImpl (IndexMap* indices,
 			  Index::Type type,
 			  int maxBuffered,
@@ -111,7 +107,9 @@ namespace MUSIC {
   public:
 	  using Port::Port;
   protected:
-	void reconnect ();
+	std::vector<InputConnection*> connections_;
+
+	void reconnect () override;
     void mapImpl (IndexMap* indices,
 		  Index::Type type,
 		  double accLatency,
@@ -136,8 +134,8 @@ namespace MUSIC {
     friend class Implementer;
 
   public:
-    ContOutputPort (Application& s, std::string id)
-      : Port (s, id) { }
+    ContOutputPort (const Application& app, std::string id)
+      : Port (app, id) { }
     void map (DataMap* dmap);
     void map (DataMap* dmap, int maxBuffered);
     void tick ();
@@ -153,8 +151,8 @@ namespace MUSIC {
     friend class Implementer;
 
   public:
-    ContInputPort (Application& s, std::string id)
-      : Port (s, id) { }
+    ContInputPort (const Application& app, std::string id)
+      : Port (app, id) { }
     void map (DataMap* dmap, double delay = 0.0, bool interpolate = true);
     void map (DataMap* dmap, int maxBuffered, bool interpolate = true);
     void map (DataMap* dmap,
@@ -178,12 +176,12 @@ namespace MUSIC {
     void map (IndexMap* indices, Index::Type type, int maxBuffered);
     void insertEvent (double t, GlobalIndex id);
     void insertEvent (double t, LocalIndex id);
-    EventOutputPort (Application& s, std::string id);
+    EventOutputPort (const Application& app, std::string id);
 
     void mapImpl (IndexMap* indices,
 		  Index::Type type,
 		  int maxBuffered);
-	void reconnect ();
+	void reconnect () override;
     void insertEventImpl (double t, int id);
 
   public: // MDJ 2012-08-07 public for now---see comment in runtime.cc
@@ -222,7 +220,7 @@ namespace MUSIC {
 	      EventHandlerLocalIndex* handleEvent,
 	      double accLatency,
 	      int maxBuffered);
-    EventInputPort (Application& s, std::string id);
+    EventInputPort (const Application& app, std::string id);
   protected:
     void mapImpl (IndexMap* indices,
 		  Index::Type type,
@@ -251,14 +249,14 @@ namespace MUSIC {
   protected:
     int rank_;
   public:
-    MessagePort (Application& s);
+    MessagePort (const Application& app);
   };
 
   class MessageOutputPort : public MessagePort,
 			    public OutputPort {
     std::vector<FIBO*> buffers; // one buffer per MessageOutputConnector
   public:
-    MessageOutputPort (Application& s, std::string id);
+    MessageOutputPort (const Application& app, std::string id);
     void map ();
     void map (int maxBuffered);
     void insertMessage (double t, void* msg, size_t size);
@@ -272,7 +270,7 @@ namespace MUSIC {
 			   public InputPort {
     MessageHandler* handleMessage_;
   public:
-    MessageInputPort (Application& s, std::string id);
+    MessageInputPort (const Application& app, std::string id);
     void map (MessageHandler* handler = 0, double accLatency = 0.0);
     void map (int maxBuffered);
     void map (double accLatency, int maxBuffered);

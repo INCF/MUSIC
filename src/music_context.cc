@@ -1,6 +1,11 @@
+#include "music/music_launcher.hh"
+
+#if MUSIC_USE_MPI
+#include <mpi.h>
+
 #include <fstream>
 #include <cassert>
-#include "music/music_launcher.hh"
+
 #include "music/application_mapper.hh"
 #include "music/parse.hh"
 #include "music/misc.hh"
@@ -8,36 +13,49 @@
 
 namespace MUSIC
 {
-  const char* const opConfigFileName = "--music-config";
-  const char* const opAppLabel = "--app-label";
+  const char* const OptionConstants::opConfigFileName = "--music-config";
+  const char* const OptionConstants::opAppLabel = "--app-label";
   static std::string err_env_invalid = "The given environment variable is not set!";
-  static std::string err_handler_not_responsible = "Attempt to perform an action on unresponsible LaunchLauncher";
-  char* read_env(std::string envVarName)
-  {
-	  return std::getenv(envVarName.c_str());
-  }
+  static std::string err_fac_methods_not_responsible = "Attempt to perform an action on unresponsible LaunchContext";
 
-  bool MPMDLauncher::isResponsible (int argc, char** argv)
-  {
-    std::string config = "";
-    if (!getOption(argc, argv, opConfigFileName, config) )
-      return false;
-    else
-      return true;
-  }
 
-  std::unique_ptr<Configuration> MPMDLauncher::assembleConfiguration ()
+
+	void initialize_MPI(int& argc, char**& argv, int required, int* provided)
+	{
+		// TODO check if this if-block is symantically correct
+		if (!MPI::Is_initialized ())
+		{
+			  /* errorRank (err_MPI_Init); */
+#ifdef HAVE_CXX_MPI_INIT_THREAD
+			*provided = MPI::Init_thread (argc, argv, required);
+#else
+			// Only C version provided in libmpich
+			MPI_Init_thread (&argc, &argv, required, provided);
+		}
+#endif
+	}
+
+	void initialize_MPI(int& argc, char**& argv)
+	{
+		if (!MPI::Is_initialized ())
+			MPI::Init (argc, argv);
+	}
+
+
+
+
+  std::unique_ptr<Configuration> MPMDContext::assembleConfiguration ()
   {
 		std::string config_str = "";
         std::string config_file;
-		getOption(argc_, argv_, opConfigFileName, config_str);
+		OptionHelpers::getOption(argc_, argv_, OptionConstants::opConfigFileName, config_str);
         loadConfigFile (config_str, config_file);
 
         std::string app_label;
         std::string binary (argv_[0]);
         // argv[0] is the name of the program,
         // or an empty string if the name is not available
-        if (!getOption (argc_, argv_, opAppLabel, app_label)
+        if (!OptionHelpers::getOption (argc_, argv_, OptionConstants::opAppLabel, app_label)
             && binary.length () == 0)
           {
             std::ostringstream oss;
@@ -52,12 +70,12 @@ namespace MUSIC
 		return std::unique_ptr<Configuration> (config);
   }
 
-  std::unique_ptr<Configuration> MPMDLauncher::getConfiguration ()
+  std::unique_ptr<Configuration> MPMDContext::getConfiguration ()
   {
 	  return std::move (config_);
   }
 
-  void MPMDLauncher::loadConfigFile (std::string filename, std::string &result)
+  void MPMDContext::loadConfigFile (std::string filename, std::string &result)
   {
     std::ifstream config;
     char* buffer;
@@ -96,35 +114,17 @@ namespace MUSIC
     delete[] buffer;
   }
 
-  bool
-  MPMDLauncher::getOption (int argc, char** argv, std::string option, std::string& result)
-  {
-    result.assign("");
-    for (int i = 1; i < argc; ++i)
-       if (option.compare(argv[i]) == 0 && argc > i){
-           result.assign(argv[i+1]);  // skip options
-             return true;
-       }
-     return false;
-  }
 
 
-  MPI_Comm MPMDLauncher::getComm()
+  MPI_Comm MPMDContext::getComm()
   {
     int myRank = MPI::COMM_WORLD.Get_rank ();
 	return MPI::COMM_WORLD.Split (config_->Color (), myRank);
   }
 
 
-  bool ExecLauncher::isResponsible()
-  {
-    // is _MUSIC_CONFIG_ env variable is set ?
-	if (read_env(Configuration::configEnvVarName) != NULL)
-		return true;
-	return false;
-  }
 
-  std::unique_ptr<Configuration> ExecLauncher::getConfiguration()
+  std::unique_ptr<Configuration> ExecContext::getConfiguration()
   {
 	std::string config_str;
 	config_str.assign(read_env(Configuration::configEnvVarName));
@@ -132,24 +132,24 @@ namespace MUSIC
 	return std::make_unique<Configuration> (config_str);
   }
 
-  MPI_Comm ExecLauncher::getComm()
+  MPI_Comm ExecContext::getComm()
   {
 	return MPI::COMM_WORLD;
   }
 
-  std::unique_ptr<Configuration> DefaultLauncher::getConfiguration()
+  std::unique_ptr<Configuration> DefaultContext::getConfiguration()
   {
 	return std::make_unique<Configuration> ();
   }
 
-  MPI_Comm DefaultLauncher::getComm()
+  MPI_Comm DefaultContext::getComm()
   {
 	return MPI::COMM_WORLD;
   }
 
-  std::unique_ptr<MusicLauncher> MusicLauncherFactory::create(int argc, char** argv) const
+  std::unique_ptr<MusicContext> MusicContextFactory::createContextImpl(int argc, char** argv) const
   {
-	for (auto& h : handler_)
+	for (auto& h : fac_methods_)
 	{
 		if ((std::unique_ptr ptr = h (argc, argv)) != nullptr)
 			return std::move (ptr);
@@ -157,10 +157,22 @@ namespace MUSIC
 	return nullptr;
   }
 
-  void MusicLauncherFactory::addHandler(LauncherSelectionHandler handler)
+  std::unique_ptr<MusicContext> MusicContextFactory::createContext(int argc, char** argv, int required, int* provided) const
   {
-	  launchers_.insert(launchers_.begin(), handler);
+	initialize_MPI (argc, argv);
+	return std::unique_ptr<MusicContext> {createContextImpl (argc, argv)};
+  }
+
+  std::unique_ptr<MusicContext> createContext (int& argc, char**& argv, int required, int* provided) const
+  {
+	initialize_MPI (argc, argv, required, provided);
+	return std::unique_ptr<MusicContext> {createContextImpl (argc, argv)};
+  }
+
+  void MusicContextFactory::addContextFactoryMethod (ContextFactoryMethod fac_method)
+  {
+	  fac_methods_.insert (fac_methods_.begin(), fac_method);
   }
 
 }
-
+#endif

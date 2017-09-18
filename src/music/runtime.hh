@@ -24,7 +24,6 @@
 #include <vector>
 
 #include "music/misc.hh"
-/* #include "music/setup.hh" */
 #include "music/port.hh"
 #include "music/clock.hh"
 #include "music/connector.hh"
@@ -43,29 +42,23 @@ namespace MUSIC
   using Connections = std::vector<Connection*>;
 
   class Application;
-  class PortConnectivityManager;
 
   class Runtime
   {
   public:
-    Runtime (Application& app, PortConnectivityManager& portMgr, double h);
-	Runtime (const Runtime& other);
-
+    Runtime (const Application& app, SPVec<Port> ports, double h);
+	Runtime& operator= (const Runtime&) = delete;
+	Runtime (const Runtime& other) = delete;
     ~Runtime ();
 
-    MPI::Intracomm
-    communicator ();
-
-    void
-    finalize ();
-    void
-    tick ();
-    double
-    time ();
+    /* MPI::Intracomm */
+    /* communicator (); */
+    void finalize ();
+    void tick ();
+    double time () const;
 
   private:
-	Application& app_;
-	PortConnectivityManager& portMgr_;
+	const Application& app_;
     Clock localTime;
     //Clock nextComm;
     /* std::string app_name; */

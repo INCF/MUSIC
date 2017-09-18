@@ -19,18 +19,13 @@ namespace MUSIC
 	/* using PortMap = std::map<std::string, std::shared_ptr<Port>>; */
 	using PortMap = std::map<std::string, std::weak_ptr<Port>>;
 
-	class Runtime;
-	class Application;
-
 	class PortConnectivityManager
 	{
 		public:
 
-			PortConnectivityManager (std::unique_ptr<Connectivity> connectivityMap,
-					Application& app)
-				  : connectivityMap_ (std::move (connectivityMap))
+			PortConnectivityManager (Configuration& config)
+				  : config_ (config)
 				  , portMap_ ()
-				  , app_ (app)
 	              , isConnectivityModified (false)
 			{}
 
@@ -50,6 +45,8 @@ namespace MUSIC
 
 			bool isConnected (std::string identifier) const;
 			bool isInstantiated (std::string identifier);
+
+			// TODO move in private
 			void updatePorts();
 
 			SPVec<Port> getPorts ();
@@ -57,11 +54,13 @@ namespace MUSIC
 		private:
 			friend class Port;
 			// TODO this can be remove and replaced by exposing iterators
-			friend class Runtime;
 
-			std::unique_ptr<Connectivity> connectivityMap_;
+			Configuration& config_;
+			/* std::string applicationName_; */
+			/* std::shared_ptr<ApplicationMap> applicationMap_; */
+			/* std::unique_ptr<Connectivity> connectivityMap_; */
 			PortMap portMap_;
-			Application& app_;
+			/* Application& app_; */
 			bool isConnectivityModified;
 
 			// TODO move impl to cpp file
@@ -75,15 +74,15 @@ namespace MUSIC
 			}
 
 			template <typename T>
-		    std::shared_ptr<T> createPort (std::string identifier)
+		    std::shared_ptr<T> createPort (const Application& app, std::string identifier)
 			{
-				auto ptr (std::make_shared<T> (app_, identifier));
+				auto ptr (std::make_shared<T> (app, identifier));
 				addPort(ptr);
 				return ptr;
 			}
 
 			void removePort (std::string identifier);
-			const ConnectivityInfo* portConnectivity (const std::string localName) const;
+			const ConnectivityInfo& portConnectivity (const std::string localName) const;
 
 
 

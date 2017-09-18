@@ -80,6 +80,7 @@ namespace MUSIC {
 
     int Leader ();
 
+	// TODO why pointers? they should not be able to be NULL
     ApplicationMap* applications ();
 
     Connectivity* connectivityMap ();

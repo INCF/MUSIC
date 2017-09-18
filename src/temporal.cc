@@ -26,10 +26,10 @@
 namespace MUSIC
 {
 
-  TemporalNegotiator::TemporalNegotiator (Application& app) :
+  TemporalNegotiator::TemporalNegotiator (const Application& app) :
       app_ (app), negotiationBuffer (NULL)
   {
-    nApplications_ = app_.applicationMap ()->size ();
+    nApplications_ = app_.applicationMap ().size ();
     nAllConnections = 0;
     nodes = new TemporalNegotiatorGraph (app_.timebase (), nApplications_,
         app_.applicationColor ());
@@ -89,11 +89,11 @@ namespace MUSIC
   void
   TemporalNegotiator::createNegotiationCommunicator ()
   {
-    ApplicationMap* applicationMap = app_.applicationMap ();
+    auto applicationMap = app_.applicationMap ();
     int* ranks = new int[nApplications_];
 
     for (int i = 0; i < nApplications_; ++i)
-      ranks[i] = (*applicationMap)[i].leader ();
+      ranks[i] = applicationMap[i].leader ();
 
     groupWorld = MPI::COMM_WORLD.Get_group ();
     applicationLeaders = groupWorld.Incl (nApplications_, ranks);
@@ -169,10 +169,10 @@ namespace MUSIC
   TemporalNegotiator::findNodeColor (int leader)
   {
     int color = -1;
-    ApplicationMap* applicationMap = app_.applicationMap ();
+    auto applicationMap = app_.applicationMap ();
     for (int i = 0; i < nApplications_; ++i)
-      if (leader == (*applicationMap)[i].leader ())
-        color = (*applicationMap)[i].color ();
+      if (leader == applicationMap[i].leader ())
+        color = applicationMap[i].color ();
     assert (color != -1);
     return color;
   }

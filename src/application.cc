@@ -1,73 +1,46 @@
 #include "music/application.hh"
 
 #if MUSIC_USE_MPI
+#include <mpi.h>
 
 namespace MUSIC
 {
     static std::string err_not_runtime = "Application not in running state";
 	static std::string err_MPI_Init = "MPI_Init was called before the Setup constructor";
 
-	void Application::initialize_MPI(int argc, char** argv, int required, int* provided)
-	{
-		// TODO check if this if-block is symantically correct
-		if (!MPI::Is_initialized ())
-		{
-			  /* errorRank (err_MPI_Init); */
-#ifdef HAVE_CXX_MPI_INIT_THREAD
-			*provided = MPI::Init_thread (argc, argv, required);
-#else
-			// Only C version provided in libmpich
-			MPI::MPI_Init_thread (&argc, &argv, required, provided);
-		}
-#endif
-	}
+	Application::Application ()
+		: Application( std::make_unique<DefaultContext> ())
+	{}
 
-	void Application::initialize_MPI(int argc, char** argv)
-	{
-		if (!MPI::Is_initialized ())
-			MPI::Init (argc, argv);
-	}
-
-	Application::Application(int argc, char** argv,
-			 std::unique_ptr<MusicLauncher> launcher, double timebase)
-		: initialize_MPI (argc, argv)
-		, Application(launcher->getConfiguration(), launcher->getComm(),
-				launcher->launchedByMusic(), timebase)
+	Application::Application(std::unique_ptr<MusicContext> context, double timebase)
+		: Application(context->getConfiguration(), context->getComm(),
+					context->launchedByMusic(), timebase)
 	{
 	}
 
-	Application::Application(int argc, char** argv, int required, int* provided,
-			double timebase, std::unique_ptr<MusicLauncher> launcher):
-		initialize_MPI (argc, argv, required, provided),
-		Application(launcher->getConfiguration(), launcher->getComm(),
-				launcher->launchedByMusic(), timebase)
-	{
-	}
-
-	Application::Application(std::unique_ptr<Configuration> config, MPI::MPI_Comm comm,
+	Application::Application(std::unique_ptr<Configuration> config, MPI_Comm comm,
 			bool launchedByMusic, double timebase):
+		config_ (std::move (config)),
 		timebase_ (timebase),
 		comm_ (comm),
-		app_color_ (config->Color ()),
-		leader_ (config->Leader ()),
 		launchedByMusic_ (launchedByMusic),
-		application_map_ (config->applications ()),
-		port_manager_ (config->connectivityMap (), *this),
-		runtime_(*this, port_manager_, timebase)
+		/* application_map_ (config->applications ()), */
+		port_manager_ (*config_),
+		runtime_ (nullptr)
 	{
 	}
 
-	void Application::enterSimulationLoop()
+	void Application::enterSimulationLoop(double h)
 	{
 
 		port_manager_.updatePorts ();
-		runtime_ = Runtime(runtime_);
+		runtime_.reset (new Runtime (*this, port_manager_.getPorts (), h));
 		state_ = ApplicationState::RUNNING;
 	}
 
 	void Application::exitSimulationLoop()
 	{
-		runtime_.finalize ();
+		runtime_->finalize ();
 		state_ = ApplicationState::STOPPED;
 	}
 
@@ -129,10 +102,15 @@ namespace MUSIC
 
 	int Application::leader () const
 	{
-		return leader_;
+		return config_->Leader ();
 	}
 
-	MPI::Intracomm Application::communicator()
+	const ApplicationMap& Application::applicationMap () const
+	{
+		return *(config_->applications ());
+	}
+
+	MPI::Intracomm Application::communicator() const
 	{
 		return comm_;
 	}

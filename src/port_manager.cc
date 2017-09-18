@@ -12,9 +12,9 @@ namespace MUSIC
 {
 	static std::string err_no_app_info = "No ApplicationInfo object available";
 
-	const ConnectivityInfo* PortConnectivityManager::portConnectivity (const std::string identifier) const
+	const ConnectivityInfo& PortConnectivityManager::portConnectivity (const std::string identifier) const
 	{
-		return connectivityMap_->info (identifier);
+		return *config_.connectivityMap ()->info (identifier);
 	}
 
 	bool PortConnectivityManager::isInstantiated (std::string identifier)
@@ -68,21 +68,21 @@ namespace MUSIC
 		// To keep the maxPortCode synchron over all MPI processes,
 		// this must be executed on all processes (even if they do not handle the
 		// requested connection)
-		const int portCode = ConnectorInfo::allocPortCode();
+		int portCode = ConnectorInfo::allocPortCode();
 
 		ConnectivityInfo::PortDirection dir;
-		ApplicationInfo* remoteInfo;
-		if (app_.applicationName () == senderApp)
+		const ApplicationInfo* remoteInfo;
+		if (config_.Name ()== senderApp)
 		{
 			// if this app is sender
 			dir = ConnectivityInfo::PortDirection::OUTPUT;
-			remoteInfo = app_.portConnectivity (receiverApp);
+			remoteInfo = config_.applications ()->lookup (receiverApp);
 		}
-		else if (app_.applicationName () == receiverApp)
+		else if (config_.Name() == receiverApp)
 		{
 			// if this app is receiver
 			dir = ConnectivityInfo::PortDirection::INPUT;
-			remoteInfo = app_.portConnectivity (senderApp);
+			remoteInfo = config_.applications ()->lookup (senderApp);
 		}
 		else
 		{
@@ -94,10 +94,10 @@ namespace MUSIC
 			errorRank(err_no_app_info);
 
 		// where to get the portCode from?
-		const int leader = remoteInfo->leader ();
+		int leader = remoteInfo->leader ();
 
 		// TODO does it actually prevent creating the same connection twice?
-		connectivityMap_->add (
+		config_.connectivityMap()->add (
 			dir == ConnectivityInfo::PortDirection::OUTPUT ? senderPort : receiverPort,
 			dir, width, receiverApp, receiverPort, portCode, leader,
 			remoteInfo->nProc (), commType, procMethod);
@@ -107,23 +107,23 @@ namespace MUSIC
 
 	void PortConnectivityManager::disconnect (std::string appName, std::string portName)
 	{
-		if (app_.applicationName () == appName)
-			connectivityMap_.remove (portName);
+		if (config_.Name ()== appName)
+			config_.connectivityMap ()->remove (portName);
 		else
 		{
-			auto connectedPorts = connectivityMap_.getConnectedLocalPorts (portName, appName);
+			auto connectedPorts = config_.connectivityMap ()->getConnectedLocalPorts (portName, appName);
 			for (auto& localPort : connectedPorts)
-				connectivityMap_.remove (localPort, appName, portName);
+				config_. connectivityMap ()->remove (localPort, appName, portName);
 		}
 		isConnectivityModified = true;
 	}
 
 	void PortConnectivityManager::disconnect (std::string senderApp, std::string senderPort, std::string receiverApp, std::string receiverPort)
 	{
-		if (app_.applicationName () == senderApp)
-			connectivityMap_.remove (senderPort, recApp, recPort);
-		else if (app_.applicationName () == receiverApp)
-			connectivityMap_.remove (receiverPort, senderApp, senderPort);
+		if (config_. Name ()== senderApp)
+			config_. connectivityMap ()->remove (senderPort, receiverApp, receiverPort);
+		else if (config_. Name ()== receiverApp)
+			config_. connectivityMap ()->remove (receiverPort, senderApp, senderPort);
 		else
 			return;
 		isConnectivityModified = true;
@@ -131,9 +131,7 @@ namespace MUSIC
 
 	bool PortConnectivityManager::isConnected (std::string identifier) const
 	{
-		return connectivityMap_->isConnected (identifier);
+		return config_. connectivityMap ()->isConnected (identifier);
 	}
-
-
-
 }
+#endif

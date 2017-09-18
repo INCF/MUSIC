@@ -286,7 +286,7 @@ void
             if (pos == receiverPortCodes.end ())
               {
                 /* portCode = nextPortCode++; */
-				portCode = ConnectorInfo.allocPortCode();
+				portCode = ConnectorInfo::allocPortCode();
                 receiverPortCodes.insert (
                     std::make_pair (receiverPortFullName, portCode));
               }
@@ -294,7 +294,7 @@ void
               portCode = pos->second;
 
             ConnectivityInfo::PortDirection dir;
-            ApplicationInfo* remoteInfo;
+            const ApplicationInfo* remoteInfo;
             if (config_->Name () == senderApp)
               {
                 dir = ConnectivityInfo::PortDirection::OUTPUT;

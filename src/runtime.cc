@@ -38,23 +38,10 @@
 namespace MUSIC
 {
 
-  Runtime::Runtime (const Runtime& other)
-	  : app_ (other.app_),
-	  portMgr_ (other.portMgr_),
-	  localTime (other.localTime),
-	  // here: new temporalNegotiator
-	  temporalNegotiator_ (other.app_),
-	  /* leader_ (other.leader_), */
-	  /* comm (other.comm), */
-	  scheduler (new Scheduler (app_.communicator (), other.leader_)),
-	  mAgent (0)
-  {
-	setup ();
-  }
-
-  Runtime::Runtime (Application& app, PortConnectivityManager& portMgr, double h)
+  Runtime::Runtime (const Application& app, SPVec<Port> ports, double h)
     : app_ (app),
-	portMgr_ (portMgr),
+	ports (ports),
+	// TODO what is timebase and h?
 	localTime (Clock (app_.timebase (), h)),
 	temporalNegotiator_ (app_),
 	/* leader_ (app_.leader ()), */
@@ -71,7 +58,6 @@ namespace MUSIC
   void Runtime::setup ()
   {
 	Connections* connections = new Connections ();
-	auto ports = portMgr_.getPorts ();
 
 	std::for_each (ports.begin (), ports.end (),
 			[connections](auto& port_ptr)
@@ -371,7 +357,7 @@ namespace MUSIC
 
 
   double
-  Runtime::time ()
+  Runtime::time () const
   {
     return localTime.time ();
   }

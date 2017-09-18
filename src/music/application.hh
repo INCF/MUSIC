@@ -13,7 +13,7 @@
 #include "music/port.hh"
 #include "music/runtime.hh"
 #include "music/connectivity.hh"
-#include "music/music_launcher.hh"
+#include "music/music_context.hh"
 #include "music/port_manager.hh"
 #include "music/misc.hh"
 
@@ -23,22 +23,16 @@ namespace MUSIC
 
 	enum class ApplicationState {RUNNING, STOPPED, FINALIZED};
 	const double MUSIC_DEFAULT_TIMEBASE = 1e-9;
-
 	class PortConnectivityManager;
 
 	class Application final
 	{
 		private:
-			Application(Configuration config, double timebase, MPI_Comm comm);
+			Application(std::unique_ptr<Configuration> config, MPI_Comm comm, bool launchedByMusic, double timebase);
 
 		public:
-			Application ()
-				: Application(0, nullptr, std::make_unique<DefaultLauncher> (), 1.) {}
-			Application (int argc, char** argv,
-					std::unique_ptr<MusicLauncher> launcher,
-					double timebase = MUSIC_DEFAULT_TIMEBASE);
-			Application (int argc, char** argv, int required, int* provided,
-					std::unique_ptr<MusicLauncher> launcher,
+			Application ();
+			Application (std::unique_ptr<MusicContext> context,
 					double timebase = MUSIC_DEFAULT_TIMEBASE);
 
 			/* Application(Configuration config, double h, MPI::MPI_Comm comm); */
@@ -49,13 +43,13 @@ namespace MUSIC
 			// TODO move and move-assignment constructors
 
 			void tick();
-			void enterSimulationLoop();
-			void exitSimulationLoop();
+			void enterSimulationLoop (double h);
+			void exitSimulationLoop ();
 			void finalize();
 
 			double time();
 			double timebase() const;
-			std::string applicationName() const;
+			std::string name () const;
 			bool launchedByMusic () const;
 
 			template <class PortT>
@@ -63,6 +57,8 @@ namespace MUSIC
 			{
 				return port_manager_.createPort<PortT> (*this, identifier);
 			}
+
+			PortConnectivityManager& getPortConnectivityManager () const;
 
 			/* std::shared_ptr<ContInputPort> publishContInput (std::string identifier); */
 			/* std::shared_ptr<ContOutputPort> publishContOutput (std::string identifier); */
@@ -72,29 +68,26 @@ namespace MUSIC
 			/* std::shared_ptr<MessageOutputPort> publishMessageOutput (std::string identifier); */
 
 		private:
+			std::unique_ptr<Configuration> config_;
 			double timebase_;
-			MPI_Comm comm_ {MPI::COMM_WORLD};
-			int app_color_;
-			int leader_;
+			MPI::Intracomm comm_ {MPI::COMM_WORLD};
 			ApplicationState state_ {ApplicationState::STOPPED};
 			bool launchedByMusic_ {false};
-			std::unique_ptr<ApplicationMap> application_map_;
+			/* std::unique_ptr<ApplicationMap> application_map_; */
 			PortConnectivityManager port_manager_;
 
 
 		private:
 			friend class Port;
-			friend class temporal;
+			friend class TemporalNegotiator;
 			friend class Runtime;
 
-			Runtime runtime_;
+			std::unique_ptr<Runtime> runtime_;
 			void assertValidState(std::string func_name, ApplicationState as);
-			void initialize_MPI(int argc, char** argv, int required, int* provided);
-			void initialize_MPI(int argc, char** argv);
 
-			MPI::Intracomm communicator ();
-			PortConnectivityManager& getPortConnectivityManager () const;
-			int applicationColor();
+			const ApplicationMap& applicationMap () const;
+			MPI::Intracomm communicator () const;
+			int applicationColor() const;
 			int nProcs () const;
 			int leader () const;
 
@@ -103,13 +96,13 @@ namespace MUSIC
 
 	inline double Application::time()
 	{
-		return runtime_.time();
+		return runtime_->time();
 	}
 
 	inline void Application::tick()
 	{
 		assertValidState("tick", ApplicationState::RUNNING);
-		runtime_.tick();
+		runtime_->tick();
 	}
 
 

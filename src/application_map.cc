@@ -31,19 +31,19 @@ namespace MUSIC {
   }
 
   int
-  ApplicationMap::nProcesses ()
+  ApplicationMap::nProcesses () const
   {
     int n = 0;
-    for (ApplicationMap::iterator i = begin (); i != end (); ++i)
+    for (ApplicationMap::const_iterator i = begin (); i != end (); ++i)
       n += i->nProc ();
     return n;
   }
 
 
-  ApplicationInfo*
-  ApplicationMap::lookup (std::string appName)
+  const ApplicationInfo*
+  ApplicationMap::lookup (std::string appName) const
   {
-    for (iterator i = begin (); i != end (); ++i)
+    for (const_iterator i = begin (); i != end (); ++i)
       {
 	if (i->name () == appName)
 	  return &*i;
@@ -102,10 +102,10 @@ namespace MUSIC {
   }
 
 
-  ApplicationInfo*
-  ApplicationMap::lookup (int color)
+  const ApplicationInfo*
+  ApplicationMap::lookup (int color) const
   {
-    for (iterator i = begin (); i != end (); ++i)
+    for (const_iterator i = begin (); i != end (); ++i)
       {
         if (i->color () == color)
           return &*i;
@@ -131,8 +131,8 @@ namespace MUSIC {
       {
         if (colors[i] != prev_color)
           {
-            ApplicationInfo* info = lookup (colors[i]);
-            info->setLeader (i);
+            const ApplicationInfo* info = lookup (colors[i]);
+            const_cast<ApplicationInfo*> (info)->setLeader (i);
             leaders[info->color ()] = i;
             prev_color = colors[i];
           }

@@ -38,28 +38,28 @@ namespace MUSIC {
 
 
     std::string
-    name ()
+    name () const
     {
       return name_;
     }
 
 
     int
-    color ()
+    color () const
     {
       return color_;
     }
 
 
     int
-    nProc ()
+    nProc () const
     {
       return nProc_;
     }
 
 
     int
-    leader ()
+    leader () const
     {
       return leader_;
     }
@@ -79,11 +79,11 @@ namespace MUSIC {
   public:
     ApplicationMap ();
 
-    ApplicationInfo* lookup (std::string appName);
+    const ApplicationInfo* lookup (std::string appName) const;
 
-    ApplicationInfo* lookup (int color);
+    const ApplicationInfo* lookup (int color) const;
 
-    int nProcesses ();
+    int nProcesses () const;
 
     void add (std::string name, int n, int c);
 

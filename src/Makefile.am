@@ -32,7 +32,7 @@ libmusic_la_SOURCES = \
 	subconnector.cc music/subconnector.hh \
 	connector.cc music/connector.hh \
 	multibuffer.cc music/multibuffer.hh \
-	music_launcher.cc music/music_launcher.hh \
+	music_context.cc music/music_context.hh \
 	connection.cc music/connection.hh \
 	permutation_index.cc music/permutation_index.hh \
 	index_map_factory.cc music/index_map_factory.hh \
@@ -67,7 +67,7 @@ libmusic_c_la_DEPENDENCIES = libmusic.la
 
 musicincludedir = $(includedir)/music
 musicinclude_HEADERS = music/port_manager.hh \
-				music/runtime.hh music/application.hh \
+			   music/runtime.hh music/application.hh \
 		       music/interval.hh music/interval_tree.hh \
 		       music/interval_table.hh music/ordered_ilist.hh \
 		       music/index_map.hh music/data_map.hh \
@@ -91,6 +91,6 @@ musicinclude_HEADERS = music/port_manager.hh \
 		       music/message.hh music/music-config.hh \
 		       music/predict_rank.hh  music/predict_rank-c.h \
 		       music/communication.hh music/version.hh \
-		       music/memory.hh music/music_launcher
+		       music/memory.hh music/music_context.hh
 
 MKDEP = gcc -M $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)

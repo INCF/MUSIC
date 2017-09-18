@@ -49,8 +49,8 @@ namespace MUSIC {
 				   int recCode,
 				   int rLeader,
 				   int nProc,
-				   int commType,
-				   int procMethod
+				   ConnectorInfo::CommunicationType commType,
+				   ConnectorInfo::ProcessingMethod procMethod
 					)
   {
     portConnections_.push_back (ConnectorInfo (recApp,
@@ -97,9 +97,7 @@ namespace MUSIC {
     if (cmapInfo == connectivityMap.end ())
       {
 		MUSIC_LOG ("creating new entry for " << localPort);
-		connectivityMap.insert (
-				std::make_pair {localPort,
-					ConnectivityInfo (localPort, dir, width)});
+		connectivityMap.insert ({localPort, new ConnectivityInfo (localPort, dir, width)});
 		info = connectivityMap.find (localPort)->second;
 
       }
@@ -279,6 +277,8 @@ namespace MUSIC {
 	    in.ignore ();
 	    int procMethod;
 	    in >> procMethod;
+		ConnectorInfo::CommunicationType commEnumType = static_cast<ConnectorInfo::CommunicationType> (commType);
+		ConnectorInfo::ProcessingMethod procEnumType = static_cast<ConnectorInfo::ProcessingMethod> (procMethod);
 	    add (portName,
 		 pdir,
 		 width,
@@ -287,8 +287,8 @@ namespace MUSIC {
 		 recPortCode,
 		 leaders[color],
 		 nProc,
-		 commType,
-		 procMethod
+		 commEnumType,
+		 procEnumType
 		 );
 	    MUSIC_LOG ("add (portName = " << portName
 		       << ", pdir = " << pdir
@@ -297,8 +297,8 @@ namespace MUSIC {
 		       << ", recPort = " << recPort
 		       << ", rLeader = " << leaders[color]
 		       << ", nProc = " << nProc
-		       << ", commType = " << commType
-		       << ", procMethod = " << procMethod
+		       << ", commType = " << commEnumType
+		       << ", procMethod = " << procEnumType
 		       << ")");
 	  }
       }

@@ -204,7 +204,7 @@ namespace MUSIC {
 
 
     void addConnection (std::string recApp, std::string recName, int recCode,
-        int rLeader, int nProc, int commType, int procMethod);
+        int rLeader, int nProc, ConnectorInfo::CommunicationType commType, ConnectorInfo::ProcessingMethod procMethod);
 
 	void removeConnection (std::string recApp, std::string recName);
 
