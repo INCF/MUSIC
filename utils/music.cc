@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2007, 2008, 2009 INCF
+ *  Copyright (C) 2007, 2008, 2009, 2017 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -35,6 +35,12 @@ extern "C" {
 }
 using std::string;
 
+/* The preprocessor macro MUSIC_HANDLE_MAP is currently used to disable
+ * broken functionality which previously tried to predict which ranks
+ * ran which applications. Such prediction can only be safely made using
+ * MPI. This could be implemented at a later date.
+ */
+
 void
 usage (int rank)
 {
@@ -43,9 +49,11 @@ usage (int rank)
       std::cout << "Usage: mpirun ... music [OPTION...] CONFIG" << std::endl
 		<< "`music' launches an application as part of a multi-simulation job." << std::endl << std::endl
 		<< "  -h, --help            print this help message" << std::endl
+#ifdef MUSIC_HANDLE_MAP
 		<< "  -m, --map             print application rank map" << std::endl
 //		<< "  -f, --file-map        creates a file with the list of environment variable of each application" << std::endl
 //		<< "  -e, --export-scripts  export launcher scripts" << std::endl
+#endif
 		<< "  -v, --version         prints version of MUSIC library" << std::endl
 		<< std::endl
 		<< "Report bugs to <music-bugs@incf.org>." << std::endl;
@@ -176,9 +184,11 @@ main (int argc, char *argv[])
       static struct option longOptions[] =
 	{
 	  {"help",           no_argument,       0, 'h'},
+#ifdef MUSIC_HANDLE_MAP
 	  {"map",            required_argument, 0, 'm'},
 //	  {"export-scripts", required_argument,       0, 'e'},
 //	  {"file-map",        required_argument,       0, 'f'},
+#endif
 	  {"version",        no_argument,       0, 'v'},
 	  {0, 0, 0, 0}
 	};
@@ -227,7 +237,10 @@ main (int argc, char *argv[])
 
   MUSIC::Configuration config;
   MUSIC::ApplicationMapper mapper (&config);
-  mapper.map (configFile, rank);
+  if (rank >= 0) // Only try to map applications if rank prediction worked
+    mapper.map (configFile, rank);
+
+#ifdef MUSIC_HANDLE_MAP
   if (do_print_map)
     {
       if (rank <= 0)
@@ -247,6 +260,7 @@ main (int argc, char *argv[])
   }*/
   if (do_print_map) //|| do_export_scripts || do_export_map)
     return 0;
+#endif
   
   if (rank == -1)
     {
