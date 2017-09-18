@@ -3,7 +3,6 @@
 #include "music/music-config.hh"
 #if MUSIC_USE_MPI
 #include <mpi.h>
-
 #include <string>
 #include <vector>
 #include <memory>
@@ -49,7 +48,7 @@ namespace MUSIC
 	class MusicContext
 	{
 		public:
-			explicit MusicContext ();
+			explicit MusicContext () = default;
 			explicit MusicContext (int argc, char** argv, bool launchedByMusic, MPI_Comm comm)
 				: argc_ (argc)
 				, argv_ (argv)
@@ -61,7 +60,7 @@ namespace MUSIC
 			virtual MPI_Comm getComm()  = 0;
 			// TODO do we need finalize or just a destructor?
 			virtual void finalize () {};
-			virtual ~MusicContext();
+			virtual ~MusicContext() {};
 			bool launchedByMusic() const { return launchedByMusic_; }
 
 		protected:
@@ -107,48 +106,30 @@ namespace MUSIC
 	};
 
 	// Too much individual stuff, this needs to be done differently.
-	using ContextFactoryMethod = std::function<MusicContext*(int argc, char** argv)>;
+	using ContextFactoryfunction = std::function<MusicContext*(int argc, char** argv)>;
 
-	ContextFactoryMethod MPMDContextFactory = [] (int argc, char** argv) -> MusicContext*
+	struct FactoryFunctions
 	{
-			std::string config = "";
-			if (!OptionHelpers::getOption(argc, argv, OptionConstants::opConfigFileName, config) )
-			{
-				return nullptr;
-			}
-
-			return new MPMDContext (argc, argv);
+		static ContextFactoryfunction MPMDContextFactory;
+		static ContextFactoryfunction ExecContextFactory;
+		static ContextFactoryfunction DefaultContextFactory;
 	};
-
-	ContextFactoryMethod ExecContextFactory = [] (int argc, char** argv) -> MusicContext*
-	{
-		if (EnvHelpers::read_env(Configuration::configEnvVarName) != NULL)
-			return new ExecContext (argc, argv);
-		else
-			return nullptr;
-	};
-
-	ContextFactoryMethod DefaultContextFactory = [] (int argc, char** argv) -> MusicContext*
-	{
-		return new DefaultContext ();
-	};
-
 
 	class MusicContextFactory
 	{
 		public:
 
 			MusicContextFactory ()
-				: fac_methods_ {MPMDContextFactory,  ExecContextFactory, DefaultContextFactory }
+				: fac_functions_ {FactoryFunctions::MPMDContextFactory,  FactoryFunctions::ExecContextFactory, FactoryFunctions::DefaultContextFactory }
 			{}
 			// TODO add default parameter for MPI Communicator
-			std::unique_ptr<MusicContext> createContext (int& argc, char**& argv) const;
-			std::unique_ptr<MusicContext> createContext (int& argc, char**& argv, int required, int* provided) const;
-			void addContextFactoryMethod (ContextFactoryMethod fac_method);
+			std::unique_ptr<MusicContext> createContext (int& argc, char**& argv);
+			std::unique_ptr<MusicContext> createContext (int& argc, char**& argv, int required, int* provided);
+			void addContextFactoryfunction (ContextFactoryfunction fac_function);
 
 		private:
-			std::vector<ContextFactoryMethod> fac_methods_;
-			std::unique_ptr<MusicContext> createContextImpl (int argc, char** argv);
+			std::vector<ContextFactoryfunction> fac_functions_;
+			std::unique_ptr<MusicContext> createContextImpl (int argc, char** argv) const;
 	};
 
 }

@@ -37,6 +37,8 @@
 namespace MUSIC {
 
   class Application;
+
+  using Connections = std::vector<Connection*>;
 /* remedius
  * 1. Since one more type of Connector was added - CollectiveConnector,
  * to avoid branching of different Connector return types,
@@ -62,9 +64,13 @@ namespace MUSIC {
 
   protected:
     IndexMap* indices_;
-    Index::Type index_type_;
+    Index::Type index_type_ {Index::GLOBAL};
     std::string portName_;
     const Application& app_;
+	MPI::Intracomm comm_;
+	Connections connections_;
+
+	virtual Connections& getConnections ();
     virtual Connector* makeConnector (ConnectorInfo connInfo) = 0;
 	const ConnectivityInfo& getConnectivityInfo () const;
     void assertOutput ();
@@ -93,7 +99,6 @@ namespace MUSIC {
   public:
 	  using Port::Port;
   protected:
-	std::vector<OutputConnection*> connections_;
 
 	void reconnect () override;
     virtual void mapImpl (IndexMap* indices,

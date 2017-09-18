@@ -90,9 +90,19 @@ namespace MUSIC
 	/* 	return port_manager_.createPort<MessageOutputPort> (*this, identifier); */
 	/* } */
 
+	PortConnectivityManager& Application::getPortConnectivityManager ()
+	{
+		return port_manager_;
+	}
+
 	double Application::timebase() const
 	{
 		return timebase_;
+	}
+
+	int Application::color () const
+	{
+		return config_-> Color();
 	}
 
 	int Application::nProcs () const

@@ -62,7 +62,7 @@ namespace MUSIC
 	std::for_each (ports.begin (), ports.end (),
 			[connections](auto& port_ptr)
 			{
-				for (auto& c : port_ptr->connections_)
+				for (auto& c : port_ptr->getConnections ())
 				{
 					connections->push_back (c);
 				}

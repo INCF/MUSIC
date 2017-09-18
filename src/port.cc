@@ -19,14 +19,21 @@
 
 #if MUSIC_USE_MPI
 #include "music/event_router.hh"
+#include "music/linear_index.hh"
 
 #include "music/application.hh" // Must be included first on BG/L
 #include "music/error.hh"
 
 namespace MUSIC {
 
+	// TODO no const for Application&
   Port::Port (const Application& app, std::string identifier)
-    : indices_ (nullptr), portName_ (identifier), app_ (app), isMapped_ (false)
+    : indices_ (nullptr)
+	  , portName_ (identifier)
+	 , app_ (app)
+	 , comm_ (app.communicator ())
+	 , connections_ ()
+	  ,isMapped_ (false)
   {
   }
 
@@ -34,7 +41,8 @@ namespace MUSIC {
   bool
   Port::isConnected ()
   {
-	return app_.getPortConnectivityManager ().isConnected ( portName_ );
+	  // TODO remove const_cast
+	return const_cast<Application&> (app_).getPortConnectivityManager ().isConnected ( portName_ );
   }
 
   void Port::reconnect ()
@@ -44,6 +52,10 @@ namespace MUSIC {
 	  connections_.clear ();
   }
 
+  Connections& Port::getConnections ()
+  {
+	  return connections_;
+  }
 
   void
   Port::checkConnected (std::string action)
@@ -59,7 +71,8 @@ namespace MUSIC {
 
   const ConnectivityInfo& Port::getConnectivityInfo () const
   {
-	  return app_.getPortConnectivityManager ().portConnectivity (portName_ );
+	  // TODO remove const_cast
+	  return const_cast<Application&> (app_).getPortConnectivityManager ().portConnectivity (portName_ );
   }
 
 
@@ -192,11 +205,14 @@ namespace MUSIC {
   OutputPort::reconnect ()
   {
 	  auto connection_it = connections_.begin ();
+	  // take the first element in connections_
+	  // Assumption made here: all connections have the same
+	  // maxBuffered and elementSize
 	  if (connection_it != connections_.end ())
 	  {
 		  // TODO cast iterator to Output Connector iterator
-		  int maxBuffered = (*connection_it)->maxBuffered ();
-		  int elementSize = (*connection_it)->elementSize ();
+		  int maxBuffered = static_cast<OutputConnection*>(*connection_it)->maxBuffered ();
+		  int elementSize = static_cast<OutputConnection*>(*connection_it)->elementSize ();
 		  connection_it = connections_.end ();
 
 		  Port::reconnect ();
@@ -245,9 +261,9 @@ namespace MUSIC {
 	  auto connection_it = connections_.begin ();
 	  if (connection_it != connections_.end ())
 	  {
-		  int accLatency = (*connection_it)->accLatency ();
-		  int maxBuffered = (*connection_it)->maxBuffered ();
-		  bool interpolate = (*connection_it)->interpolate ();
+		  int accLatency = static_cast<InputConnection*>(*connection_it)->accLatency ();
+		  int maxBuffered = static_cast<InputConnection*>(*connection_it)->maxBuffered ();
+		  bool interpolate = static_cast<InputConnection*>(*connection_it)->interpolate ();
 		  connection_it = connections_.end ();
 
 		  Port::reconnect ();
@@ -309,7 +325,7 @@ namespace MUSIC {
 		  conn =  new ContOutputConnector (connInfo,
 				  indices_,
 		  		  index_type_,
-				  app_.communicator (),
+				  comm_ ,
 				  sampler,
 				  type_);
 	  }
@@ -317,7 +333,7 @@ namespace MUSIC {
 		  conn = new ContOutputCollectiveConnector(connInfo,
 				  indices_,
 		  		  index_type_,
-				  app_.communicator (),
+				  comm_,
 				  sampler,
 				  type_);
 
@@ -396,7 +412,7 @@ namespace MUSIC {
 		  conn = new ContInputConnector (connInfo,
 				  indices_,
 		  		  index_type_,
-				  app_.communicator (),
+				  comm_,
 				  sampler,
 				  type_,
 				  delay_);
@@ -405,7 +421,7 @@ namespace MUSIC {
 		  conn = new ContInputCollectiveConnector (connInfo,
 				  indices_,
 		  		  index_type_,
-				  app_.communicator (),
+				  comm_,
 				  sampler,
 				  type_,
 				  delay_);
@@ -523,14 +539,14 @@ namespace MUSIC {
       conn = new EventOutputConnector (connInfo,
 				       indices_,
 				       index_type_,
-				       app_.communicator (),
+				       comm_,
 				       routingMap);
     else
       conn = new EventOutputCollectiveConnector
 	(connInfo,
 	 indices_,
 	 index_type_,
-	 app_.communicator (),
+	 comm_,
 	 router->directRouter ());
 
     return conn;
@@ -666,13 +682,13 @@ namespace MUSIC {
 		  conn =   new EventInputConnector (connInfo,
 		  			  indices_,
 		  			  index_type_,
-		  			  app_.communicator (),
+		  			  comm_,
 		  			  handleEvent_);
 	  else
 		  conn = new EventInputCollectiveConnector(connInfo,
 	  	 			indices_,
 		  			index_type_,
-	  	 			app_.communicator (),
+	  	 			comm_,
 	  	 			handleEvent_);
 
 	 return conn;
@@ -701,7 +717,7 @@ namespace MUSIC {
    ********************************************************************/
 
   MessagePort::MessagePort (const Application& app)
-    : rank_ (app.communicator ().Get_rank ())
+    : rank_ (comm_.Get_rank ())
   {
   }
 
@@ -751,7 +767,7 @@ namespace MUSIC {
     return new MessageOutputConnector (connInfo,
 				       indices_,
 				       index_type_,
-				       app_.communicator (),
+				       comm_,
 				       buffers);
   }
 
@@ -873,7 +889,7 @@ namespace MUSIC {
 				      indices_,
 		  			  index_type_,
 				      handleMessage_,
-				      app_.communicator ());
+				      comm_);
   }
 
 

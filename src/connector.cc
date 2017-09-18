@@ -196,7 +196,7 @@ namespace MUSIC {
   {
 	  freeIntercomm ();
 	  for (auto subconnector : rsubconn)
-		  delete *subconnector;
+		  delete subconnector;
 	  finalized_ = false;
   }
 
@@ -932,8 +932,8 @@ error( "LOCAL Indices are not supported with MUSIC_ANYSOURCE");
       EventCollectiveConnector (true)
   {
 
-    int procMethod = connInfo.processingMethod ();
-    if (procMethod == ConnectorInfo::TREE)
+	  ConnectorInfo::ProcessingMethod procMethod = connInfo.processingMethod ();
+    if (procMethod == ConnectorInfo::ProcessingMethod::TREE)
       if (handleEvent.getType () == Index::GLOBAL)
 	router_ = new TreeProcessingInputGlobalRouter ();
       else

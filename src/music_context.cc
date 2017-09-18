@@ -1,4 +1,4 @@
-#include "music/music_launcher.hh"
+#include "music/music_context.hh"
 
 #if MUSIC_USE_MPI
 #include <mpi.h>
@@ -16,7 +16,7 @@ namespace MUSIC
   const char* const OptionConstants::opConfigFileName = "--music-config";
   const char* const OptionConstants::opAppLabel = "--app-label";
   static std::string err_env_invalid = "The given environment variable is not set!";
-  static std::string err_fac_methods_not_responsible = "Attempt to perform an action on unresponsible LaunchContext";
+  static std::string err_fac_functions_not_responsible = "Attempt to perform an action on unresponsible LaunchContext";
 
 
 
@@ -31,8 +31,8 @@ namespace MUSIC
 #else
 			// Only C version provided in libmpich
 			MPI_Init_thread (&argc, &argv, required, provided);
-		}
 #endif
+		}
 	}
 
 	void initialize_MPI(int& argc, char**& argv)
@@ -127,7 +127,7 @@ namespace MUSIC
   std::unique_ptr<Configuration> ExecContext::getConfiguration()
   {
 	std::string config_str;
-	config_str.assign(read_env(Configuration::configEnvVarName));
+	config_str.assign(EnvHelpers::read_env(Configuration::configEnvVarName));
 	assert(config_str.length() > 0);
 	return std::make_unique<Configuration> (config_str);
   }
@@ -149,30 +149,54 @@ namespace MUSIC
 
   std::unique_ptr<MusicContext> MusicContextFactory::createContextImpl(int argc, char** argv) const
   {
-	for (auto& h : fac_methods_)
+	for (auto& fac_function : fac_functions_)
 	{
-		if ((std::unique_ptr ptr = h (argc, argv)) != nullptr)
+		std::unique_ptr<MusicContext> ptr {fac_function (argc, argv)};
+		if (ptr != nullptr)
 			return std::move (ptr);
 	}
 	return nullptr;
   }
 
-  std::unique_ptr<MusicContext> MusicContextFactory::createContext(int argc, char** argv, int required, int* provided) const
+  std::unique_ptr<MusicContext> MusicContextFactory::createContext(int& argc, char**& argv)
   {
 	initialize_MPI (argc, argv);
 	return std::unique_ptr<MusicContext> {createContextImpl (argc, argv)};
   }
 
-  std::unique_ptr<MusicContext> createContext (int& argc, char**& argv, int required, int* provided) const
+  std::unique_ptr<MusicContext> MusicContextFactory::createContext (int& argc, char**& argv, int required, int* provided)
   {
 	initialize_MPI (argc, argv, required, provided);
 	return std::unique_ptr<MusicContext> {createContextImpl (argc, argv)};
   }
 
-  void MusicContextFactory::addContextFactoryMethod (ContextFactoryMethod fac_method)
+  void MusicContextFactory::addContextFactoryfunction (ContextFactoryfunction fac_function)
   {
-	  fac_methods_.insert (fac_methods_.begin(), fac_method);
+	  fac_functions_.insert (fac_functions_.begin(), fac_function);
   }
 
+  ContextFactoryfunction FactoryFunctions::MPMDContextFactory = [] (int argc, char** argv) -> MusicContext*
+	{
+		std::string config = "";
+		if (!OptionHelpers::getOption(argc, argv, OptionConstants::opConfigFileName, config) )
+		{
+			return nullptr;
+		}
+
+		return new MPMDContext (argc, argv);
+	};
+
+	ContextFactoryfunction FactoryFunctions::ExecContextFactory = [] (int argc, char** argv) -> MusicContext*
+	{
+		if (EnvHelpers::read_env(Configuration::configEnvVarName) != NULL)
+			return new ExecContext (argc, argv);
+		else
+			return nullptr;
+	};
+
+	ContextFactoryfunction FactoryFunctions::DefaultContextFactory = [] (int argc, char** argv) -> MusicContext*
+	{
+		return new DefaultContext ();
+	};
 }
 #endif

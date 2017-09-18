@@ -39,8 +39,6 @@ namespace MUSIC
    * It is documented in section 4.4 of the MUSIC manual
    */
 
-  using Connections = std::vector<Connection*>;
-
   class Application;
 
   class Runtime

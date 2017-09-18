@@ -58,7 +58,7 @@ namespace MUSIC
 				return port_manager_.createPort<PortT> (*this, identifier);
 			}
 
-			PortConnectivityManager& getPortConnectivityManager () const;
+			PortConnectivityManager& getPortConnectivityManager ();
 
 			/* std::shared_ptr<ContInputPort> publishContInput (std::string identifier); */
 			/* std::shared_ptr<ContOutputPort> publishContOutput (std::string identifier); */
@@ -87,7 +87,7 @@ namespace MUSIC
 
 			const ApplicationMap& applicationMap () const;
 			MPI::Intracomm communicator () const;
-			int applicationColor() const;
+			int color () const;
 			int nProcs () const;
 			int leader () const;
 

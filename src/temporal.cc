@@ -32,7 +32,7 @@ namespace MUSIC
     nApplications_ = app_.applicationMap ().size ();
     nAllConnections = 0;
     nodes = new TemporalNegotiatorGraph (app_.timebase (), nApplications_,
-        app_.applicationColor ());
+        app_.color ());
   }
 
 
@@ -190,7 +190,7 @@ namespace MUSIC
     negotiationData = allocNegotiationData (1, nLocalConnections);
     negotiationData->timebase = app_.timebase ();
     negotiationData->tickInterval = ti;
-    negotiationData->color = app_.applicationColor ();
+    negotiationData->color = app_.color ();
     negotiationData->leader = app_.leader ();
     negotiationData->nProcs = app_.nProcs ();
     negotiationData->nOutConnections = outputConnections.size ();
