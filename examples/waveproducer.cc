@@ -39,7 +39,6 @@ main (int argc, char* argv[])
   app.config ("stoptime", &stoptime);
   app.enterSimulationLoop (TIMESTEP);
 
-  std::cout << "Producer entering actual loop with ticks" << std::endl;
   for (; app.time () < stoptime; app.tick ())
     {
       if (rank == 0)

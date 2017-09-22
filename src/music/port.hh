@@ -37,6 +37,7 @@
 namespace MUSIC {
 
   class Application;
+  class PortConnectivityManager;
 
   using Connections = std::vector<Connection*>;
 /* remedius
@@ -54,22 +55,21 @@ namespace MUSIC {
     /* Port () { } */
     explicit Port (const Application& app, std::string identifier);
 
-    virtual void buildTable () { };
     bool isConnected ();
     bool hasWidth ();
     int width ();
     void checkIndexMap (IndexMap* indexMap);
 	std::string name ();
-	virtual void reconnect ();
 
   protected:
     IndexMap* indices_;
     Index::Type index_type_ {Index::GLOBAL};
     std::string portName_;
     const Application& app_;
-	MPI::Intracomm comm_;
 	Connections connections_;
 
+    virtual void buildTable () {};
+	virtual void reconnect ();
 	virtual Connections& getConnections ();
     virtual Connector* makeConnector (ConnectorInfo connInfo) = 0;
 	const ConnectivityInfo& getConnectivityInfo () const;
@@ -77,12 +77,14 @@ namespace MUSIC {
     void assertInput ();
 
   public: // MDJ 2012-08-07 public for now---see comment in runtime.cc
-    virtual ~Port() {};
+    virtual ~Port() {finalize();};
 
   private:
     void checkConnected (std::string action);
+	virtual void finalize ();
     bool isMapped_;
     friend class Runtime;
+	friend class PortConnectivityManager;
   };
 
 

@@ -32,12 +32,16 @@ namespace MUSIC {
     : indices_ (nullptr)
 	  , portName_ (identifier)
 	 , app_ (app)
-	 , comm_ (app.communicator ())
 	 , connections_ ()
 	  ,isMapped_ (false)
   {
   }
 
+  void Port::finalize ()
+  {
+	  /* for (auto& c : connections_) */
+		/* delete c; */
+  }
 
   bool
   Port::isConnected ()
@@ -48,9 +52,8 @@ namespace MUSIC {
 
   void Port::reconnect ()
   {
-	  std::cout << "Reconnect called" << std::endl;
-	  for (auto connection_ptr : connections_)
-		  delete connection_ptr;
+	  for (auto& c: connections_)
+		  delete c;
 	  connections_.clear ();
   }
 
@@ -327,7 +330,7 @@ namespace MUSIC {
 		  conn =  new ContOutputConnector (connInfo,
 				  indices_,
 		  		  index_type_,
-				  comm_ ,
+				  app_.communicator () ,
 				  sampler,
 				  type_);
 	  }
@@ -335,7 +338,7 @@ namespace MUSIC {
 		  conn = new ContOutputCollectiveConnector(connInfo,
 				  indices_,
 		  		  index_type_,
-				  comm_,
+				  app_.communicator (),
 				  sampler,
 				  type_);
 
@@ -414,7 +417,7 @@ namespace MUSIC {
 		  conn = new ContInputConnector (connInfo,
 				  indices_,
 		  		  index_type_,
-				  comm_,
+				  app_.communicator (),
 				  sampler,
 				  type_,
 				  delay_);
@@ -423,7 +426,7 @@ namespace MUSIC {
 		  conn = new ContInputCollectiveConnector (connInfo,
 				  indices_,
 		  		  index_type_,
-				  comm_,
+				  app_.communicator (),
 				  sampler,
 				  type_,
 				  delay_);
@@ -541,14 +544,14 @@ namespace MUSIC {
       conn = new EventOutputConnector (connInfo,
 				       indices_,
 				       index_type_,
-				       comm_,
+				       app_.communicator (),
 				       routingMap);
     else
       conn = new EventOutputCollectiveConnector
 	(connInfo,
 	 indices_,
 	 index_type_,
-	 comm_,
+	 app_.communicator (),
 	 router->directRouter ());
 
     return conn;
@@ -684,13 +687,13 @@ namespace MUSIC {
 		  conn =   new EventInputConnector (connInfo,
 		  			  indices_,
 		  			  index_type_,
-		  			  comm_,
+		  			  app_.communicator (),
 		  			  handleEvent_);
 	  else
 		  conn = new EventInputCollectiveConnector(connInfo,
 	  	 			indices_,
 		  			index_type_,
-	  	 			comm_,
+	  	 			app_.communicator (),
 	  	 			handleEvent_);
 
 	 return conn;
@@ -719,7 +722,7 @@ namespace MUSIC {
    ********************************************************************/
 
   MessagePort::MessagePort (const Application& app)
-    : rank_ (comm_.Get_rank ())
+    : rank_ (app_.communicator ().Get_rank ())
   {
   }
 
@@ -769,7 +772,7 @@ namespace MUSIC {
     return new MessageOutputConnector (connInfo,
 				       indices_,
 				       index_type_,
-				       comm_,
+				       app_.communicator (),
 				       buffers);
   }
 
@@ -891,7 +894,7 @@ namespace MUSIC {
 				      indices_,
 		  			  index_type_,
 				      handleMessage_,
-				      comm_);
+				      app_.communicator ());
   }
 
 

@@ -35,8 +35,6 @@ namespace MUSIC
 			Application (std::unique_ptr<MusicContext> context,
 					double timebase = MUSIC_DEFAULT_TIMEBASE);
 
-			/* Application(Configuration config, double h, MPI::MPI_Comm comm); */
-
 			Application(const Application&) = delete;
 			Application& operator= (const Application&) = delete;
 

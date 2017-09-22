@@ -34,11 +34,8 @@ namespace MUSIC
 
 	void Application::enterSimulationLoop(double h)
 	{
-		std::cout << "Entering simulation loop" << std::endl;
 		port_manager_.updatePorts ();
 		auto ports = port_manager_.getPorts ();
-		for (auto& p : ports)
-			std::cout << p->name () << " " << std::endl;
 		runtime_.reset (new Runtime (*this, ports, h));
 		state_ = ApplicationState::RUNNING;
 	}
@@ -143,15 +140,11 @@ namespace MUSIC
 
 	void Application::finalize()
 	{
-		// TODO what else?
 		if (state_ == ApplicationState::RUNNING)
 			exitSimulationLoop ();
 		port_manager_.finalize ();
-		state_ = ApplicationState::FINALIZED;
-
-		// TODO move to music_context
-    	MPI::COMM_WORLD.Barrier ();
 		MPI::Finalize ();
+		state_ = ApplicationState::FINALIZED;
 	}
 
 	  bool

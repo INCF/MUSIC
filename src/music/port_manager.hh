@@ -48,7 +48,6 @@ namespace MUSIC
 
 			// TODO move in private
 			void updatePorts();
-			void finalize ();
 
 			SPVec<Port> getPorts ();
 
@@ -85,6 +84,7 @@ namespace MUSIC
 
 			void removePort (std::string identifier);
 			const ConnectivityInfo& portConnectivity (const std::string localName) const;
+			void finalize ();
 
 
 

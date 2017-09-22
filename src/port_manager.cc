@@ -138,7 +138,7 @@ namespace MUSIC
 	{
 		for (auto& p : getPorts ())
 		{
-			// TODO force removal of ports
+			p->finalize ();
 		}
 	}
 }
