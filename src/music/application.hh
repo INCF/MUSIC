@@ -100,10 +100,6 @@ namespace MUSIC
 
 	};
 
-	inline double Application::time() const
-	{
-		return runtime_->time();
-	}
 
 	inline void Application::tick()
 	{

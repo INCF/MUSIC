@@ -31,7 +31,6 @@ namespace MUSIC
 		runtime_ (nullptr),
 		clock_ ()
 	{
-		clock_.configure (timebase, ClockState ());
 	}
 
 	double Application::time() const
@@ -41,7 +40,12 @@ namespace MUSIC
 
 	void Application::enterSimulationLoop(double h)
 	{
-		clock_.setTickInterval (ClockState (h));
+		// TODO you cant pass h to ClockState as the double gets rounded on
+		// long long
+		auto clock_state = clock_.integerTime ();
+		clock_.configure (timebase_, ClockState (h, timebase_));
+		clock_.set (clock_state);
+
 		port_manager_.updatePorts ();
 		auto ports = port_manager_.getPorts ();
 		runtime_.reset (new Runtime (*this, ports, clock_));

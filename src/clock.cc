@@ -28,7 +28,7 @@ namespace MUSIC {
       state = dstate - 0.5;
   }
 
-  
+
   ClockState
   ClockState::Serialized::deserialize ()
   {
@@ -73,19 +73,19 @@ namespace MUSIC {
   {
     state_ += tickInterval_;
   }
-  
+
 
   void
   Clock::ticks (int n)
   {
     state_ += n * tickInterval_;
   }
-  
+
 
   double
   Clock::time () const
   {
     return timebase_ * state_;
   }
-  
+
 }
