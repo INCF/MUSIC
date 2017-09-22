@@ -28,15 +28,23 @@ namespace MUSIC
 		launchedByMusic_ (launchedByMusic),
 		/* application_map_ (config->applications ()), */
 		port_manager_ (*config_),
-		runtime_ (nullptr)
+		runtime_ (nullptr),
+		clock_ ()
 	{
+		clock_.configure (timebase, ClockState ());
+	}
+
+	double Application::time() const
+	{
+		return clock_.time ();
 	}
 
 	void Application::enterSimulationLoop(double h)
 	{
+		clock_.setTickInterval (ClockState (h));
 		port_manager_.updatePorts ();
 		auto ports = port_manager_.getPorts ();
-		runtime_.reset (new Runtime (*this, ports, h));
+		runtime_.reset (new Runtime (*this, ports, clock_));
 		state_ = ApplicationState::RUNNING;
 	}
 

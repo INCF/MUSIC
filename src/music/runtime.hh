@@ -44,7 +44,7 @@ namespace MUSIC
   class Runtime
   {
   public:
-    Runtime (const Application& app, SPVec<Port> ports, double h);
+    Runtime (const Application& app, SPVec<Port> ports, Clock& localtime);
 	Runtime& operator= (const Runtime&) = delete;
 	Runtime (const Runtime& other) = delete;
     ~Runtime ();
@@ -57,7 +57,7 @@ namespace MUSIC
 
   private:
 	const Application& app_;
-    Clock localTime;
+    Clock& localTime;
     //Clock nextComm;
     /* std::string app_name; */
     TemporalNegotiator temporalNegotiator_;

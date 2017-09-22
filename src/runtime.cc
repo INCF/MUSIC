@@ -38,14 +38,11 @@
 namespace MUSIC
 {
 
-  Runtime::Runtime (const Application& app, SPVec<Port> ports, double h)
+  Runtime::Runtime (const Application& app, SPVec<Port> ports, Clock& localTime)
     : app_ (app),
 	ports (ports),
-	// TODO what is timebase and h?
-	localTime (Clock (app_.timebase (), h)),
+	localTime (localTime),
 	temporalNegotiator_ (app_),
-	/* leader_ (app_.leader ()), */
-	/* comm (app_.communicator ()), */
 	scheduler (new Scheduler (app_.communicator(), app_.leader ())),
 	mAgent (0)
   {
@@ -67,9 +64,6 @@ namespace MUSIC
 					connections->push_back (c);
 				}
 			});
-
-	for (auto&c : *connections)
-		std::cout << app_.name () << " '" <<c << "'"<< std::endl;
 
     if (app_.launchedByMusic ())
       {
@@ -235,11 +229,12 @@ namespace MUSIC
     //
     sort (connections->begin (), connections->end (), lessConnection);
 
-    std::cout << "preparing intercomms" << std::endl;
     for (Connections::iterator c = connections->begin ();
         c != connections->end (); ++c)
+	{
+	  /* (*c)->connector ()->reset (); */
       (*c)->connector ()->createIntercomm ();
-    std::cout << "intercomms done!" << std::endl;
+	}
   }
 
 

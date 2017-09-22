@@ -37,12 +37,6 @@ namespace MUSIC {
   {
   }
 
-  void Port::finalize ()
-  {
-	  /* for (auto& c : connections_) */
-		/* delete c; */
-  }
-
   bool
   Port::isConnected ()
   {
@@ -50,7 +44,7 @@ namespace MUSIC {
 	return const_cast<Application&> (app_).getPortConnectivityManager ().isConnected ( portName_ );
   }
 
-  void Port::reconnect ()
+  void Port::removeConnections ()
   {
 	  for (auto& c: connections_)
 		  delete c;
@@ -220,7 +214,7 @@ namespace MUSIC {
 		  int elementSize = static_cast<OutputConnection*>(*connection_it)->elementSize ();
 		  connection_it = connections_.end ();
 
-		  Port::reconnect ();
+		  Port::removeConnections ();
 		  mapImpl (indices_,
 				  index_type_,
 				  maxBuffered,
@@ -271,7 +265,7 @@ namespace MUSIC {
 		  bool interpolate = static_cast<InputConnection*>(*connection_it)->interpolate ();
 		  connection_it = connections_.end ();
 
-		  Port::reconnect ();
+		  Port::removeConnections ();
 		  mapImpl (indices_,
 				  index_type_,
 				  accLatency,

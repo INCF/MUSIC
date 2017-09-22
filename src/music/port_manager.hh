@@ -26,7 +26,7 @@ namespace MUSIC
 			PortConnectivityManager (Configuration& config)
 				  : config_ (config)
 				  , portMap_ ()
-	              , modified_ (false)
+	              , connectivityModified_ (false)
 			{}
 
 			PortConnectivityManager(const PortConnectivityManager&) = delete;
@@ -62,7 +62,7 @@ namespace MUSIC
 			/* std::unique_ptr<Connectivity> connectivityMap_; */
 			PortMap portMap_;
 			/* Application& app_; */
-			bool modified_;
+			bool connectivityModified_;
 
 			// TODO move impl to cpp file
 			template <typename T>
@@ -84,6 +84,7 @@ namespace MUSIC
 
 			void removePort (std::string identifier);
 			const ConnectivityInfo& portConnectivity (const std::string localName) const;
+			bool isAnyPortExpired () const;
 			void finalize ();
 
 

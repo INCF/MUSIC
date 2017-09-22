@@ -32,6 +32,8 @@ namespace MUSIC
 
 		public:
 			Application ();
+			// TODO using std::move (context) in constructor call is not really
+			// comfortable for the user, better solutions?
 			Application (std::unique_ptr<MusicContext> context,
 					double timebase = MUSIC_DEFAULT_TIMEBASE);
 
@@ -87,6 +89,7 @@ namespace MUSIC
 			friend class Runtime;
 
 			std::unique_ptr<Runtime> runtime_;
+			Clock clock_;
 			void assertValidState(std::string func_name, ApplicationState as);
 
 			const ApplicationMap& applicationMap () const;

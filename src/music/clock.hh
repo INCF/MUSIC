@@ -24,7 +24,7 @@ namespace MUSIC {
   // ClockState may be negative due to calculations in Synchronizer
   class ClockState {
 #ifdef MUSIC_HAVE_LONG_LONG
-    long long state;
+    long long state {0};
 #else
 #error 64-bit clocks without long long not yet implemented
 #endif
@@ -54,7 +54,7 @@ namespace MUSIC {
       ClockState deserialize ();
     };
   };
-  
+
   class Clock {
     ClockState state_;
     ClockState tickInterval_;

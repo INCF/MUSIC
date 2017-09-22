@@ -69,19 +69,19 @@ namespace MUSIC {
 	Connections connections_;
 
     virtual void buildTable () {};
-	virtual void reconnect ();
+	virtual void reconnect () = 0;
 	virtual Connections& getConnections ();
     virtual Connector* makeConnector (ConnectorInfo connInfo) = 0;
 	const ConnectivityInfo& getConnectivityInfo () const;
+	void removeConnections ();
     void assertOutput ();
     void assertInput ();
 
   public: // MDJ 2012-08-07 public for now---see comment in runtime.cc
-    virtual ~Port() {finalize();};
+    virtual ~Port() {removeConnections ();};
 
   private:
     void checkConnected (std::string action);
-	virtual void finalize ();
     bool isMapped_;
     friend class Runtime;
 	friend class PortConnectivityManager;

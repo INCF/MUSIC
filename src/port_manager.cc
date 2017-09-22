@@ -37,15 +37,26 @@ namespace MUSIC
 		return v;
 	}
 
+	bool PortConnectivityManager::isAnyPortExpired () const
+	{
+		for (auto& p : portMap_)
+		{
+			if (p.second.expired ())
+				return true;
+			return false;
+		}
+	}
+
 	void PortConnectivityManager::updatePorts ()
 	{
 		// only perform expensive updates when necessary
-		if (modified_)
-		{
+		/* if (connectivityModified_) */
+		/* { */
+			std::cout << "Reconneting ports..." << std::endl;
 			for (auto& port : getPorts ())
 				port->reconnect ();
-			modified_ = false;
-		}
+			connectivityModified_ = false;
+		/* } */
 	}
 
 	void PortConnectivityManager::removePort (std::string identifier)
@@ -101,7 +112,7 @@ namespace MUSIC
 			dir == ConnectivityInfo::PortDirection::OUTPUT ? senderPort : receiverPort,
 			dir, width, receiverApp, receiverPort, portCode, leader,
 			remoteInfo->nProc (), commType, procMethod);
-		modified_ = true;
+		connectivityModified_ = true;
 
 	}
 
@@ -115,7 +126,7 @@ namespace MUSIC
 			for (auto& localPort : connectedPorts)
 				config_. connectivityMap ()->remove (localPort, appName, portName);
 		}
-		modified_ = true;
+		connectivityModified_ = true;
 	}
 
 	void PortConnectivityManager::disconnect (std::string senderApp, std::string senderPort, std::string receiverApp, std::string receiverPort)
@@ -126,7 +137,7 @@ namespace MUSIC
 			config_. connectivityMap ()->remove (receiverPort, senderApp, senderPort);
 		else
 			return;
-		modified_ = true;
+		connectivityModified_ = true;
 	}
 
 	bool PortConnectivityManager::isConnected (std::string identifier) const
@@ -138,7 +149,7 @@ namespace MUSIC
 	{
 		for (auto& p : getPorts ())
 		{
-			p->finalize ();
+			p->removeConnections ();
 		}
 	}
 }
