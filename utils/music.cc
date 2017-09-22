@@ -169,7 +169,7 @@ main (int argc, char *argv[])
   bool do_print_map = false;
   bool do_export_scripts = false;
   bool do_export_map = false;
-  
+
   opterr = 0; // handle errors ourselves
   while (1)
     {
@@ -247,7 +247,7 @@ main (int argc, char *argv[])
   }*/
   if (do_print_map) //|| do_export_scripts || do_export_map)
     return 0;
-  
+
   if (rank == -1)
     {
       std::cerr << "MUSIC: Unable to determine process rank." << std::endl

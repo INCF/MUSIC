@@ -66,9 +66,9 @@ public:
 int nUnits;
 double timestep = DEFAULT_TIMESTEP;
 int    maxbuffered = 0;
-string imaptype = "linear";
-string prefix;
-string suffix = ".dat";
+std::string imaptype = "linear";
+std::string prefix;
+std::string suffix = ".dat";
 
 void
 getargs (int rank, int argc, char* argv[])
@@ -132,15 +132,16 @@ getargs (int rank, int argc, char* argv[])
 int
 main (int argc, char *argv[])
 {
-  MUSIC::Setup* setup = new MUSIC::Setup (argc, argv);
-  
-  MPI::Intracomm comm = setup->communicator ();
+  auto context = MUSIC::MusicContextFactory ().createContext (argc, argv);
+  MUSIC::Application* app = new MUSIC::Application (std::move(context));
+  MPI::Intracomm comm = app->communicator ();
+
   int nProcesses = comm.Get_size ();
   int rank = comm.Get_rank ();
-  
+
   getargs (rank, argc, argv);
 
-  MUSIC::EventInputPort* in = setup->publishEventInput ("in");
+  auto in = app->publish<MUSIC::EventInputPort> ("in");
   if (!in->isConnected ())
     {
       if (rank == 0)
@@ -155,11 +156,11 @@ main (int argc, char *argv[])
     {
       std::cerr << "eventcounter: could not open "
 		<< spikefile.str () << " for writing" << std::endl;
-      abort ();      
+      abort ();
     }
 
   MyEventHandlerLocal evhandlerLocal;
-  
+
   if (imaptype == "linear")
     {
       int nUnitsPerProcess = nUnits / nProcesses;
@@ -198,17 +199,17 @@ main (int argc, char *argv[])
     counters[i] = 0;
 
   double stoptime;
-  setup->config ("stoptime", &stoptime);
+  app->config ("stoptime", &stoptime);
 
-  MUSIC::Runtime* runtime = new MUSIC::Runtime (setup, timestep);
+  app->enterSimulationLoop (timestep);
 
-  double time = runtime->time ();
+  double time = app->time ();
   while (time < stoptime)
     {
       // Retrieve data from other program
-      runtime->tick ();
-      
-      time = runtime->time ();
+      app->tick ();
+
+      time = app->time ();
     }
   for (std::vector<int>::iterator i = counters.begin ();
        i != counters.end ();
@@ -216,9 +217,7 @@ main (int argc, char *argv[])
     out << static_cast<double> (*i) / stoptime << std::endl;
   out.close ();
 
-  runtime->finalize ();
-
-  delete runtime;
+  app->finalize ();
 
   return 0;
 }

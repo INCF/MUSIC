@@ -1,6 +1,6 @@
 stoptime=100.0
 [from]
-  np=3
+  np=1
   binary=eventgenerator
   args=-b 5 27
 [view]

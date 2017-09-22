@@ -31,7 +31,7 @@
 #include <gsl/gsl_vector_double.h>
 #include <gsl/gsl_blas.h>
 
-#define DEBUG_OUTPUT false 
+#define DEBUG_OUTPUT false
 
 const double DEFAULT_TIMESTEP = 1e-3;
 const string DEFAULT_WEIGHTS_FILENAME = "connection_weights.dat";
@@ -44,7 +44,6 @@ public:
 
 private:
   MPI::Intracomm comm;
-  MUSIC::Runtime* runtime;
   double stoptime;
   double timestep;
   int size_data_in;
@@ -55,7 +54,7 @@ private:
   gsl_vector_view vec_data_out;
 
   string weights_filename;
-  Json::Value json_weights; 
+  Json::Value json_weights;
   double* weights;
   gsl_matrix_view mat_weights;
 

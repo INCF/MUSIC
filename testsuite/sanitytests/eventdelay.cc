@@ -141,15 +141,16 @@ getargs (int rank, int argc, char* argv[])
 int
 main (int argc, char *argv[])
 {
-  MUSIC::Setup* setup = new MUSIC::Setup (argc, argv);
+  auto context = MUSIC::MusicContextFactory ().createContext (argc, argv);
+  MUSIC::Application app (std::move(context));
 
-  MPI::Intracomm comm = setup->communicator ();
+  MPI::Intracomm comm = app.communicator ();
   int nProcesses = comm.Get_size ();
   int rank = comm.Get_rank ();
-  
+
   getargs (rank, argc, argv);
 
-  MUSIC::EventInputPort* in = setup->publishEventInput ("in");
+  auto in = app.publish<MUSIC::EventInputPort> ("in");
   if (!in->isConnected ())
     {
       if (rank == 0)
@@ -157,7 +158,7 @@ main (int argc, char *argv[])
       comm.Abort (1);
     }
 
-  MUSIC::EventOutputPort* out = setup->publishEventOutput ("out");
+  auto out = app.publish<MUSIC::EventOutputPort> ("out");
   if (!out->isConnected ())
     {
       if (rank == 0)
@@ -166,12 +167,12 @@ main (int argc, char *argv[])
     }
 
   // Optional extra input port
-  MUSIC::EventInputPort* aux = setup->publishEventInput ("aux");
+  auto aux = app.publish<MUSIC::EventInputPort> ("aux");
 
   int width = in->width ();
-    
+
   MyEventHandler evhandler;
-  
+
   int localWidth = width / nProcesses;
   int myWidth = localWidth;
 
@@ -200,22 +201,22 @@ main (int argc, char *argv[])
 	aux->map (&indices, &evhandler, 0.0);
     }
   double stoptime;
-  setup->config ("stoptime", &stoptime);
+  app.config ("stoptime", &stoptime);
 
-  MUSIC::Runtime* runtime = new MUSIC::Runtime (setup, timestep);
+  app.enterSimulationLoop (timestep);
 
-  for (; runtime->time () < stoptime; runtime->tick ())
+  for (; app.time () < stoptime; app.tick ())
     {
       sort (eventBuffer.begin (), eventBuffer.end ());
       for (std::vector<MUSIC::Event>::iterator i = eventBuffer.begin ();
 	   i != eventBuffer.end ();
 	   ++i)
 	{
-	  if (i->t < runtime->time () + timestep)
+	  if (i->t < app.time () + timestep)
 	    {
 	      if (label != -1)
 		std::cout << label << ":Sent(" << i->id << ", "
-			  << i->t << " @" << runtime->time ()
+			  << i->t << " @" << app.time ()
 			  << ")" << std::endl;
 #ifdef MUSIC_LOCAL
 	      out->insertEvent (i->t, MUSIC::LocalIndex (i->id));
@@ -235,9 +236,7 @@ main (int argc, char *argv[])
       overflowBuffer.clear ();
     }
 
-  runtime->finalize ();
-
-  delete runtime;
+  app.finalize ();
 
   return 0;
 }

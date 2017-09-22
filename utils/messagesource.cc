@@ -53,8 +53,8 @@ usage (int rank)
 
 double timestep = DEFAULT_TIMESTEP;
 int    maxbuffered = 0;
-string prefix;
-string suffix = ".dat";
+std::string prefix;
+std::string suffix = ".dat";
 
 void
 getargs (int rank, int argc, char* argv[])
@@ -109,14 +109,15 @@ getargs (int rank, int argc, char* argv[])
 int
 main (int argc, char *argv[])
 {
-  MUSIC::Setup* setup = new MUSIC::Setup (argc, argv);
-  
-  MPI::Intracomm comm = setup->communicator ();
+  auto context = MUSIC::MusicContextFactory ().createContext (argc, argv);
+  MUSIC::Application* app = new MUSIC::Application (std::move(context));
+
+  MPI::Intracomm comm = app->communicator ();
   int rank = comm.Get_rank ();
-  
+
   getargs (rank, argc, argv);
 
-  MUSIC::MessageOutputPort* out = setup->publishMessageOutput ("out");
+  auto out = app->publish<MUSIC::MessageOutputPort> ("out");
   if (!out->isConnected ())
     {
       if (rank == 0)
@@ -130,7 +131,7 @@ main (int argc, char *argv[])
     out->map ();
 
   double stoptime;
-  setup->config ("stoptime", &stoptime);
+  app->config ("stoptime", &stoptime);
 
   std::ostringstream messagefile;
   messagefile << prefix << rank << suffix;
@@ -139,10 +140,10 @@ main (int argc, char *argv[])
     {
       std::cerr << "messagesource: could not open "
 		<< messagefile.str () << std::endl;
-      abort ();      
+      abort ();
     }
 
-  MUSIC::Runtime* runtime = new MUSIC::Runtime (setup, timestep);
+  app->enterSimulationLoop (timestep);
 
   double t;
   char msg[80];
@@ -150,8 +151,8 @@ main (int argc, char *argv[])
   in.ignore (); // ignore one whitespace character
   in.get (msg, 80);
   bool moreMessages = !in.eof ();
-  
-  double time = runtime->time ();
+
+  double time = app->time ();
   while (time < stoptime)
     {
       double nextTime = time + timestep;
@@ -164,14 +165,12 @@ main (int argc, char *argv[])
 	  moreMessages = !in.eof ();
 	}
       // Make data available for other programs
-      runtime->tick ();
+      app->tick ();
 
-      time = runtime->time ();
+      time = app->time ();
     }
 
-  runtime->finalize ();
-
-  delete runtime;
+  app->finalize ();
 
   return 0;
 }

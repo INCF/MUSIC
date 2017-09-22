@@ -122,14 +122,17 @@ double auxData = 0.0;
 int
 main (int argc, char *argv[])
 {
-  MUSIC::Setup* setup = new MUSIC::Setup (argc, argv);
 
-  MPI::Intracomm comm = setup->communicator ();
+  auto context = MUSIC::MusicContextFactory ().createContext (argc, argv);
+  MUSIC::Application app (std::move(context));
+
+  MPI::Intracomm comm = app.communicator ();
+
   int rank = comm.Get_rank ();
-  
+
   getargs (rank, argc, argv);
 
-  MUSIC::ContInputPort* in = setup->publishContInput ("in");
+  auto in = app.publish<MUSIC::ContInputPort> ("in");
   if (!in->isConnected ())
     {
       if (rank == 0)
@@ -144,7 +147,7 @@ main (int argc, char *argv[])
   in->map (&inMap, delay, maxbuffered);
 
 
-  MUSIC::ContOutputPort* out = setup->publishContOutput ("out");
+  auto out = app.publish<MUSIC::ContOutputPort> ("out");
   if (!out->isConnected ())
     {
       if (rank == 0)
@@ -160,7 +163,7 @@ main (int argc, char *argv[])
 
 
   // Optional extra input port
-  MUSIC::ContInputPort* aux = setup->publishContInput ("aux");
+  auto aux = app.publish<MUSIC::ContInputPort> ("aux");
 
   if (aux->isConnected ())
     {
@@ -172,18 +175,16 @@ main (int argc, char *argv[])
     }
 
   double stoptime;
-  setup->config ("stoptime", &stoptime);
+  app.config ("stoptime", &stoptime);
 
-  MUSIC::Runtime* runtime = new MUSIC::Runtime (setup, timestep);
+  app.enterSimulationLoop (timestep);
 
-  for (; runtime->time () < stoptime; runtime->tick ())
+  for (; app.time () < stoptime; app.tick ())
     {
       outData = inData + auxData;
     }
 
-  runtime->finalize ();
-
-  delete runtime;
+  app.finalize ();
 
   return 0;
 }

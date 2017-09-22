@@ -231,7 +231,7 @@ namespace MUSIC {
   }
 
   std::string
-  Configuration::Name ()
+  Configuration::Name () const
   {
     return app_name_;
   }
@@ -245,14 +245,14 @@ namespace MUSIC {
 
 
   int
-  Configuration::Color()
+  Configuration::Color() const
   {
     return applications_->lookup (app_name_)->color ();
   }
 
 
   int
-  Configuration::Leader()
+  Configuration::Leader() const
   {
     const ApplicationInfo* info = applications_->lookup (app_name_);
     return info == 0 ? -1 : info->leader ();

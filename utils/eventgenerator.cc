@@ -56,13 +56,13 @@ usage (int rank)
   exit (1);
 }
 
-string portName ("out");
+std::string portName ("out");
 int nUnits;
 double timestep = DEFAULT_TIMESTEP;
 int    maxbuffered = 0;
 double freq = DEFAULT_FREQUENCY;
-string imaptype = "linear";
-string indextype = "global";
+std::string imaptype = "linear";
+std::string indextype = "global";
 
 void
 getargs (int rank, int argc, char* argv[])
@@ -147,15 +147,16 @@ negexp (double m)
 int
 main (int argc, char *argv[])
 {
-  MUSIC::Setup* setup = new MUSIC::Setup (argc, argv);
-  
-  MPI::Intracomm comm = setup->communicator ();
+  auto context = MUSIC::MusicContextFactory ().createContext (argc, argv);
+  MUSIC::Application* app = new MUSIC::Application (std::move(context));
+
+  MPI::Intracomm comm = app->communicator ();
   int nProcesses = comm.Get_size ();
   int rank = comm.Get_rank ();
-  
+
   getargs (rank, argc, argv);
 
-  MUSIC::EventOutputPort* out = setup->publishEventOutput (portName);
+  auto out = app->publish<MUSIC::EventOutputPort> (portName);
   if (!out->isConnected ())
     {
       if (rank == 0)
@@ -168,10 +169,10 @@ main (int argc, char *argv[])
     type = MUSIC::Index::GLOBAL;
   else
     type = MUSIC::Index::LOCAL;
-  
+
   std::vector<MUSIC::GlobalIndex> ids;
   std::vector<double> nextSpike;
-  
+
   if (imaptype == "linear")
     {
       int nUnitsPerProcess = nUnits / nProcesses;
@@ -188,7 +189,7 @@ main (int argc, char *argv[])
       for (int i = 0; i < nLocalUnits; ++i)
 	ids.push_back (firstId + i);
       MUSIC::LinearIndex indices (firstId, nLocalUnits);
-      
+
       if (maxbuffered > 0)
 	out->map (&indices, type, maxbuffered);
       else
@@ -206,9 +207,11 @@ main (int argc, char *argv[])
     }
 
   double stoptime;
-  setup->config ("stoptime", &stoptime);
+  app->config ("stoptime", &stoptime);
 
-  MUSIC::Runtime* runtime = new MUSIC::Runtime (setup, timestep);
+  std::cout << "Rank: " << rank << "; Before simulation loop" << std::endl;
+  app->enterSimulationLoop (timestep);
+  std::cout << "Rank: " << rank << "; " << " Entered simulation loop!" << std::endl;
 
   srand48 (rank);		// Use different seeds
 
@@ -216,7 +219,7 @@ main (int argc, char *argv[])
   for (unsigned int i = 0; i < ids.size (); ++i)
     nextSpike.push_back (negexp (m));
 
-  double time = runtime->time ();
+  double time = app->time ();
   while (time < stoptime)
     {
       double nextTime = time + timestep;
@@ -241,16 +244,14 @@ main (int argc, char *argv[])
 		nextSpike[i] += negexp (m);
 	      }
 	}
-      
-      // Make data available for other programs
-      runtime->tick ();
 
-      time = runtime->time ();
+      // Make data available for other programs
+      app->tick ();
+
+      time = app->time ();
     }
 
-  runtime->finalize ();
-
-  delete runtime;
+  app->finalize ();
 
   return 0;
 }

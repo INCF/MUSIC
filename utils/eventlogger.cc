@@ -75,8 +75,8 @@ public:
   }
 };
 
-string portName ("in");
-string messagePortName ("message");
+std::string portName ("in");
+std::string messagePortName ("message");
 double timestep = DEFAULT_TIMESTEP;
 double latency = 0.0;
 int    maxbuffered = 0;
@@ -87,8 +87,9 @@ bool all = false;
 int
 main (int argc, char* argv[])
 {
-  MUSIC::Setup* setup = new MUSIC::Setup (argc, argv);
-  comm = setup->communicator ();
+  auto context = MUSIC::MusicContextFactory ().createContext (argc, argv);
+  MUSIC::Application* app = new MUSIC::Application (std::move(context));
+  comm = app->communicator ();
   int nProcesses = comm.Get_size (); // how many processes are there?
   int rank = comm.Get_rank ();        // which process am I?
 
@@ -166,8 +167,8 @@ main (int argc, char* argv[])
     }
 
   // Port publishing
-  MUSIC::EventInputPort* evport = setup->publishEventInput (portName);
-  MUSIC::MessageInputPort* msgport = setup->publishMessageInput (messagePortName);
+  auto evport = app->publish<MUSIC::EventInputPort> (portName);
+  auto msgport = app->publish<MUSIC::MessageInputPort> (messagePortName);
   if (!evport->isConnected () && !msgport->isConnected ())
     {
       if (rank == 0)
@@ -207,7 +208,7 @@ main (int argc, char* argv[])
 	    firstId += rest;
 	  MUSIC::LinearIndex indexmap (all ? 0 : firstId,
 				       all ? width : nLocal);
-      
+
 	  if (indextype == "global")
 	    if (maxbuffered > 0)
 	      evport->map (&indexmap, &evhandlerGlobal, latency, maxbuffered);
@@ -225,7 +226,7 @@ main (int argc, char* argv[])
 	  for (int i = all ? 0 : rank; i < width; i += all ? 1 : nProcesses)
 	    v.push_back (i);
 	  MUSIC::PermutationIndex indexmap (&v.front (), v.size ());
-      
+
 	  if (indextype == "global")
 	    if (maxbuffered > 0)
 	      evport->map (&indexmap, &evhandlerGlobal, latency, maxbuffered);
@@ -250,22 +251,20 @@ main (int argc, char* argv[])
     }
 
   double stoptime;
-  setup->config ("stoptime", &stoptime);
+  app->config ("stoptime", &stoptime);
 
   // Run
-  MUSIC::Runtime* runtime = new MUSIC::Runtime (setup, timestep);
+  app->enterSimulationLoop(timestep);
 
-  apptime = runtime->time ();
+  apptime = app->time ();
   while (apptime < stoptime)
     {
       // Retrieve data from other program
-      runtime->tick ();
+      app->tick ();
 
-      apptime = runtime->time ();
+      apptime = app->time ();
     }
-  runtime->finalize ();
-
-  delete runtime;
+  app->finalize ();
 
   return 0;
 }

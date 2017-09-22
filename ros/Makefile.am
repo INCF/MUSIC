@@ -1,3 +1,3 @@
-SUBDIRS = adapters encoder decoder
+# SUBDIRS = adapters encoder decoder
 
 

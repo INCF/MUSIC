@@ -28,7 +28,7 @@ namespace MUSIC
 	class Application final
 	{
 		private:
-			Application(std::unique_ptr<Configuration> config, MPI_Comm comm, bool launchedByMusic, double timebase);
+			Application(std::unique_ptr<Configuration> config, MPI::Intracomm comm, bool launchedByMusic, double timebase);
 
 		public:
 			Application ();
@@ -56,11 +56,11 @@ namespace MUSIC
 
 			PortConnectivityManager& getPortConnectivityManager ();
 
-		    bool Application::config (std::string var, double* result);
-			bool Application::config (std::string var, int* result);
-		    bool Application::config (std::string var, std::string* result);
+		    bool config (std::string var, double* result);
+			bool config (std::string var, int* result);
+		    bool config (std::string var, std::string* result);
 
-			double time();
+			double time() const;
 			double timebase() const;
 			std::string name () const;
 			bool launchedByMusic () const;
@@ -99,7 +99,7 @@ namespace MUSIC
 
 	};
 
-	inline double Application::time()
+	inline double Application::time() const
 	{
 		return runtime_->time();
 	}

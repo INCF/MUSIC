@@ -89,11 +89,12 @@ getargs (int rank, int argc, char* argv[])
 int
 main (int argc, char* argv[])
 {
-  MUSIC::Setup* setup = new MUSIC::Setup (argc, argv);
+  auto context = MUSIC::MusicContextFactory ().createContext (argc, argv);
+  MUSIC::Application* app = new MUSIC::Application (std::move(context));
+  MPI::Intracomm comm = app->communicator ();
 
-  MUSIC::ContInputPort* contdata = setup->publishContInput ("contdata");
+  auto contdata = app->publish<MUSIC::ContInputPort> ("contdata");
 
-  MPI::Intracomm comm = setup->communicator ();
   int nProcesses = comm.Get_size ();
   int rank = comm.Get_rank ();
 
@@ -115,21 +116,18 @@ main (int argc, char* argv[])
   contdata->map (&dmap, delay, interpolate);
 
   double stoptime;
-  setup->config ("stoptime", &stoptime);
+  app->config ("stoptime", &stoptime);
 
-  MUSIC::Runtime* runtime = new MUSIC::Runtime (setup, timestep);
+  app->enterSimulationLoop (timestep);
 
-
-  for (; runtime->time () < stoptime; runtime->tick ())
+  for (; app->time () < stoptime; app->tick ())
     {
       for (int i = 0; i < myWidth; ++i)
 	std::cout << data[i] << " ";
-      std::cout << "on " << rank << " @" << runtime->time () << std::endl;
+      std::cout << "on " << rank << " @" << app->time () << std::endl;
     }
 
-  runtime->finalize ();
-  
-  delete runtime;
+  app->finalize ();
 
   return 0;
 }

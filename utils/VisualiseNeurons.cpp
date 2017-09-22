@@ -84,7 +84,7 @@ void VisualiseNeurons::getArgs(int argc, char* argv[]) {
           windowTitle_ = optarg; //new string(optarg);
           continue;
 	case 'h':
-          printHelp(); 
+          printHelp();
           // fall through...
 	default:
 	  abort ();
@@ -95,7 +95,7 @@ void VisualiseNeurons::getArgs(int argc, char* argv[]) {
     printHelp(); // exits
   }
 
-  confFile_ = string(argv[optind]);
+  confFile_ = std::string(argv[optind]);
 
 }
 
@@ -106,12 +106,14 @@ void VisualiseNeurons::run(int argc, char **argv) {
   objTable_.push_back(this);
 
   // Init music
-  setup_ = new MUSIC::Setup(argc, argv);
-  MPI::Intracomm comm = setup_->communicator();
-  rank_ = comm.Get_rank(); 
+  auto context = MUSIC::MusicContextFactory ().createContext (argc, argv);
+  MUSIC::Application* app_ = new MUSIC::Application (std::move(context));
+  MPI::Intracomm comm = app_->communicator();
+
+  rank_ = comm.Get_rank();
 
   if(rank_ > 0) {
-    std::cerr << argv[0] << " only supports one process currently!" 
+    std::cerr << argv[0] << " only supports one process currently!"
               << std::endl;
     exit(-1);
   }
@@ -122,14 +124,14 @@ void VisualiseNeurons::run(int argc, char **argv) {
 
 
   // Store the stop time
-  setup_->config ("stoptime", &stopTime_);
+  app_->config ("stoptime", &stopTime_);
 
   // Parse inparameters
   getArgs(argc,argv);
 
   readConfigFile(confFile_);
 
-  MUSIC::EventInputPort* evport = setup_->publishEventInput("plot");
+  auto evport = app_->publish<MUSIC::EventInputPort>("plot");
 
 
   if (!evport->isConnected()) {
@@ -149,8 +151,8 @@ void VisualiseNeurons::run(int argc, char **argv) {
   evport->map (&indexmap, this, 0.0);
 
   double stoptime;
-  setup_->config ("stoptime", &stoptime);
-  
+  app_->config ("stoptime", &stoptime);
+
 
   // GLUT
   glutInitDisplayMode(GLUT_DOUBLE | GLUT_DEPTH);
@@ -215,7 +217,7 @@ void VisualiseNeurons::run(int argc, char **argv) {
   if(rank_ == 0) {
     void *exitStatus;
 
-    glutTimerFunc(25,rotateTimerWrapper, 1);    
+    glutTimerFunc(25,rotateTimerWrapper, 1);
 
     pthread_create(&tickThreadID_, NULL, runMusic, &synchFlag_);
 
@@ -232,11 +234,11 @@ void VisualiseNeurons::run(int argc, char **argv) {
 }
 
 void VisualiseNeurons::finalize() {
-  runtime_->finalize ();
+  app_->finalize ();
 
-  delete runtime_;
+  delete app_;
 
-  //  std::cout << "Rank " << rank_ 
+  //  std::cout << "Rank " << rank_
   //          << ": Searching for VisualiseNeurons wrapper object";
   for(unsigned int i = 0; i < objTable_.size(); i++) {
     if(objTable_[i] == this) {
@@ -327,7 +329,7 @@ void VisualiseNeurons::addNeuron(double x, double y, double z, double r, double 
     cIdx = 0;
   }
 
-  // std::cout << "Adding neuron " << x << "," << y << "," << z 
+  // std::cout << "Adding neuron " << x << "," << y << "," << z
   //          << "," << r << "," << cIdx << std::endl;
 
   neuronCoord p;
@@ -347,7 +349,7 @@ void VisualiseNeurons::rotateTimer() {
 }
 
 void VisualiseNeurons::operator () (double t, MUSIC::GlobalIndex id) {
-  //std::cout << "Event " << id << " detected at " << t 
+  //std::cout << "Event " << id << " detected at " << t
   //          << " (vis time = " << time_ << ")" <<  std::endl;
 
   assert(0 <= id && id < (int) volt_.size()); // Check that it is within range
@@ -361,7 +363,7 @@ void VisualiseNeurons::operator () (double t, MUSIC::GlobalIndex id) {
 
   // Add time to priority queue
   priorityQueue_.push(*tmpPair);
-  
+
 }
 
 
@@ -370,7 +372,7 @@ void VisualiseNeurons::tick() {
   if(!done_){
 
     // Reinitialize realtime clock at first tick
-    if (runtime_->time () == 0.0)
+    if (app_->time () == 0.0)
       gettimeofday(&tickStartTime_,NULL);
 
 
@@ -380,18 +382,18 @@ void VisualiseNeurons::tick() {
     std::cerr << "Entering tick (" << time_ <<")...";
 #endif
 
-    runtime_->tick();
+    app_->tick();
 
 #if 0
     std::cerr << "done(" << time_ <<")." << std::endl;
-#endif    
+#endif
 
 
     oldTime_ = time_;
-    time_ = runtime_->time ();
+    time_ = app_->time ();
 
     // Make sure the time steps are correct
-    assert(dt_ - 1e-9 < time_ - oldTime_ 
+    assert(dt_ - 1e-9 < time_ - oldTime_
            && time_ - oldTime_ < dt_ + 1e-9);
 
 
@@ -401,18 +403,18 @@ void VisualiseNeurons::tick() {
       gettimeofday(&tickEndTime_,NULL);
 
       // How much of the time allocated for this timestep remains?
-      double delayLeft = dt_*scaleTime_ 
+      double delayLeft = dt_*scaleTime_
         - (tickEndTime_.tv_sec - tickStartTime_.tv_sec)
         - (tickEndTime_.tv_usec - tickStartTime_.tv_usec) / 1000000.0;
 
 
-      if(delayLeft > 0) {        
+      if(delayLeft > 0) {
 
         // We reuse the timeval for the delay
         tickDelay_.tv_sec = 0;
         tickDelay_.tv_usec = (int) (delayLeft*1e6);
 
-        //        std::cerr << "Delay left : " << tickDelay_.tv_usec 
+        //        std::cerr << "Delay left : " << tickDelay_.tv_usec
         //                  << " milliseconds" << std::endl;
 
         // Delay so that enough time passes
@@ -422,9 +424,9 @@ void VisualiseNeurons::tick() {
 
       } else {
         // Whoops, simulation were too slow... print error.
-        std::cerr << "t = " << time_ 
+        std::cerr << "t = " << time_
                   << ": Music's tick() took "
-                  << -delayLeft*1e6 << " microseconds too long to execute" 
+                  << -delayLeft*1e6 << " microseconds too long to execute"
                   << std::endl;
 
       }
@@ -432,7 +434,7 @@ void VisualiseNeurons::tick() {
       // Set end of this tick as start of next tick
       gettimeofday(&tickStartTime_,NULL);
     }
-    
+
 
     // Decay the volt/activity
     for(unsigned int i = 0; i < volt_.size(); i++) {
@@ -440,7 +442,7 @@ void VisualiseNeurons::tick() {
     }
 
     // Add any new spikes that occured since last tick()
-    while(!priorityQueue_.empty() && priorityQueue_.top().getTime() <= time_) 
+    while(!priorityQueue_.empty() && priorityQueue_.top().getTime() <= time_)
       {
         volt_[priorityQueue_.top().getId()] = 1;
         priorityQueue_.pop();
@@ -474,7 +476,7 @@ void VisualiseNeurons::rotateTimerWrapper(int v) {
 
   for(unsigned int i = 0; i < objTable_.size(); i++) {
     vn = objTable_[i];
-    if(vn->is3dFlag_) {    
+    if(vn->is3dFlag_) {
       vn->rotateTimer();
     }
   }
@@ -490,19 +492,22 @@ void VisualiseNeurons::rotateTimerWrapper(int v) {
 
 
 void* VisualiseNeurons::runMusic(void *arg) {
-  VisualiseNeurons *vn = 0;
+  VisualiseNeurons *vn = nullptr;
 
   for(unsigned int i = 0; i < objTable_.size(); i++) {
     vn = objTable_[i];
-    
+
     // Switch to runtime mode
     // If the code is extended to handle more than one process
-    // then this will actually be SLOWER since the runtimes 
+    // then this will actually be SLOWER since the runtimes
     // are *not* created in parallell
 
     // Reason for this current setup is that we want to start
     // the GLUT-loop as fast as possible, to get something on screen.
-    vn->runtime_ = new MUSIC::Runtime (vn->setup_, vn->dt_);
+
+	// ?????????
+    /* vn->app_ = new MUSIC::Runtime (vn->app_, vn->dt_); */
+	vn->app_->enterSimulationLoop (vn->dt_);
 
   }
 
@@ -535,7 +540,7 @@ void* VisualiseNeurons::runMusic(void *arg) {
 }
 
 
-void VisualiseNeurons::readConfigFile(string filename) {
+void VisualiseNeurons::readConfigFile(std::string filename) {
   double x, y, z, r, dist;
   double minDist = 1e66, maxR = 0;
 
@@ -560,10 +565,10 @@ void VisualiseNeurons::readConfigFile(string filename) {
 
   // How many different colours are there
   in >> nCols;
-  std::cout << "VisualiseNeurons: Reading " << nCols 
+  std::cout << "VisualiseNeurons: Reading " << nCols
             << " different neuron types" << std::endl;
 
-  for(i = 0; i < nCols; i++) { 
+  for(i = 0; i < nCols; i++) {
     // Read in neuron base colours
     in >> tmp.r >> tmp.g >> tmp.b;
     baseLineCol_.push_back(tmp);
@@ -576,7 +581,7 @@ void VisualiseNeurons::readConfigFile(string filename) {
 
   // Read in neuron coordinates and colour
   in >> x >> y >> z >> r >> cIdx;
-  
+
 
   while(!in.eof()) {
     addNeuron(x,y,z,r,cIdx);
@@ -589,14 +594,14 @@ void VisualiseNeurons::readConfigFile(string filename) {
     }
 
 
-    // Dist and R are used to calculate spikeScale_    
+    // Dist and R are used to calculate spikeScale_
     if(dist > 0) {
       minDist = (dist < minDist) ? dist : minDist;
     }
 
     maxR = (r > maxR) ? r : maxR;
 
-    // std::cout << "Neuron " << i << " at " << x << "," << y << "," << z 
+    // std::cout << "Neuron " << i << " at " << x << "," << y << "," << z
     //           << " radie " << r << std::endl;
     i++;
 

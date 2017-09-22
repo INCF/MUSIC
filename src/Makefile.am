@@ -2,7 +2,8 @@
 
 ACLOCAL = $(top_srcdir)/aclocal.sh
 
-lib_LTLIBRARIES = libmusic.la libmusic-c.la
+# lib_LTLIBRARIES = libmusic.la libmusic-c.la
+lib_LTLIBRARIES = libmusic.la
 
 libmusic_la_SOURCES = \
 	runtime.cc music/runtime.hh \
@@ -52,18 +53,18 @@ libmusic_la_LDFLAGS = $(top_builddir)/mpidep/libmpidep.la $(top_builddir)/rudeco
 	-version-info 1:0:0 -export-dynamic @MPI_LDFLAGS@
 libmusic_ladir = $(includedir)
 
-libmusic_c_la_SOURCES = \
-	music-c.cc music-c-c.c music-c.h \
-	predict_rank-c.cc
+# libmusic_c_la_SOURCES = \
+# 	music-c.cc music-c-c.c music-c.h \
+# 	predict_rank-c.cc
 
-libmusic_c_la_HEADERS = music-c.h  music/predict_rank-c.h
-libmusic_c_la_CXXFLAGS = -DBUILDING_MUSIC_LIBRARY @MPI_CXXFLAGS@
-libmusic_c_la_CFLAGS = -DBUILDING_MUSIC_LIBRARY @MPI_CFLAGS@
-libmusic_c_la_LDFLAGS = \
-	-version-info 1:0:0 -export-dynamic \
-	$(top_builddir)/src/libmusic.la @MPI_LDFLAGS@
-libmusic_c_ladir = $(includedir)
-libmusic_c_la_DEPENDENCIES = libmusic.la
+# libmusic_c_la_HEADERS = music-c.h  music/predict_rank-c.h
+# libmusic_c_la_CXXFLAGS = -DBUILDING_MUSIC_LIBRARY @MPI_CXXFLAGS@
+# libmusic_c_la_CFLAGS = -DBUILDING_MUSIC_LIBRARY @MPI_CFLAGS@
+# libmusic_c_la_LDFLAGS = \
+# 	-version-info 1:0:0 -export-dynamic \
+# 	$(top_builddir)/src/libmusic.la @MPI_LDFLAGS@
+# libmusic_c_ladir = $(includedir)
+# libmusic_c_la_DEPENDENCIES = libmusic.la
 
 musicincludedir = $(includedir)/music
 musicinclude_HEADERS = music/port_manager.hh \

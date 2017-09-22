@@ -59,8 +59,8 @@ usage (int rank)
 double timestep = DEFAULT_TIMESTEP;
 int    maxbuffered = 0;
 double freq = DEFAULT_FREQUENCY;
-string imaptype = "linear";
-string indextype = "global";
+std::string imaptype = "linear";
+std::string indextype = "global";
 
 double
 negexp (double m)
@@ -70,40 +70,40 @@ negexp (double m)
 
 class Port {
 protected:
-  MUSIC::Setup* setup_;
+  MUSIC::Application* app_;
   std::string name_;
   int width_;
 
 public:
-  Port (MUSIC::Setup* setup, std::string name, int width)
-    : setup_ (setup), name_ (name), width_ (width) { }
+  Port (MUSIC::Application* app, std::string name, int width)
+    : app_ (app), name_ (name), width_ (width) { }
 };
 
 class OutputPort : public Port {
-  MUSIC::EventOutputPort* port_;
+  std::shared_ptr<MUSIC::EventOutputPort> port_;
   MUSIC::Index::Type type;
   std::vector<MUSIC::GlobalIndex> ids;
   std::vector<double> nextSpike;
   double m;
 
 public:
-  OutputPort (MUSIC::Setup* setup, std::string name, int width)
-    : Port (setup, name, width) { }
+  OutputPort (MUSIC::Application* app, std::string name, int width)
+    : Port (app, name, width) { }
 
   void publish ()
   {
-    port_ = setup_->publishEventOutput (name_);
+    port_ = app_->publish<MUSIC::EventOutputPort> (name_);
     if (!port_->isConnected ())
       {
-	if (setup_->communicator ().Get_rank () == 0)
+	if (app_->communicator ().Get_rank () == 0)
 	  std::cerr << "multiport port is not connected" << std::endl;
-	setup_->communicator ().Abort (1);
+	app_->communicator ().Abort (1);
       }
   }
 
   void map (int maxbuffered, std::string imaptype, std::string indextype)
   {
-    MPI::Intracomm comm = setup_->communicator ();
+    MPI::Intracomm comm = app_->communicator ();
     int rank = comm.Get_rank ();
     int nProcesses = comm.Get_size ();
 
@@ -111,7 +111,7 @@ public:
       type = MUSIC::Index::GLOBAL;
     else
       type = MUSIC::Index::LOCAL;
-    
+
     if (imaptype == "linear")
       {
 	int nUnitsPerProcess = width_ / nProcesses;
@@ -128,7 +128,7 @@ public:
 	for (int i = 0; i < nLocalUnits; ++i)
 	  ids.push_back (firstId + i);
 	MUSIC::LinearIndex indices (firstId, nLocalUnits);
-      
+
 	if (maxbuffered > 0)
 	  port_->map (&indices, type, maxbuffered);
 	else
@@ -195,28 +195,28 @@ public:
 };
 
 class InputPort : public Port {
-  MUSIC::EventInputPort* port_;
+  std::shared_ptr<MUSIC::EventInputPort> port_;
   MyEventHandlerGlobal evhandlerGlobal;
   MyEventHandlerLocal evhandlerLocal;
 
 public:
-  InputPort (MUSIC::Setup* setup, std::string name, int width)
-    : Port (setup, name, width) { }
+  InputPort (MUSIC::Application* app, std::string name, int width)
+    : Port (app, name, width) { }
 
   void publish ()
   {
-    port_ = setup_->publishEventInput (name_);
+    port_ = app_->publish<MUSIC::EventInputPort> (name_);
     if (!port_->isConnected ())
       {
-	if (setup_->communicator ().Get_rank () == 0)
+	if (app_->communicator ().Get_rank () == 0)
 	  std::cerr << "multiport port is not connected" << std::endl;
-	setup_->communicator ().Abort (1);
+	app_->communicator ().Abort (1);
       }
   }
 
   void map (std::string imaptype, std::string indextype)
   {
-    MPI::Intracomm comm = setup_->communicator ();
+    MPI::Intracomm comm = app_->communicator ();
     int rank = comm.Get_rank ();
     int nProcesses = comm.Get_size ();
 
@@ -258,23 +258,23 @@ public:
 std::vector<OutputPort*> outputPort;
 
 void
-makeOutput (MUSIC::Setup* setup, std::string name, int width)
+makeOutput (MUSIC::Application* app, std::string name, int width)
 {
-  outputPort.push_back (new OutputPort (setup, name, width));
+  outputPort.push_back (new OutputPort (app, name, width));
 }
 
 std::vector<InputPort*> inputPort;
 
 void
-makeInput (MUSIC::Setup* setup, std::string name, int width)
+makeInput (MUSIC::Application* app, std::string name, int width)
 {
-  inputPort.push_back (new InputPort (setup, name, width));
+  inputPort.push_back (new InputPort (app, name, width));
 }
 
 void
-parsePort (MUSIC::Setup* setup,
+parsePort (MUSIC::Application* app,
 	   std::string s,
-	   void (*makePort) (MUSIC::Setup* setup, std::string name, int width))
+	   void (*makePort) (MUSIC::Application* app, std::string name, int width))
 {
   std::istringstream is (s);
   char name[80];
@@ -283,13 +283,13 @@ parsePort (MUSIC::Setup* setup,
   int width;
   if (!(is >> width))
     MUSIC::error ("couldn't parse port width");
-  makePort (setup, name, width);
+  makePort (app, name, width);
 }
 
 void
-getargs (MUSIC::Setup* setup, int argc, char* argv[])
+getargs (MUSIC::Application* app, int argc, char* argv[])
 {
-  int rank = setup->communicator ().Get_rank ();
+  int rank = app->communicator ().Get_rank ();
 
   enum { OUT, IN };
   opterr = 0; // handle errors ourselves
@@ -345,10 +345,10 @@ getargs (MUSIC::Setup* setup, int argc, char* argv[])
 	    }
 	  continue;
 	case OUT:
-	  parsePort (setup, optarg, makeOutput);
+	  parsePort (app, optarg, makeOutput);
 	  continue;
 	case IN:
-	  parsePort (setup, optarg, makeInput);
+	  parsePort (app, optarg, makeInput);
 	  continue;
 	case '?':
 	  break; // ignore unknown options
@@ -375,15 +375,16 @@ errhandler (MPI_Comm* comm, int* error, ...)
 int
 main (int argc, char *argv[])
 {
-  MUSIC::Setup* setup = new MUSIC::Setup (argc, argv);
+  auto context = MUSIC::MusicContextFactory ().createContext (argc, argv);
+  MUSIC::Application*  app = new MUSIC::Application(std::move(context));
   MPI_Errhandler errh;
   MPI_Errhandler_create (errhandler, &errh);
   MPI_Comm_set_errhandler (MPI_COMM_WORLD, errh);
-  
-  MPI::Intracomm comm = setup->communicator ();
+
+  MPI::Intracomm comm = app->communicator ();
   int rank = comm.Get_rank ();
-  
-  getargs (setup, argc, argv);
+
+  getargs (app, argc, argv);
 
   for (std::vector<InputPort*>::iterator i = inputPort.begin ();
        i != inputPort.end ();
@@ -406,9 +407,8 @@ main (int argc, char *argv[])
     (*i)->map (maxbuffered, imaptype, indextype);
 
   double stoptime;
-  setup->config ("stoptime", &stoptime);
-
-  MUSIC::Runtime* runtime = new MUSIC::Runtime (setup, timestep);
+  app->config ("stoptime", &stoptime);
+  app->enterSimulationLoop (timestep);
 
   srand48 (rank);		// Use different seeds
 
@@ -417,7 +417,7 @@ main (int argc, char *argv[])
        ++i)
     (*i)->init (freq);
 
-  double time = runtime->time ();
+  double time = app->time ();
   while (time < stoptime)
     {
       double nextTime = time + timestep;
@@ -426,16 +426,14 @@ main (int argc, char *argv[])
 	   i != outputPort.end ();
 	   ++i)
 	(*i)->tick (nextTime);
-      
-      // Make data available for other programs
-      runtime->tick ();
 
-      time = runtime->time ();
+      // Make data available for other programs
+      app->tick ();
+
+      time = app->time ();
     }
 
-  runtime->finalize ();
-
-  delete runtime;
+  app->finalize ();
 
   return 0;
 }

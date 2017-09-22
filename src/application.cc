@@ -2,6 +2,7 @@
 
 #if MUSIC_USE_MPI
 #include <mpi.h>
+#include <cassert>
 
 namespace MUSIC
 {
@@ -9,16 +10,17 @@ namespace MUSIC
 	static std::string err_MPI_Init = "MPI_Init was called before the Setup constructor";
 
 	Application::Application ()
-		: Application( std::make_unique<DefaultContext> ())
+		: Application( std::move (std::make_unique<DefaultContext> ()))
 	{}
 
 	Application::Application(std::unique_ptr<MusicContext> context, double timebase)
 		: Application(context->getConfiguration(), context->getComm(),
 					context->launchedByMusic(), timebase)
 	{
+		assert (comm_ != MPI::COMM_NULL);
 	}
 
-	Application::Application(std::unique_ptr<Configuration> config, MPI_Comm comm,
+	Application::Application(std::unique_ptr<Configuration> config, MPI::Intracomm comm,
 			bool launchedByMusic, double timebase):
 		config_ (std::move (config)),
 		timebase_ (timebase),
@@ -32,14 +34,18 @@ namespace MUSIC
 
 	void Application::enterSimulationLoop(double h)
 	{
-
+		std::cout << "Entering simulation loop" << std::endl;
 		port_manager_.updatePorts ();
-		runtime_.reset (new Runtime (*this, port_manager_.getPorts (), h));
+		auto ports = port_manager_.getPorts ();
+		for (auto& p : ports)
+			std::cout << p->name () << " " << std::endl;
+		runtime_.reset (new Runtime (*this, ports, h));
 		state_ = ApplicationState::RUNNING;
 	}
 
 	void Application::exitSimulationLoop()
 	{
+    	/* MPI::COMM_WORLD.Barrier (); */
 		runtime_->finalize ();
 		state_ = ApplicationState::STOPPED;
 	}
@@ -115,6 +121,11 @@ namespace MUSIC
 		return config_->Leader ();
 	}
 
+	std::string Application::name () const
+	{
+		return config_->Name ();
+	}
+
 	const ApplicationMap& Application::applicationMap () const
 	{
 		return *(config_->applications ());
@@ -135,9 +146,11 @@ namespace MUSIC
 		// TODO what else?
 		if (state_ == ApplicationState::RUNNING)
 			exitSimulationLoop ();
+		port_manager_.finalize ();
 		state_ = ApplicationState::FINALIZED;
 
 		// TODO move to music_context
+    	MPI::COMM_WORLD.Barrier ();
 		MPI::Finalize ();
 	}
 

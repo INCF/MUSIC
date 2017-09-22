@@ -48,16 +48,15 @@ namespace MUSIC
 	class MusicContext
 	{
 		public:
-			explicit MusicContext () = default;
-			explicit MusicContext (int argc, char** argv, bool launchedByMusic, MPI_Comm comm)
+			MusicContext () = default;
+			MusicContext (int argc, char** argv, bool launchedByMusic)
 				: argc_ (argc)
 				, argv_ (argv)
 				, launchedByMusic_ (launchedByMusic)
-				, comm_ (comm)
 			{}
 			/* virtual bool isResponsible()  = 0; */
 			virtual std::unique_ptr<Configuration> getConfiguration() = 0;
-			virtual MPI_Comm getComm()  = 0;
+			virtual MPI::Intracomm getComm()  = 0;
 			// TODO do we need finalize or just a destructor?
 			virtual void finalize () {};
 			virtual ~MusicContext() {};
@@ -67,7 +66,6 @@ namespace MUSIC
 			int argc_ {0};
 			char** argv_ {nullptr};
 			bool launchedByMusic_ {false};
-			MPI_Comm comm_ {MPI::COMM_WORLD};
 	};
 
 
@@ -75,34 +73,40 @@ namespace MUSIC
 	{
 
 		public:
-			MPMDContext (int argc, char** argv, MPI_Comm comm = MPI::COMM_WORLD)
-				: MusicContext (argc, argv, true, comm)
-				, config_ (assembleConfiguration ())
+			MPMDContext (int argc, char** argv)
+				: MusicContext (argc, argv, true)
+				, config_ (assembleConfigFromFile ())
 			{}
 			std::unique_ptr<Configuration> getConfiguration() override;
-			MPI_Comm getComm()  override;
+			MPI::Intracomm getComm()  override;
 
 		private:
-			std::unique_ptr<Configuration> assembleConfiguration ();
-			void loadConfigFile(std::string filename, std::string& result);
 			std::unique_ptr<Configuration> config_;
+			std::unique_ptr<Configuration> assembleConfigFromFile ();
+
+			void loadConfigFile(std::string filename, std::string& result);
 	};
 
 	class ExecContext : public MusicContext
 	{
 		public:
-			ExecContext (int argc, char** argv, MPI_Comm comm = MPI::COMM_WORLD)
-				: MusicContext (argc, argv, true, comm)
+			ExecContext (int argc, char** argv)
+				: MusicContext (argc, argv, true)
+				, config_ (assembleConfigFromEnv())
 			{}
 			std::unique_ptr<Configuration> getConfiguration()  override;
-			MPI_Comm getComm()  override;
+			MPI::Intracomm getComm()  override;
+
+		private:
+			std::unique_ptr<Configuration> config_;
+			std::unique_ptr<Configuration> assembleConfigFromEnv();
 	};
 
 	class DefaultContext : public MusicContext
 	{
 		public:
 			std::unique_ptr<Configuration> getConfiguration()  override;
-			MPI_Comm getComm()  override;
+			MPI::Intracomm getComm()  override;
 	};
 
 	// Too much individual stuff, this needs to be done differently.

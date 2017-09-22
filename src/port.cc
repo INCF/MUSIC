@@ -23,11 +23,12 @@
 
 #include "music/application.hh" // Must be included first on BG/L
 #include "music/error.hh"
+#include <iostream>
 
 namespace MUSIC {
 
 	// TODO no const for Application&
-  Port::Port (const Application& app, std::string identifier)
+	Port::Port (const Application& app, std::string identifier)
     : indices_ (nullptr)
 	  , portName_ (identifier)
 	 , app_ (app)
@@ -47,6 +48,7 @@ namespace MUSIC {
 
   void Port::reconnect ()
   {
+	  std::cout << "Reconnect called" << std::endl;
 	  for (auto connection_ptr : connections_)
 		  delete connection_ptr;
 	  connections_.clear ();

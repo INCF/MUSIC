@@ -78,6 +78,8 @@ namespace MUSIC {
   Connector::createIntercomm ()
   {
 
+	assert (comm != MPI::COMM_NULL);
+	std::cout << "remote leader is " << info.remoteLeader () << std::endl;
     intercomm = comm.Create_intercomm (0,
 				       MPI::COMM_WORLD,
 				       info.remoteLeader (),

@@ -71,13 +71,13 @@ public:
   }
 };
 
-string portName ("in");
+std::string portName ("in");
 int nUnits;
 double timestep = DEFAULT_TIMESTEP;
-string imaptype = "linear";
-string indextype = "global";
-string prefix;
-string suffix = ".dat";
+std::string imaptype = "linear";
+std::string indextype = "global";
+std::string prefix;
+std::string suffix = ".dat";
 
 void
 getargs (int rank, int argc, char* argv[])
@@ -151,15 +151,16 @@ getargs (int rank, int argc, char* argv[])
 int
 main (int argc, char *argv[])
 {
-  MUSIC::Setup* setup = new MUSIC::Setup (argc, argv);
-  
-  MPI::Intracomm comm = setup->communicator ();
+  auto context = MUSIC::MusicContextFactory ().createContext (argc, argv);
+  MUSIC::Application* app = new MUSIC::Application (std::move(context));
+
+  MPI::Intracomm comm = app->communicator ();
   int nProcesses = comm.Get_size ();
   int rank = comm.Get_rank ();
-  
+
   getargs (rank, argc, argv);
 
-  MUSIC::EventInputPort* in = setup->publishEventInput (portName);
+  auto in = app->publish<MUSIC::EventInputPort> (portName);
   if (!in->isConnected ())
     {
       if (rank == 0)
@@ -174,12 +175,12 @@ main (int argc, char *argv[])
     {
       std::cerr << "eventsink: could not open "
 		<< spikefile.str () << " for writing" << std::endl;
-      abort ();      
+      abort ();
     }
 
   MyEventHandlerGlobal evhandlerGlobal;
   MyEventHandlerLocal evhandlerLocal;
-  
+
   if (imaptype == "linear")
     {
       int nUnitsPerProcess = nUnits / nProcesses;
@@ -214,30 +215,28 @@ main (int argc, char *argv[])
     }
 
   double stoptime;
-  setup->config ("stoptime", &stoptime);
+  app->config ("stoptime", &stoptime);
 
-  MUSIC::Runtime* runtime = new MUSIC::Runtime (setup, timestep);
+  app->enterSimulationLoop (timestep);
 
-  double time = runtime->time ();
+  double time = app->time ();
   while (time < stoptime)
     {
       eventBuffer.clear ();
       // Retrieve data from other program
-      runtime->tick ();
-      
+      app->tick ();
+
       sort (eventBuffer.begin (), eventBuffer.end ());
       for (std::vector<MUSIC::Event>::iterator i = eventBuffer.begin ();
 	   i != eventBuffer.end ();
 	   ++i)
 	out << i->t << '\t' << i->id << std::endl;
 
-      time = runtime->time ();
+      time = app->time ();
     }
   out.close ();
 
-  runtime->finalize ();
-
-  delete runtime;
+  app->finalize ();
 
   return 0;
 }

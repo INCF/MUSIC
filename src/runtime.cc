@@ -60,13 +60,16 @@ namespace MUSIC
 	Connections* connections = new Connections ();
 
 	std::for_each (ports.begin (), ports.end (),
-			[connections](auto& port_ptr)
+			[&](auto& port_ptr)
 			{
 				for (auto& c : port_ptr->getConnections ())
 				{
 					connections->push_back (c);
 				}
 			});
+
+	for (auto&c : *connections)
+		std::cout << app_.name () << " '" <<c << "'"<< std::endl;
 
     if (app_.launchedByMusic ())
       {
@@ -232,9 +235,11 @@ namespace MUSIC
     //
     sort (connections->begin (), connections->end (), lessConnection);
 
+    std::cout << "preparing intercomms" << std::endl;
     for (Connections::iterator c = connections->begin ();
         c != connections->end (); ++c)
       (*c)->connector ()->createIntercomm ();
+    std::cout << "intercomms done!" << std::endl;
   }
 
 
@@ -320,11 +325,11 @@ namespace MUSIC
 #else
 #endif
 
-#if defined (OPEN_MPI) && MPI_VERSION <= 2
-    // This is needed in OpenMPI version <= 1.2 for the freeing of the
-    // intercommunicators to go well
-    MPI::COMM_WORLD.Barrier ();
-#endif
+/* #if defined (OPEN_MPI) && MPI_VERSION <= 2 */
+/*     // This is needed in OpenMPI version <= 1.2 for the freeing of the */
+/*     // intercommunicators to go well */
+/*     MPI::COMM_WORLD.Barrier (); */
+/* #endif */
 
   }
 

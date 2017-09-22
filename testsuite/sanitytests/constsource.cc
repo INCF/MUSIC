@@ -98,15 +98,20 @@ getargs (int rank, int argc, char* argv[])
 int
 main (int argc, char *argv[])
 {
-  MUSIC::Setup* setup = new MUSIC::Setup (argc, argv);
-  
-  MPI::Intracomm comm = setup->communicator ();
+
+  auto context = MUSIC::MusicContextFactory ().createContext (argc, argv);
+  MUSIC::Application app (std::move(context));
+
+  MPI::Intracomm comm = app.communicator ();
   int nProcesses = comm.Get_size ();
   int rank = comm.Get_rank ();
-  
+
   getargs (rank, argc, argv);
 
-  MUSIC::ContOutputPort* out = setup->publishContOutput ("contdata");
+
+  auto out = app.publish<MUSIC::ContOutputPort> ("contdata");
+
+  comm = app.communicator ();
   if (!out->isConnected ())
     {
       if (rank == 0)
@@ -135,22 +140,21 @@ main (int argc, char *argv[])
 
 
   double stoptime;
-  setup->config ("stoptime", &stoptime);
+  app.config ("stoptime", &stoptime);
 
-  MUSIC::Runtime* runtime = new MUSIC::Runtime (setup, timestep);
+  app.enterSimulationLoop (timestep);
 
 
-  double time = runtime->time ();
+  double time = app.time ();
   while (time < stoptime)
     {
-      runtime->tick ();
+      app.tick ();
 
-      time = runtime->time ();
+      time = app.time ();
     }
 
-  runtime->finalize ();
+  app.finalize ();
 
-  delete runtime;
 
   return 0;
 }

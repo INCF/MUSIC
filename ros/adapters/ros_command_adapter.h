@@ -32,8 +32,8 @@
 #include <fstream>
 #include <pthread.h>
 
-#define DEBUG_OUTPUT false 
-#define MEASUREMENT_OUTPUT false 
+#define DEBUG_OUTPUT false
+#define MEASUREMENT_OUTPUT false
 
 enum msg_types {Float64MultiArray, Twist};
 
@@ -57,8 +57,7 @@ private:
   ros::Publisher publisher;
 
   MPI::Intracomm comm;
-  MUSIC::Setup* setup;
-  MUSIC::Runtime* runtime;
+  MUSIC::Application* app;
   double stoptime;
   int datasize;
 
@@ -70,7 +69,7 @@ private:
   double rtf;
 
   string mapping_filename;
-  Json::Value json_mapping; 
+  Json::Value json_mapping;
   msg_types msg_type;
   int* msg_map;
 

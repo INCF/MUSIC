@@ -21,6 +21,7 @@
 #include "music/application.hh"
 #include "music/music_context.hh"
 #include "music/permutation_index.hh"
+#include "music/linear_index.hh"
 #include "music/array_data.hh"
 
 #define MUSIC_HH

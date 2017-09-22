@@ -26,7 +26,7 @@ namespace MUSIC
 			PortConnectivityManager (Configuration& config)
 				  : config_ (config)
 				  , portMap_ ()
-	              , isConnectivityModified (false)
+	              , modified_ (false)
 			{}
 
 			PortConnectivityManager(const PortConnectivityManager&) = delete;
@@ -48,11 +48,13 @@ namespace MUSIC
 
 			// TODO move in private
 			void updatePorts();
+			void finalize ();
 
 			SPVec<Port> getPorts ();
 
 		private:
 			friend class Port;
+			friend class Application;
 			// TODO this can be remove and replaced by exposing iterators
 
 			Configuration& config_;
@@ -61,7 +63,7 @@ namespace MUSIC
 			/* std::unique_ptr<Connectivity> connectivityMap_; */
 			PortMap portMap_;
 			/* Application& app_; */
-			bool isConnectivityModified;
+			bool modified_;
 
 			// TODO move impl to cpp file
 			template <typename T>

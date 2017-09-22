@@ -89,9 +89,9 @@ class VisualiseNeurons : public MUSIC::EventHandlerGlobalIndex {
     gettimeofday(&tickStartTime_,NULL);
     windowTitle_ = "viewevents";
   }
-  
+
   void run(int argc, char **argv);
-  void readConfigFile(string filename);
+  void readConfigFile(std::string filename);
   void finalize();
 
   // Event handler for incomming spikes
@@ -128,20 +128,19 @@ class VisualiseNeurons : public MUSIC::EventHandlerGlobalIndex {
   void getArgs(int argc, char* argv[]);
   void printHelp();
 
-  MUSIC::Setup* setup_;     // ONLY to be used during setup phase
-  MUSIC::Runtime* runtime_; // Music runtime object
-  
+  MUSIC::Application* app_;
+
   GLuint neuronList_;  // OpenGL list for drawing object
 
   std::vector<neuronCoord> coords_;  // Coordinates of neuron population
   std::vector<double> volt_;  // Activity of neuron population
-  std::vector<int> cMap_;   // Which colour does neurons have 
+  std::vector<int> cMap_;   // Which colour does neurons have
 
   std::vector<neuronColour> baseLineCol_;  // Colour of resting neuron
   std::vector<neuronColour> excitedCol_;   // Colour of spiking neuron
   double spikeScale_;         // eg, 0.1 = scale up spiking neurons by 10%
 
-  string windowTitle_; 
+  std::string windowTitle_;
 
   double dt_;
   double tau_;       // Tau decay of activity
@@ -168,7 +167,7 @@ class VisualiseNeurons : public MUSIC::EventHandlerGlobalIndex {
   struct timeval tickDelay_;
 
 
-  string confFile_;  // Config file with colours and coordinates
+  std::string confFile_;  // Config file with colours and coordinates
 
   //priority_queue <TimeIdPair> priorityQueue_;
   std::priority_queue<TimeIdPair> priorityQueue_;
@@ -178,4 +177,4 @@ static std::vector<VisualiseNeurons*> objTable_;
 
 
 
-#endif 
+#endif

@@ -112,7 +112,6 @@ namespace MUSIC {
   public:
 	  using Port::Port;
   protected:
-	std::vector<InputConnection*> connections_;
 
 	void reconnect () override;
     void mapImpl (IndexMap* indices,

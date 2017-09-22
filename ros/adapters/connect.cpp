@@ -42,18 +42,19 @@ ConnectAdapter::init(int argc, char** argv)
 void
 ConnectAdapter::initMUSIC(int argc, char** argv)
 {
-  MUSIC::Setup* setup = new MUSIC::Setup (argc, argv);
+  auto context = MUSIC::MusicContextFactory ().createContext (argc, argv);
+  MUSIC::Application* app = new MUSIC::Application (context);
 
-  setup->config("stoptime", &stoptime);
-  setup->config("music_timestep", &timestep);
-  setup->config("weights_filename", &weights_filename);
+  app->config("stoptime", &stoptime);
+  app->config("music_timestep", &timestep);
+  app->config("weights_filename", &weights_filename);
 
-  port_in = setup->publishContInput("in");
-  port_out = setup->publishContOutput("out");
+  port_in = app->publish<MUSIC::ContInputPort>("in");
+  port_out = app->publish<MUSIC::ContOutputPort>("out");
 
-  comm = setup->communicator ();
-  int rank = comm.Get_rank ();       
-  int nProcesses = comm.Get_size (); 
+  comm = app->communicator ();
+  int rank = comm.Get_rank ();
+  int nProcesses = comm.Get_size ();
   if (nProcesses > 1)
     {
       std::cout << "ERROR: num processes (np) not equal 1" << std::endl;
@@ -89,7 +90,7 @@ ConnectAdapter::initMUSIC(int argc, char** argv)
   weights = new double[size_data_out * size_data_in];
   for (int i = 0; i < size_data_out * size_data_in; ++i)
     {
-      weights[i] = 0.; 
+      weights[i] = 0.;
     }
   mat_weights = gsl_matrix_view_array(weights, size_data_out, size_data_in);
 
@@ -99,7 +100,7 @@ ConnectAdapter::initMUSIC(int argc, char** argv)
 			   0,
 			   size_data_in);
   port_in->map (&dmap_in, 0., 1, false);
-    
+
   MUSIC::ArrayData dmap_out(data_out,
 			    MPI::DOUBLE,
 			    0,
@@ -107,10 +108,10 @@ ConnectAdapter::initMUSIC(int argc, char** argv)
   port_out ->map (&dmap_out, 1);
 
   MPI::COMM_WORLD.Barrier();
-  runtime = new MUSIC::Runtime (setup, timestep);
+  app->enterSimulationLoop (timestep);
 }
 
-void 
+void
 ConnectAdapter::readWeightsFile()
 {
   Json::Reader json_reader;
@@ -125,14 +126,14 @@ ConnectAdapter::readWeightsFile()
       json_weights_ += line;
     }
   weights_file.close();
-    
+
   if ( !json_reader.parse(json_weights_, json_weights))
     {
       // report to the user the failure and their locations in the document.
-      std::cout   << "WARNING: linear readout: Failed to parse file \"" << weights_filename << "\"\n" 
+      std::cout   << "WARNING: linear readout: Failed to parse file \"" << weights_filename << "\"\n"
 		  << json_weights_ << " It has to be in JSON format.\n Using 1/N for each weight."
 		  << json_reader.getFormattedErrorMessages();
-        
+
       for (int i = 0; i < size_data_out * size_data_in; ++i)
         {
 	  weights[i] = 1. / size_data_in;
@@ -154,21 +155,21 @@ ConnectAdapter::readWeightsFile()
 
 }
 
-void 
+void
 ConnectAdapter::runMUSIC()
 {
   std::cout << "running connect adapter" << std::endl;
-    
+
   struct timeval start;
   struct timeval end;
   gettimeofday(&start, NULL);
   unsigned int ticks_skipped = 0;
 
-  for (int t = 0; runtime->time() < stoptime; t++)
+  for (int t = 0; app->time() < stoptime; t++)
     {
-   
+
       gsl_blas_dgemv(CblasNoTrans, 1., &mat_weights.matrix, &vec_data_in.vector, 0., &vec_data_out.vector);
-       
+
 #if DEBUG_OUTPUT
       std::cout << "Connect Adapter: ";
       for (int i = 0; i < size_data_out; ++i)
@@ -177,7 +178,7 @@ ConnectAdapter::runMUSIC()
         }
       std::cout << std::endl;
 #endif
-      runtime->tick();
+      app->tick();
     }
 
   gettimeofday(&end, NULL);
@@ -192,6 +193,6 @@ ConnectAdapter::runMUSIC()
 
 void
 ConnectAdapter::finalize(){
-  runtime->finalize();
-  delete runtime;
+  app->finalize();
+  delete app;
 }
