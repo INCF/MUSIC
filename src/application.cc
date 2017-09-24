@@ -26,29 +26,43 @@ namespace MUSIC
 		timebase_ (timebase),
 		comm_ (comm),
 		launchedByMusic_ (launchedByMusic),
-		/* application_map_ (config->applications ()), */
 		port_manager_ (*config_),
 		runtime_ (nullptr),
-		clock_ ()
+		localTime_ ()
 	{
+	}
+
+	Application::Application (int& argc, char**& argv, int required, int* provided, double timebase)
+		: Application (MusicContextFactory ().createContext (argc, argv, required, provided), timebase)
+	{
+	}
+
+	Application::Application (int& argc, char**& argv, double timebase)
+		: Application (MusicContextFactory ().createContext (argc, argv), timebase)
+	{
+	}
+
+
+	Application::~Application()
+	{
+		if (state_ != ApplicationState::FINALIZED)
+			finalize();
 	}
 
 	double Application::time() const
 	{
-		return clock_.time ();
+		return localTime_.time ();
 	}
 
 	void Application::enterSimulationLoop(double h)
 	{
-		// TODO you cant pass h to ClockState as the double gets rounded on
-		// long long
-		auto clock_state = clock_.integerTime ();
-		clock_.configure (timebase_, ClockState (h, timebase_));
-		clock_.set (clock_state);
+		auto localTime_state = localTime_.integerTime ();
+		localTime_.configure (timebase_, ClockState (h, timebase_));
+		localTime_.set (localTime_state);
 
 		port_manager_.updatePorts ();
 		auto ports = port_manager_.getPorts ();
-		runtime_.reset (new Runtime (*this, ports, clock_));
+		runtime_.reset (new Runtime (*this, ports, localTime_));
 		state_ = ApplicationState::RUNNING;
 	}
 
@@ -56,6 +70,7 @@ namespace MUSIC
 	{
     	/* MPI::COMM_WORLD.Barrier (); */
 		runtime_->finalize ();
+		runtime_ = nullptr;
 		state_ = ApplicationState::STOPPED;
 	}
 
@@ -155,8 +170,8 @@ namespace MUSIC
 		if (state_ == ApplicationState::RUNNING)
 			exitSimulationLoop ();
 		port_manager_.finalize ();
-		MPI::Finalize ();
 		state_ = ApplicationState::FINALIZED;
+		MPI::Finalize ();
 	}
 
 	  bool

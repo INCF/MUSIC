@@ -78,7 +78,7 @@ namespace MUSIC {
     void assertInput ();
 
   public: // MDJ 2012-08-07 public for now---see comment in runtime.cc
-    virtual ~Port() {removeConnections ();};
+    virtual ~Port();
 
   private:
     void checkConnected (std::string action);

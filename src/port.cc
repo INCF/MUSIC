@@ -37,6 +37,12 @@ namespace MUSIC {
   {
   }
 
+	Port::~Port ()
+	{
+		removeConnections ();
+		std::cout << "Port destructor called" << std::endl;
+	}
+
   bool
   Port::isConnected ()
   {
@@ -320,7 +326,7 @@ namespace MUSIC {
   ContOutputPort::makeConnector (ConnectorInfo connInfo)
   {
 	  Connector * conn;
-	  if(connInfo.communicationType() ==  ConnectorInfo::CommunicationType::POINTTOPOINT){
+	  if(connInfo.communicationType() ==  CommunicationType::POINTTOPOINT){
 		  conn =  new ContOutputConnector (connInfo,
 				  indices_,
 		  		  index_type_,
@@ -407,7 +413,7 @@ namespace MUSIC {
   ContInputPort::makeConnector (ConnectorInfo connInfo)
   {
 	  Connector * conn;
-	  if(connInfo.communicationType() ==  ConnectorInfo::CommunicationType::POINTTOPOINT){
+	  if(connInfo.communicationType() ==  CommunicationType::POINTTOPOINT){
 		  conn = new ContInputConnector (connInfo,
 				  indices_,
 		  		  index_type_,
@@ -453,8 +459,8 @@ namespace MUSIC {
 	bool mixed = false;
 	auto conn_info = getConnectivityInfo();
 	auto c = conn_info.connections ().begin ();
-	ConnectorInfo::CommunicationType commType = c->communicationType ();
-	ConnectorInfo::ProcessingMethod procMethod = c->processingMethod ();
+	CommunicationType commType = c->communicationType ();
+	ProcessingMethod procMethod = c->processingMethod ();
 	for (++c; c != conn_info.connections ().end (); ++c)
 	  {
 	    if (c->processingMethod () != procMethod)
@@ -464,16 +470,16 @@ namespace MUSIC {
 	  }
 	if (!mixed)
 	  {
-	    if (commType == ConnectorInfo::CommunicationType::COLLECTIVE)
+	    if (commType == CommunicationType::COLLECTIVE)
 	      router = new DirectRouter ();
-	    else if (procMethod == ConnectorInfo::ProcessingMethod::TREE)
+	    else if (procMethod == ProcessingMethod::TREE)
 	      router = new TreeProcessingOutputRouter ();
 	    else
 	      router = new TableProcessingOutputRouter ();
 	  }
 	else
 	  {
-	    if (procMethod == ConnectorInfo::ProcessingMethod::TREE)
+	    if (procMethod == ProcessingMethod::TREE)
 	      router = new HybridTreeProcessingOutputRouter ();
 	    else
 	      router = new HybridTableProcessingOutputRouter ();
@@ -534,7 +540,7 @@ namespace MUSIC {
   {
     Connector *conn;
     // we need to choose a right connector according to the communication type
-    if (connInfo.communicationType () ==  ConnectorInfo::CommunicationType::POINTTOPOINT)
+    if (connInfo.communicationType () ==  CommunicationType::POINTTOPOINT)
       conn = new EventOutputConnector (connInfo,
 				       indices_,
 				       index_type_,
@@ -677,7 +683,7 @@ namespace MUSIC {
   {
 	  // we need to choose a right connector according to the communication type
 	  Connector *conn;
-	  if(connInfo.communicationType() ==  ConnectorInfo::CommunicationType::POINTTOPOINT)
+	  if(connInfo.communicationType() ==  CommunicationType::POINTTOPOINT)
 		  conn =   new EventInputConnector (connInfo,
 		  			  indices_,
 		  			  index_type_,

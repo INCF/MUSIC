@@ -31,10 +31,6 @@ namespace MUSIC {
  * Communication Type (<COLLECTIVE, POINTTOPOINT>)
  * Processing Method (<TREE, TABLE>)
  */
-  class ConnectorInfo
-  {
-  public:
-
     enum class CommunicationType : int
     {
       COLLECTIVE, POINTTOPOINT
@@ -45,6 +41,11 @@ namespace MUSIC {
     {
       TREE, TABLE
     };
+
+  class ConnectorInfo
+  {
+  public:
+
 
 
     static int maxPortCode_;
@@ -204,7 +205,7 @@ namespace MUSIC {
 
 
     void addConnection (std::string recApp, std::string recName, int recCode,
-        int rLeader, int nProc, ConnectorInfo::CommunicationType commType, ConnectorInfo::ProcessingMethod procMethod);
+        int rLeader, int nProc, CommunicationType commType, ProcessingMethod procMethod);
 
 	void removeConnection (std::string recApp, std::string recName);
 
@@ -239,7 +240,7 @@ namespace MUSIC {
 
     void  add (std::string localPort, ConnectivityInfo::PortDirection dir, int width,
         std::string recApp, std::string recPort, int recPortCode,
-        int remoteLeader, int remoteNProc, ConnectorInfo::CommunicationType commType, ConnectorInfo::ProcessingMethod procMethod);
+        int remoteLeader, int remoteNProc, CommunicationType commType, ProcessingMethod procMethod);
 
 	void remove (std::string localPort, std::string recApp, std::string recPort);
 

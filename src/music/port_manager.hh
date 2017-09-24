@@ -15,8 +15,6 @@
 
 namespace MUSIC
 {
-	// We could also use raw pointers but we do not (see application.hh why so)
-	/* using PortMap = std::map<std::string, std::shared_ptr<Port>>; */
 	using PortMap = std::map<std::string, std::weak_ptr<Port>>;
 
 	class PortConnectivityManager
@@ -36,10 +34,9 @@ namespace MUSIC
 			void connect(std::string senderApp, std::string senderPort,
 					std::string receiverApp, std::string receiverPort,
 					int width,
-					ConnectorInfo::CommunicationType commType,
-					ConnectorInfo::ProcessingMethod procMethod);
+					CommunicationType commType,
+					ProcessingMethod procMethod);
 
-			/* void disconnect (std::string identifier); */
 			void disconnect (std::string appName, std::string portName);
 			void disconnect (std::string senderApp, std::string senderPort, std::string receiverApp, std::string receiverPort);
 
@@ -54,14 +51,9 @@ namespace MUSIC
 		private:
 			friend class Port;
 			friend class Application;
-			// TODO this can be remove and replaced by exposing iterators
 
 			Configuration& config_;
-			/* std::string applicationName_; */
-			/* std::shared_ptr<ApplicationMap> applicationMap_; */
-			/* std::unique_ptr<Connectivity> connectivityMap_; */
 			PortMap portMap_;
-			/* Application& app_; */
 			bool connectivityModified_;
 
 			// TODO move impl to cpp file

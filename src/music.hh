@@ -23,6 +23,7 @@
 #include "music/permutation_index.hh"
 #include "music/linear_index.hh"
 #include "music/array_data.hh"
+#include "music/connectivity.hh"
 
 #define MUSIC_HH
 #endif /* MUSIC_HH */

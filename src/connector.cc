@@ -932,8 +932,8 @@ error( "LOCAL Indices are not supported with MUSIC_ANYSOURCE");
       EventCollectiveConnector (true)
   {
 
-	  ConnectorInfo::ProcessingMethod procMethod = connInfo.processingMethod ();
-    if (procMethod == ConnectorInfo::ProcessingMethod::TREE)
+	  ProcessingMethod procMethod = connInfo.processingMethod ();
+    if (procMethod == ProcessingMethod::TREE)
       if (handleEvent.getType () == Index::GLOBAL)
 	router_ = new TreeProcessingInputGlobalRouter ();
       else

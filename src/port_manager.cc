@@ -56,6 +56,7 @@ namespace MUSIC
 			for (auto& port : getPorts ())
 				port->reconnect ();
 			connectivityModified_ = false;
+			std::cout << "Reconnecting done." << std::endl;
 		/* } */
 	}
 
@@ -73,8 +74,8 @@ namespace MUSIC
 	void PortConnectivityManager::connect (std::string senderApp, std::string senderPort,
 			std::string receiverApp, std::string receiverPort,
 			int width,
-			ConnectorInfo::CommunicationType commType,
-			ConnectorInfo::ProcessingMethod procMethod)
+			CommunicationType commType,
+			ProcessingMethod procMethod)
 	{
 		// To keep the maxPortCode synchron over all MPI processes,
 		// this must be executed on all processes (even if they do not handle the

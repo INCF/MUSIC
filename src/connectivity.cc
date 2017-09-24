@@ -49,8 +49,8 @@ namespace MUSIC {
 				   int recCode,
 				   int rLeader,
 				   int nProc,
-				   ConnectorInfo::CommunicationType commType,
-				   ConnectorInfo::ProcessingMethod procMethod
+				   CommunicationType commType,
+				   ProcessingMethod procMethod
 					)
   {
     portConnections_.push_back (ConnectorInfo (recApp,
@@ -87,8 +87,8 @@ namespace MUSIC {
 		     int recPortCode,
 		     int remoteLeader,
 		     int remoteNProc,
-		     ConnectorInfo::CommunicationType commType,
-			 ConnectorInfo::ProcessingMethod procMethod
+		     CommunicationType commType,
+			 ProcessingMethod procMethod
 				)
   {
     CMapIterator cmapInfo
@@ -277,8 +277,8 @@ namespace MUSIC {
 	    in.ignore ();
 	    int procMethod;
 	    in >> procMethod;
-		ConnectorInfo::CommunicationType commEnumType = static_cast<ConnectorInfo::CommunicationType> (commType);
-		ConnectorInfo::ProcessingMethod procEnumType = static_cast<ConnectorInfo::ProcessingMethod> (procMethod);
+		CommunicationType commEnumType = static_cast<CommunicationType> (commType);
+		ProcessingMethod procEnumType = static_cast<ProcessingMethod> (procMethod);
 	    add (portName,
 		 pdir,
 		 width,
