@@ -31,13 +31,15 @@ namespace MUSIC {
  * Communication Type (<COLLECTIVE, POINTTOPOINT>)
  * Processing Method (<TREE, TABLE>)
  */
-    enum class CommunicationType : int
+	// TODO change back to enum class ... I sacraficed it here to the sake of
+	// stupid Cython that has no native support for enum class types
+    enum CommunicationType : int
     {
       COLLECTIVE, POINTTOPOINT
     };
 
 
-    enum class ProcessingMethod : int
+    enum ProcessingMethod : int
     {
       TREE, TABLE
     };
@@ -45,8 +47,6 @@ namespace MUSIC {
   class ConnectorInfo
   {
   public:
-
-
 
     static int maxPortCode_;
     std::string recApp_;

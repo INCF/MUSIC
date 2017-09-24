@@ -3,7 +3,7 @@
 cdef extern from "mpi_compat.h":
     pass
 
-include "pyconfig.pxi" 
+include "pyconfig.pxi"
 cimport mpi4py.MPI as MPI
 IF MPI4V2:
     from mpi4py.libmpi cimport *
@@ -12,6 +12,8 @@ ELSE:
 
 from libcpp cimport bool as cbool
 from libcpp.string cimport string
+from libcpp.memory cimport unique_ptr, shared_ptr
+from libcpp.vector cimport vector
 from cpython.ref cimport PyObject
 
 ###########################################################
@@ -49,7 +51,7 @@ cdef extern from "music/index_map.hh" namespace "MUSIC":
     cdef cppclass CIndex "MUSIC::Index":
         int WILDCARD_MAX
     ctypedef enum IndexType "MUSIC::Index::Type":
-            IndexGLOBAL "MUSIC::Index::GLOBAL", 
+            IndexGLOBAL "MUSIC::Index::GLOBAL",
             IndexLOCAL "MUSIC::Index::LOCAL"
 
     cdef cppclass GlobalIndex(CIndex):
@@ -78,6 +80,7 @@ cdef extern from "music/port.hh" namespace "MUSIC":
     cdef cppclass CPort "MUSIC::Port":
         cbool isConnected()
         cbool hasWidth()
+        string name()
         int width()
 
     cdef cppclass CContInputPort "MUSIC::ContInputPort"(CPort):
@@ -113,35 +116,117 @@ cdef extern from *:
     CMessageOutputPort* dc_CMessageOutputPort \
         "dynamic_cast<MUSIC::MessageOutputPort*>"(CPort*)
 
-cdef extern from "music/setup.hh" namespace "MUSIC":
-    cdef cppclass CSetup "MUSIC::Setup":
-        CSetup(int&, char**&) except +
-        CSetup(int&, char**&, int, int*) except +
+cdef extern from *:
+    shared_ptr[CPort] uc_shared_ptr_ContInputPort \
+            "std::static_pointer_cast<MUSIC::Port>" (shared_ptr[CContInputPort])
+    shared_ptr[CPort] uc_shared_ptr_ContOutputPort \
+            "std::static_pointer_cast<MUSIC::Port>" (shared_ptr[CContOutputPort])
+    shared_ptr[CPort] uc_shared_ptr_CEventInputPort \
+            "std::static_pointer_cast<MUSIC::Port>" (shared_ptr[CEventInputPort])
+    shared_ptr[CPort] uc_shared_ptr_CEventOutputPort \
+            "std::static_pointer_cast<MUSIC::Port>" (shared_ptr[CEventOutputPort])
+    shared_ptr[CPort] uc_shared_ptr_CMessageInputPort \
+            "std::static_pointer_cast<MUSIC::Port>" (shared_ptr[CMessageInputPort])
+    shared_ptr[CPort] uc_shared_ptr_CMessageOutputPort \
+            "std::static_pointer_cast<MUSIC::Port>" (shared_ptr[CMessageOutputPort])
+
+# cdef extern from "music/misc.hh" namespace "MUSIC":
+#     ostream& operator<<(typename std::enable_if<std::is_enum<T>::value, std::ostream>::type& stream, const T& e)
+
+# cdef extern from "music/connectivity.hh" namespace "MUSIC":
+#     cdef cppclass CommunicationType:
+#         pass
+#     cdef cppclass ProcessingMethod:
+#         pass
+
+# cdef extern from "music/connectivity.hh" namespace "MUSIC::CommunicationType":
+#     cdef CommunicationType COLLECTIVE
+#     cdef CommunicationType POINTTOPOINT
+
+# cdef extern from "music/connectivity.hh" namespace "MUSIC::ProcessingMethod":
+#     cdef ProcessingMethod TREE
+#     cdef ProcessingMethod TABLE
+
+cdef extern from "music/connectivity.hh" namespace "MUSIC":
+    ctypedef enum CommunicationType "MUSIC::CommunicationType":
+        CommTypeCOLLECTIVE "MUSIC::CommunicationType::COLLECTIVE"
+        CommTypePOINTTOPOINT "MUSIC::CommunicationType::POINTTOPOINT"
+
+    ctypedef enum ProcessingMethod "MUSIC::ProcessingMethod":
+        ProcMethodTREE "MUSIC::ProcessingMethod::TREE"
+        ProcMethodTABLE "MUSIC::ProcessingMethod::TABLE"
+
+    cdef extern from "music/configuration.hh" namespace "MUSIC":
+        cdef cppclass CConfiguration "MUSIC::Configuration":
+            pass
+
+# TODO MusicContext
+cdef extern from "music/port_manager.hh" namespace "MUSIC":
+    cdef cppclass CPortConnectivityManager "MUSIC::PortConnectivityManager":
+# TODO CommunicationType, ProcessingMethod
+        void connect(string, string, string, string, int, CommunicationType,
+                     ProcessingMethod)
+        void disconnect(string, string)
+        void disconnect(string, string, string, string)
+        cbool isConnected(string)
+        cbool isInstantiated(string)
+        vector[shared_ptr[CPort]] getPorts()
+
+
+cdef extern from "music/application.hh" namespace "MUSIC":
+    cdef cppclass CApplication "MUSIC::Application":
+        CApplication() except +
+        CApplication(int&, char**&, double) except +
+        CApplication(int&, char**&) except +
+        CApplication(int&, char**&, int, int*, double) except +
+        CApplication(int&, char**&, int, int*) except +
 
         cbool config(string, string*)
 
-        CContInputPort*     publishContInput(string)
-        CContOutputPort*    publishContOutput(string)
-        CEventInputPort*    publishEventInput(string)
-        CEventOutputPort*   publishEventOutput(string)
-        CMessageInputPort*  publishMessageInput(string)
-        CMessageOutputPort* publishMessageOutput(string)
+        shared_ptr[PortT] publish[PortT](string) except +
 
-cdef extern from "music/runtime.hh" namespace "MUSIC":
-    cdef cppclass CRuntime "MUSIC::Runtime":
-        CRuntime(CSetup*, double) except +
-        void finalize()
-        double time()
         void tick()
+        void enterSimulationLoop(double)
+        void exitSimulationLoop()
+        void finalize()
+
+        CPortConnectivityManager& getPortConnectivityManager()
+
+        double time()
+        double timebase()
+        string name()
+
+# cdef extern from "music/setup.hh" namespace "MUSIC":
+#     cdef cppclass CSetup "MUSIC::Setup":
+#         CSetup(int&, char**&) except +
+#         CSetup(int&, char**&, int, int*) except +
+
+#         cbool config(string, string*)
+
+#         CContInputPort*     publishContInput(string)
+#         CContOutputPort*    publishContOutput(string)
+#         CEventInputPort*    publishEventInput(string)
+#         CEventOutputPort*   publishEventOutput(string)
+#         CMessageInputPort*  publishMessageInput(string)
+#         CMessageOutputPort* publishMessageOutput(string)
+
+# cdef extern from "music/runtime.hh" namespace "MUSIC":
+#     cdef cppclass CRuntime "MUSIC::Runtime":
+#         CRuntime(CSetup*, double) except +
+#         void finalize()
+#         double time()
+#         void tick()
 
 cdef extern void cython_callback(PyObject*, double, IndexType, int)
 
+# TODO c-interface necessary?
 cdef extern from "music/music_c.h" namespace "MUSIC":
-    cdef inline MPI_Comm communicator(CSetup*)
-    cdef inline MPI_Comm communicator(CRuntime*)
+    # cdef inline MPI_Comm communicator(CSetup*)
+    # cdef inline MPI_Comm communicator(CRuntime*)
+    cdef inline MPI_Comm communicator(CApplication*)
     cdef inline int toint(GlobalIndex)
     cdef inline int toint(LocalIndex)
-    cdef inline cbool tick(CRuntime*) except False
+    cdef inline cbool tick(CApplication*) except False
     cdef inline CEventHandlerPtr getEventHandlerPtr(IndexType, CEventHandler*)
 
     cdef inline void mapImpl "MUSIC::Implementer::mapImpl" (
@@ -149,7 +234,7 @@ cdef extern from "music/music_c.h" namespace "MUSIC":
     cdef inline void mapImpl "MUSIC::Implementer::mapImpl" (
         CContOutputPort*, CDataMap*, int)
     cdef inline void mapImpl "MUSIC::Implementer::mapImpl" (
-        CEventInputPort*, CIndexMap*, IndexType, 
+        CEventInputPort*, CIndexMap*, IndexType,
         CEventHandlerPtr, double, int)
     cdef inline void mapImpl "MUSIC::Implementer::mapImpl" (
         CEventOutputPort*, CIndexMap*, IndexType, int)
@@ -166,32 +251,44 @@ cdef extern from "music/music_c.h" namespace "MUSIC":
     cdef PyObject* etype
     cdef PyObject* evalue
     cdef PyObject* etraceback
-    
+
 
 ###########################################################
-
-cdef class Setup(object):
-    cdef CSetup* ptr
+cdef class Application(object):
+    cdef CApplication* ptr
     cdef list argv
     cdef int provided
     cdef readonly MPI.Intracomm comm
-    cdef set ports
-
     cdef null(self)
     cpdef MPI.Intracomm getcomm(self)
 
 ###########################################################
+cdef class PortManager(object):
+    cdef CPortConnectivityManager* ref
+    # cdef set ports
 
-cdef class Runtime(object):
-    cdef CRuntime* ptr
-    cdef readonly MPI.Intracomm comm
-    cdef set ports
+# cdef class Setup(object):
+#     cdef CSetup* ptr
+#     cdef list argv
+#     cdef int provided
+#     cdef readonly MPI.Intracomm comm
+#     cdef set ports
+
+#     cdef null(self)
+#     cpdef MPI.Intracomm getcomm(self)
+
+###########################################################
+
+# cdef class Runtime(object):
+#     cdef CRuntime* ptr
+#     cdef readonly MPI.Intracomm comm
+#     cdef set ports
 
 ###########################################################
 
 cdef class Port(object):
-    cdef CPort* ptr
-    cpdef object null(self)
+    cdef shared_ptr[CPort] ptr
+    # cpdef object null(self)
 
 ## Some day, virtual multiple inheritance will be
 ## a capital crime ^^^^

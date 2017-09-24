@@ -4,6 +4,11 @@
 
 from libc.stdlib cimport malloc, free
 
+from cython.operator cimport dereference as deref
+from libcpp.memory cimport unique_ptr
+from libcpp.string cimport string
+
+import sys
 import mpi4py.MPI as MPI
 from six.moves import cPickle as pickle
 
@@ -87,6 +92,73 @@ def predictRank(list argv=None):
 
 ###########################################################
 
+cdef class _CommunicationType:
+    """
+    Internal: the type of the variable Index
+    that encapsulates the enum mapping
+    GLOBAL and LOCAL are the ints of the C enums
+    backmap maps from the enum to a string for output
+    purposes
+    """
+    cdef readonly int COLLECTIVE
+    cdef readonly int POINTTOPOINT
+    cdef readonly dict backmap
+
+    def __cinit__(self):
+        """ SINGLETON """
+        self.COLLECTIVE = CommTypeCOLLECTIVE
+        self.POINTTOPOINT = CommTypePOINTTOPOINT
+        self.backmap = {
+            CommTypeCOLLECTIVE: "COLLECTIVE",
+            CommTypePOINTTOPOINT: "POINTTOPOINT"
+        };
+
+    def tostr(self, int index):
+        """" tostring(CCommunicationType.{COLLECTIVE,POINTTOPOINT}) -->
+        "{COLLECTIVE,POINTTOPOINT}" """
+        return self.backmap[index]
+
+# And here is the singleton def
+CommunicationTypeWrapper = _CommunicationType()
+
+cdef class _ProcessingMethod:
+    """
+    Internal: the type of the variable Index
+    that encapsulates the enum mapping
+    GLOBAL and LOCAL are the ints of the C enums
+    backmap maps from the enum to a string for output
+    purposes
+    """
+    cdef readonly int TREE
+    cdef readonly int TABLE
+    cdef readonly dict backmap
+
+    def __cinit__(self):
+        """ SINGLETON """
+        self.TREE = ProcMethodTREE
+        self.TABLE = ProcMethodTABLE
+        self.backmap = {
+            ProcMethodTREE: "TREE",
+            ProcMethodTABLE: "TABLE"
+        };
+
+    def tostr(self, int index):
+        """" tostring(ProcessingMethod.{TREE,TABLE}) --> "{TREE,TABLE}" """
+        return self.backmap[index]
+
+# And here is the singleton def
+ProcessingMethodWrapper = _ProcessingMethod()
+
+# cdef class PyCommunicationType(object):
+#     cdef CommunicationType thisobj
+
+#     def __cinit__(self, int val):
+#         self.thisobj = <Color> val
+
+#     def get_color_type(self):
+#         cdef c = {<int>red : "red", <int> green : "green", <int> blue : "blue"}
+#         return c[<int>self.thisobj]
+
 cdef class Port(object):
     """
     Base Port class.
@@ -101,29 +173,30 @@ cdef class Port(object):
         When a Port object is created, it needs to have an underlying
         C++ class assigned to ptr from a Setup.publish* method.
         """
-        self.ptr = NULL
+        self.ptr = shared_ptr[CPort](NULL)
 
-    def __hash__(self):
-        """
-        Hash function: pointer value % to an int.
-        """
-        return <int><size_t> self.ptr
+    # def __hash__(self):
+    #     """
+    #     Hash function: pointer value % to an int.
+    #     """
+    #     # return <int><size_t> deref(self.ptr)
+    #     return deref(self.ptr)
 
-    cpdef null(self):
-        """
-        When Setup or Runtime no longer needs ports and so may deallocate
-        them, we first must clear the references to them here. This
-        may be overridden to give up references to other members by
-        the descendants
-        """
-        self.ptr = NULL
+    # cpdef null(self):
+    #     """
+    #     When Setup or Runtime no longer needs ports and so may deallocate
+    #     them, we first must clear the references to them here. This
+    #     may be overridden to give up references to other members by
+    #     the descendants
+    #     """
+    #     self.ptr = NULL
 
     def isConnected(self):
         """
         return True iff the port is actually connected via the config
         file.
         """
-        return self.ptr.isConnected()
+        return deref(self.ptr).isConnected()
 
     def width(self):
         """
@@ -132,8 +205,11 @@ cdef class Port(object):
         along this port. If no width is defined, raise a NoWidth
         exception.
         """
-        if not self.ptr.hasWidth(): raise NoWidth()
-        return self.ptr.width()
+        if not deref(self.ptr).hasWidth(): raise NoWidth()
+        return deref(self.ptr).width()
+
+    def name(self):
+        return deref(self.ptr).name()
 
 cdef class ContInputPort(Port):
     """
@@ -172,7 +248,7 @@ cdef class ContInputPort(Port):
         cdef Buffer buf = Buffer(data)
         cdef IndexMap imap = IndexMap(perm, base, buf.items)
         cdef DataMap d = DataMap(buf, imap)
-        cdef CContInputPort* ptr = dc_CContInputPort(self.ptr)
+        cdef CContInputPort* ptr = dc_CContInputPort(self.ptr.get())
         mapImpl(ptr, d.ptr, delay, maxBuffered, interpolate)
 
 cdef class ContOutputPort(Port):
@@ -201,7 +277,7 @@ cdef class ContOutputPort(Port):
         cdef Buffer buf = Buffer(data)
         cdef IndexMap imap = IndexMap(perm, base, buf.items)
         cdef DataMap d = DataMap(buf, imap)
-        cdef CContOutputPort* ptr = dc_CContOutputPort(self.ptr)
+        cdef CContOutputPort* ptr = dc_CContOutputPort(self.ptr.get())
         mapImpl(ptr, d.ptr, maxBuffered)
 
 cdef class EventInputPort(Port):
@@ -244,7 +320,7 @@ cdef class EventInputPort(Port):
         """
         cdef IndexMap imap = IndexMap(perm, base, size)
         cdef EventHandler eh = EventHandler(func, t)
-        cdef CEventInputPort* ptr = dc_CEventInputPort(self.ptr)
+        cdef CEventInputPort* ptr = dc_CEventInputPort(self.ptr.get())
         cdef CEventHandlerPtr hndl = getEventHandlerPtr(t, eh.ptr)
         mapImpl(ptr, imap.ptr, t, hndl, accLatency, maxBuffered)
         self.events.add(eh)
@@ -262,7 +338,7 @@ cdef class EventOutputPort(Port):
         perm, base, size: define IndexMap (see that class)
         """
         cdef IndexMap m = IndexMap(perm, base, size)
-        cdef CEventOutputPort* ptr = dc_CEventOutputPort(self.ptr)
+        cdef CEventOutputPort* ptr = dc_CEventOutputPort(self.ptr.get())
         mapImpl(ptr, m.ptr, t, maxBuffered)
 
     def insertEvent(self, double time, int index, IndexType t):
@@ -271,7 +347,7 @@ cdef class EventOutputPort(Port):
         int index: local or global index of event
         IndexType t: LOCAL|GLOBAL
         """
-        cdef CEventOutputPort* ptr = dc_CEventOutputPort(self.ptr)
+        cdef CEventOutputPort* ptr = dc_CEventOutputPort(self.ptr.get())
         insertEventImpl(ptr, time, index)
 
 cdef class MessageInputPort(Port):
@@ -289,7 +365,7 @@ cdef class MessageInputPort(Port):
         """
         Remember to remove the references to events...
         """
-        Port.null(self)
+        # Port.null(self)
         self.events = None
 
     def map(self, func, double accLatency=0, int maxBuffered=-1, bint pickled=True):
@@ -306,7 +382,7 @@ cdef class MessageInputPort(Port):
                        a buffer object and we'll receive a bytearray
         """
         cdef MessageHandler eh = MessageHandler(func, pickled)
-        cdef CMessageInputPort* ptr = dc_CMessageInputPort(self.ptr)
+        cdef CMessageInputPort* ptr = dc_CMessageInputPort(self.ptr.get())
         mapImpl(ptr, eh.ptr, accLatency, maxBuffered)
         self.events.add(eh)
 
@@ -324,7 +400,7 @@ cdef class MessageOutputPort(Port):
                         the other end will get a bytearray.
         """
         self.pickled = pickled
-        cdef CMessageOutputPort* ptr = dc_CMessageOutputPort(self.ptr)
+        cdef CMessageOutputPort* ptr = dc_CMessageOutputPort(self.ptr.get())
         mapImpl(ptr, maxBuffered)
 
     def insertMessage(self, double time, object msg):
@@ -335,7 +411,7 @@ cdef class MessageOutputPort(Port):
         msg: a python object that can be cPickled if self.pickled == True
              else something that has a buffer interface.
         """
-        cdef CMessageOutputPort* ptr = dc_CMessageOutputPort(self.ptr)
+        cdef CMessageOutputPort* ptr = dc_CMessageOutputPort(self.ptr.get())
         cdef bytearray pmsg =                                           \
                 <bytearray> pickle.dumps(msg, pickle.HIGHEST_PROTOCOL)  \
                 if self.pickled                                         \
@@ -343,42 +419,50 @@ cdef class MessageOutputPort(Port):
         ptr.insertMessage(time, <char*> pmsg, len(pmsg))
 
 ###########################################################
+cdef class PortManager(object):
+    def __cinit__(self):
+        self.ref = NULL
 
-import sys
-cdef class Setup(object):
-    """
-    API to setup the music interface.
-    Becomes invalid after a Runtime object is created.
-    It gives access to config variables (*.music file),
-    and creates sinks and sources which can then be configured with
-    the respective map method of each.
-    """
+    def connect(self, string senderApp, string senderPort, string receiverApp,
+                string receiverPort, int width, CommunicationType commType,
+                ProcessingMethod procMethod):
+        self.ref.connect(senderApp, senderPort, receiverApp,
+                                receiverPort, width, commType, procMethod)
 
+    def disconnect(self, string appName, string portName):
+        self.ref.disconnect(appName, portName)
+
+    def disconnect(self, string senderApp, string senderPort, string
+                   receiverApp, string receiverPort):
+        self.ref.disconnect(senderApp, senderPort, receiverApp, receiverPort)
+
+    def isInstantiated(self, string portName):
+        return self.ref.isInstantiated(portName)
+
+    def isConnected(self, string portName):
+        return self.ref.isConnected(portName)
+
+
+
+
+###########################################################
+cdef class Application(object):
     def __cinit__(self, list argv=None, required=None):
-        """
-        Takes the command line arguments and the required threading
-        level.
-        string[] argv (None): comand line args; if None, use sys.argv
-        int required (None): the MPI threading level for MPI-2. If
-        None, don't set at all, but provided level in object set to
-        MPI_THREAD_SINGLE. Also stores command line arguments.
-        Calls CSetup object and connects with communicator.
-        """
-
         cdef int argc
-        cdef char** argv_c
+        # cdef char** argv_c
         cdef int provided
 
-        cdef Args r = argv_toc(argv if argv is not None
-                               else sys.argv)
+        cdef Args r = argv_toc(argv if argv is not None else sys.argv)
+
         try:
             if required is None:
-                self.ptr = new CSetup(r.argc, r.argv)
+                self.ptr = new CApplication(r.argc, r.argv)
                 self.provided = MPI_THREAD_SINGLE
             else:
-                self.ptr = new CSetup(r.argc, r.argv, required, &provided)
+                self.ptr = new CApplication(r.argc, r.argv, required,
+                                          &provided)
                 self.provided = provided
-            self.argv = [r.argv[i] for i in xrange(r.argc)]
+                self.argv = [r.argv[i] for i in xrange(r.argc)]
         finally:
             free(r.argv)
 
@@ -386,27 +470,21 @@ cdef class Setup(object):
         comm.ob_mpi = communicator(self.ptr)
         self.comm = comm
 
-        self.ports = set()
-
     def __dealloc__(self):
         """
-        If runtime has been made and setup is invalid, do nothing.
-        Otherwise, deallocate or remove references to all objects.
         """
 
         if self.ptr is NULL:
             return
 
         del self.ptr
-        for p in self.ports:
-            del p.ptr
-            p.null()
+        # for p in self.ports:
+        #     del p.ptr
+        #     p.null()
         self.null()
 
     cpdef MPI.Intracomm getcomm(self):
         """
-        Get an MPI communicator between the processes on this current
-        side of music
         """
         return self.comm
 
@@ -418,9 +496,17 @@ cdef class Setup(object):
         """
         self.ptr = NULL
         self.comm = <MPI.Intracomm> MPI.COMM_NULL
-        self.ports = None
 
-    ####
+    def time(self): return self.ptr.time()
+    def timebase(self): return self.ptr.timebase()
+    def tick(self): tick(self.ptr)
+
+    def __iter__(self):
+        cdef CApplication* ptr = self.ptr
+        while True:
+            yield ptr.time()
+            tick(ptr)
+
     def config(self, string var):
         """
         Get the value for var in config file.
@@ -442,7 +528,15 @@ cdef class Setup(object):
         except ValueError: pass
 
         return vs
-    ####
+
+    def enterSimulationLoop(self, double h):
+        self.ptr.enterSimulationLoop(h)
+
+    def exitSimulationLoop(self):
+        self.ptr.exitSimulationLoop()
+
+    def finalize(self):
+        self.ptr.finalize()
 
     def publishContInput(self, string s):
         """
@@ -450,8 +544,9 @@ cdef class Setup(object):
         string s: port name for music config
         """
         cdef ContInputPort p = ContInputPort()
-        p.ptr = self.ptr.publishContInput(s) # can't pass pointers directly to init
-        self.ports.add(p)
+        # p.ptr = self.ptr.publishContInput(s) # can't pass pointers directly to init
+        p.ptr = uc_shared_ptr_ContInputPort(self.ptr.publish[CContInputPort](s))
+        # self.ports.add(p)
         return p
 
     def publishContOutput(self, string s):
@@ -460,8 +555,9 @@ cdef class Setup(object):
         string s: port name for music config
         """
         cdef ContOutputPort p = ContOutputPort()
-        p.ptr = self.ptr.publishContOutput(s)
-        self.ports.add(p)
+        # p.ptr = self.ptr.publishContOutput(s)
+        p.ptr = uc_shared_ptr_ContOutputPort(self.ptr.publish[CContOutputPort](s))
+        # self.ports.add(p)
         return p
 
     def publishEventOutput(self, string s):
@@ -470,8 +566,9 @@ cdef class Setup(object):
         string s: port name for music config
         """
         cdef EventOutputPort p = EventOutputPort()
-        p.ptr = self.ptr.publishEventOutput(s)
-        self.ports.add(p)
+        # p.ptr = self.ptr.publishEventOutput(s)
+        p.ptr = uc_shared_ptr_CEventOutputPort(self.ptr.publish[CEventOutputPort](s))
+        # self.ports.add(p)
         return p
 
     def publishEventInput(self, string s):
@@ -480,8 +577,9 @@ cdef class Setup(object):
         string s: port name for music config
         """
         cdef EventInputPort p = EventInputPort()
-        p.ptr = self.ptr.publishEventInput(s)
-        self.ports.add(p)
+        # p.ptr = self.ptr.publishEventInput(s)
+        p.ptr = uc_shared_ptr_CEventInputPort(self.ptr.publish[CEventInputPort](s))
+        # self.ports.add(p)
         return p
 
     def publishMessageOutput(self, string s):
@@ -490,8 +588,9 @@ cdef class Setup(object):
         string s: port name for music config
         """
         cdef MessageOutputPort p = MessageOutputPort()
-        p.ptr = self.ptr.publishMessageOutput(s)
-        self.ports.add(p)
+        # p.ptr = self.ptr.publishMessageOutput(s)
+        p.ptr = uc_shared_ptr_CMessageOutputPort(self.ptr.publish[CMessageOutputPort](s))
+        # self.ports.add(p)
         return p
 
     def publishMessageInput(self, string s):
@@ -500,46 +599,215 @@ cdef class Setup(object):
         string s: port name for music config
         """
         cdef MessageInputPort p = MessageInputPort()
-        p.ptr = self.ptr.publishMessageInput(s)
-        self.ports.add(p)
+        # p.ptr = self.ptr.publishMessageInput(s)
+        p.ptr = uc_shared_ptr_CMessageInputPort(self.ptr.publish[CMessageInputPort](s))
+        # self.ports.add(p)
         return p
 
-    def runtime(self, double timestep):
+    def getPortManager(self):
         """
-        Create a runtime.
-        After return, this Setup object is invalid
-        double timestep: size of timestep (?? units)
         """
-        return Runtime(self, timestep)
+        cdef CPortConnectivityManager* cpm = &self.ptr.getPortConnectivityManager()
+        cdef PortManager pm = PortManager()
+        pm.ref = cpm
+        return pm
+###########################################################
+# import sys
+# cdef class Setup(object):
+#     """
+#     API to setup the music interface.
+#     Becomes invalid after a Runtime object is created.
+#     It gives access to config variables (*.music file),
+#     and creates sinks and sources which can then be configured with
+#     the respective map method of each.
+#     """
+
+#     def __cinit__(self, list argv=None, required=None):
+#         """
+#         Takes the command line arguments and the required threading
+#         level.
+#         string[] argv (None): comand line args; if None, use sys.argv
+#         int required (None): the MPI threading level for MPI-2. If
+#         None, don't set at all, but provided level in object set to
+#         MPI_THREAD_SINGLE. Also stores command line arguments.
+#         Calls CSetup object and connects with communicator.
+#         """
+
+#         cdef int argc
+#         cdef char** argv_c
+#         cdef int provided
+
+#         cdef Args r = argv_toc(argv if argv is not None
+#                                else sys.argv)
+#         try:
+#             if required is None:
+#                 self.ptr = new CSetup(r.argc, r.argv)
+#                 self.provided = MPI_THREAD_SINGLE
+#             else:
+#                 self.ptr = new CSetup(r.argc, r.argv, required, &provided)
+#                 self.provided = provided
+#             self.argv = [r.argv[i] for i in xrange(r.argc)]
+#         finally:
+#             free(r.argv)
+
+#         cdef MPI.Intracomm comm = MPI.Intracomm()
+#         comm.ob_mpi = communicator(self.ptr)
+#         self.comm = comm
+
+#         self.ports = set()
+
+#     def __dealloc__(self):
+#         """
+#         If runtime has been made and setup is invalid, do nothing.
+#         Otherwise, deallocate or remove references to all objects.
+#         """
+
+#         if self.ptr is NULL:
+#             return
+
+#         del self.ptr
+#         for p in self.ports:
+#             del p.ptr
+#             p.null()
+#         self.null()
+
+#     cpdef MPI.Intracomm getcomm(self):
+#         """
+#         Get an MPI communicator between the processes on this current
+#         side of music
+#         """
+#         return self.comm
+
+#     cdef null(self):
+#         """
+#         Invalidate this object --- called when runtime is
+#         created. Music & runtime is now responsible for deallocating C
+#         objects and clearing references to them.
+#         """
+#         self.ptr = NULL
+#         self.comm = <MPI.Intracomm> MPI.COMM_NULL
+#         self.ports = None
+
+#     ####
+#     def config(self, string var):
+#         """
+#         Get the value for var in config file.
+#         string var: configuration variable for current group of
+#         processes, including default and inherited settings.
+#         The value is returned as an int if it matches the patter,
+#         otherwise a float, otherwise a string.
+#         Throws UndefinedConfig error if no such variable is defined.
+#         """
+#         cdef string vs
+
+#         if not self.ptr.config(var, &vs):
+#             raise UndefinedConfig(var)
+
+#         try: return int(vs)
+#         except ValueError: pass
+
+#         try: return float(vs)
+#         except ValueError: pass
+
+#         return vs
+#     ####
+
+#     def publishContInput(self, string s):
+#         """
+#         Continuous Floating point value sink
+#         string s: port name for music config
+#         """
+#         cdef ContInputPort p = ContInputPort()
+#         p.ptr = self.ptr.publishContInput(s) # can't pass pointers directly to init
+#         self.ports.add(p)
+#         return p
+
+#     def publishContOutput(self, string s):
+#         """
+#         Continuous Floating point value source
+#         string s: port name for music config
+#         """
+#         cdef ContOutputPort p = ContOutputPort()
+#         p.ptr = self.ptr.publishContOutput(s)
+#         self.ports.add(p)
+#         return p
+
+#     def publishEventOutput(self, string s):
+#         """
+#         Discrete boolean source
+#         string s: port name for music config
+#         """
+#         cdef EventOutputPort p = EventOutputPort()
+#         p.ptr = self.ptr.publishEventOutput(s)
+#         self.ports.add(p)
+#         return p
+
+#     def publishEventInput(self, string s):
+#         """
+#         Discrete boolean sink
+#         string s: port name for music config
+#         """
+#         cdef EventInputPort p = EventInputPort()
+#         p.ptr = self.ptr.publishEventInput(s)
+#         self.ports.add(p)
+#         return p
+
+#     def publishMessageOutput(self, string s):
+#         """
+#         Discrete python object source
+#         string s: port name for music config
+#         """
+#         cdef MessageOutputPort p = MessageOutputPort()
+#         p.ptr = self.ptr.publishMessageOutput(s)
+#         self.ports.add(p)
+#         return p
+
+#     def publishMessageInput(self, string s):
+#         """
+#         Discrete python object sink
+#         string s: port name for music config
+#         """
+#         cdef MessageInputPort p = MessageInputPort()
+#         p.ptr = self.ptr.publishMessageInput(s)
+#         self.ports.add(p)
+#         return p
+
+#     def runtime(self, double timestep):
+#         """
+#         Create a runtime.
+#         After return, this Setup object is invalid
+#         double timestep: size of timestep (?? units)
+#         """
+#         return Runtime(self, timestep)
 
 ###########################################################
 
-cdef class Runtime(object):
-    def __cinit__(self, Setup setup, double h):
-        self.ptr = new CRuntime(setup.ptr, h)
-        self.ports = setup.ports
-        setup.null()
+# cdef class Runtime(object):
+#     def __cinit__(self, Setup setup, double h):
+#         self.ptr = new CRuntime(setup.ptr, h)
+#         self.ports = setup.ports
+#         setup.null()
 
-        cdef MPI.Intracomm comm = MPI.Intracomm()
-        comm.ob_mpi = communicator(self.ptr)
-        self.comm = comm
+#         cdef MPI.Intracomm comm = MPI.Intracomm()
+#         comm.ob_mpi = communicator(self.ptr)
+#         self.comm = comm
 
-    def __dealloc__(self):
-        self.ptr.finalize()
+#     def __dealloc__(self):
+#         self.ptr.finalize()
 
-        for p in self.ports:
-            p.null()
+#         for p in self.ports:
+#             p.null()
 
-        del self.ptr
+#         del self.ptr
 
-    def time(self): return self.ptr.time()
-    def tick(self): tick(self.ptr)
+#     def time(self): return self.ptr.time()
+#     def tick(self): tick(self.ptr)
 
-    def __iter__(self):
-        cdef CRuntime* ptr = self.ptr
-        while True:
-            yield ptr.time()
-            tick(ptr)
+#     def __iter__(self):
+#         cdef CRuntime* ptr = self.ptr
+#         while True:
+#             yield ptr.time()
+#             tick(ptr)
 
 ###########################################################
 
@@ -616,7 +884,7 @@ cdef class EventHandler:
     def __cinit__(self, object func, IndexType t):
         """
         func: a callable of the form
-          func(double d, IndexType t, int i) where 
+          func(double d, IndexType t, int i) where
              double d: the event time
              IndexType t: local or global index enum
              int i: the index value
@@ -720,7 +988,7 @@ cdef cbool MessageCallback(PyObject* func,
 # And for handling errors at the C/Python interface
 #
 # pythonError: true if a python error is being stored until we get out of C
-# etype, evalue, etraceback: three bits of data to recreate the exception 
+# etype, evalue, etraceback: three bits of data to recreate the exception
 #    so that it can be thrown
 #
 pythonError = False

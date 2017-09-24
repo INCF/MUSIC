@@ -19,13 +19,16 @@ namespace MUSIC
 
 	class PortConnectivityManager
 	{
-		public:
-
+		private:
 			PortConnectivityManager (Configuration& config)
 				  : config_ (config)
 				  , portMap_ ()
 	              , connectivityModified_ (false)
 			{}
+
+			void updatePorts();
+
+		public:
 
 			PortConnectivityManager(const PortConnectivityManager&) = delete;
 			PortConnectivityManager& operator= (const PortConnectivityManager&) = delete;
@@ -42,9 +45,6 @@ namespace MUSIC
 
 			bool isConnected (std::string identifier) const;
 			bool isInstantiated (std::string identifier);
-
-			// TODO move in private
-			void updatePorts();
 
 			SPVec<Port> getPorts ();
 

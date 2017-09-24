@@ -4,7 +4,10 @@
 #include <Python.h>
 
 #include <mpi.h>
-#include "music/setup.hh"
+/* #include "music/setup.hh" */
+#include "music/application.hh"
+/* #include "music/port_manager.hh" */
+/* #include "music/music_context.hh" */
 #include "music/runtime.hh"
 #include "music/index_map.hh"
 #include "music/event.hh"
@@ -17,12 +20,8 @@
 namespace MUSIC {
   using namespace std;
 
-  inline MPI_Comm communicator(MUSIC::Setup* s) {
-    return (MPI_Comm) s->communicator();
-  }
-
-  inline MPI_Comm communicator(MUSIC::Runtime* r) {
-    return (MPI_Comm) r->communicator();
+  inline MPI_Comm communicator(MUSIC::Application* app) {
+    return (MPI_Comm) app->communicator();
   }
 
   inline int toint(MUSIC::GlobalIndex i) {
@@ -38,7 +37,7 @@ namespace MUSIC {
   static PyObject* evalue;
   static PyObject* etraceback;
 
-  bool tick(Runtime* ptr) {
+  bool tick(Application* ptr) {
     ptr->tick();
     if (! pythonError) return true;
 
