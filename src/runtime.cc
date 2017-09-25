@@ -64,6 +64,8 @@ namespace MUSIC
 					connections->push_back (c);
 				}
 			});
+	if (connections->size () == 0)
+		return;
 
     if (app_.launchedByMusic ())
       {
