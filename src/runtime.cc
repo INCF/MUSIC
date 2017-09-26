@@ -57,7 +57,7 @@ namespace MUSIC
 	Connections* connections = new Connections ();
 
 	std::for_each (ports.begin (), ports.end (),
-			[&](auto& port_ptr)
+			[&](std::shared_ptr<MUSIC::Port>& port_ptr)
 			{
 				for (auto& c : port_ptr->getConnections ())
 				{
