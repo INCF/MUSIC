@@ -156,7 +156,7 @@ namespace MUSIC
 	std::string config_str;
 	config_str.assign(EnvHelpers::read_env(Configuration::configEnvVarName));
 	assert(config_str.length() > 0);
-	return std::make_unique<Configuration> (config_str);
+	return std::unique_ptr<Configuration> (new Configuration (config_str));
   }
 
   std::unique_ptr<Configuration> ExecContext::getConfiguration()
@@ -172,7 +172,7 @@ namespace MUSIC
 
   std::unique_ptr<Configuration> DefaultContext::getConfiguration()
   {
-	return std::make_unique<Configuration> ();
+	return std::unique_ptr<Configuration> (new Configuration ());
   }
 
   MPI::Intracomm DefaultContext::getComm()

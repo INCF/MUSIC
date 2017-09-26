@@ -7,6 +7,7 @@
 #include "music/application_mapper.hh"
 #include <strings.h>
 #include <fstream>
+#include "music/error.hh"
 
 namespace MUSIC
 {
@@ -14,7 +15,10 @@ namespace MUSIC
 
 	const ConnectivityInfo& PortConnectivityManager::portConnectivity (const std::string identifier) const
 	{
-		return *config_.connectivityMap ()->info (identifier);
+		auto info = config_.connectivityMap ()->info (identifier);
+		if (info == nullptr)
+			error ("No connectivity info for port " + identifier + " found");
+		return *info;
 	}
 
 	bool PortConnectivityManager::isInstantiated (std::string identifier)

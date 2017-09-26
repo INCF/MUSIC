@@ -150,7 +150,8 @@ namespace MUSIC {
     CMapIterator info
       = connectivityMap.find (portName);
     if (info == connectivityMap.end ())
-      return NO_CONNECTIVITY;
+      return nullptr;
+ 	  /* error ("No connectivity info for port " + portName + " found"); */
     else
 	  return info->second;
   }

@@ -10,7 +10,7 @@ namespace MUSIC
 	static std::string err_MPI_Init = "MPI_Init was called before the Setup constructor";
 
 	Application::Application ()
-		: Application( std::move (std::make_unique<DefaultContext> ()))
+		: Application( std::unique_ptr<DefaultContext> (new DefaultContext ()))
 	{}
 
 	Application::Application(std::unique_ptr<MusicContext> context, double timebase)
