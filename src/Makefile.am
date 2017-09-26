@@ -15,6 +15,7 @@ libmusic_la_SOURCES = \
 	music/data_map.hh \
 	array_data.cc music/array_data.hh \
 	configuration.cc music/configuration.hh \
+	application.cc music/application.hh \
 	application_map.cc music/application_map.hh \
 	application_mapper.cc music/application_mapper.hh \
 	ioutils.cc music/ioutils.hh \
@@ -45,6 +46,7 @@ libmusic_la_SOURCES = \
 	music/interval_table.hh music/ordered_ilist.hh \
 	music/communication.hh music/memory.hh memory.cc \
 	music/predict_rank.hh predict_rank.cc \
+	music/misc.hh \
 	music/version.hh version.cc
 
 libmusic_la_HEADERS = music.hh
@@ -92,6 +94,7 @@ musicinclude_HEADERS = music/port_manager.hh \
 		       music/message.hh music/music-config.hh \
 		       music/predict_rank.hh  music/predict_rank-c.h \
 		       music/communication.hh music/version.hh \
-		       music/memory.hh music/music_context.hh
+		       music/memory.hh music/music_context.hh \
+		       music/misc.hh
 
 MKDEP = gcc -M $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
