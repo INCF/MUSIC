@@ -92,14 +92,17 @@ namespace MUSIC {
 
   class TickingPort : public virtual Port {
   public:
-	using Port::Port;
+    // Do not use C++ constructor inheritance due to bug in GCC 6.3.0
+    TickingPort (const Application& app, std::string id)
+      : Port (app, id) { }
     virtual void tick () = 0;
   };
 
 
   class OutputPort :  public  virtual Port {
   public:
-	  using Port::Port;
+    OutputPort (const Application& app, std::string id)
+      : Port (app, id) { }
   protected:
 
 	void reconnect () override;
@@ -112,7 +115,8 @@ namespace MUSIC {
 
   class InputPort :   public  virtual Port {
   public:
-	  using Port::Port;
+    InputPort (const Application& app, std::string id)
+      : Port (app, id) { }
   protected:
 
 	void reconnect () override;
@@ -126,7 +130,8 @@ namespace MUSIC {
 
   class ContPort :  public virtual Port {
   public:
-	using Port::Port;
+    ContPort (const Application& app, std::string id)
+      : Port (app, id) { }
   protected:
     Sampler sampler;
     MPI::Datatype type_;
@@ -141,7 +146,10 @@ namespace MUSIC {
 
   public:
     ContOutputPort (const Application& app, std::string id)
-      : Port (app, id) { }
+      : Port (app, id),
+	ContPort (app, id),
+	OutputPort (app, id),
+	TickingPort (app, id) { }
     void map (DataMap* dmap);
     void map (DataMap* dmap, int maxBuffered);
     void tick ();
@@ -158,7 +166,7 @@ namespace MUSIC {
 
   public:
     ContInputPort (const Application& app, std::string id)
-      : Port (app, id) { }
+      : Port (app, id), ContPort (app, id), InputPort (app, id) { }
     void map (DataMap* dmap, double delay = 0.0, bool interpolate = true);
     void map (DataMap* dmap, int maxBuffered, bool interpolate = true);
     void map (DataMap* dmap,
@@ -255,7 +263,7 @@ namespace MUSIC {
   protected:
     int rank_;
   public:
-    MessagePort (const Application& app);
+    MessagePort (const Application& app, std::string id);
   };
 
   class MessageOutputPort : public MessagePort,

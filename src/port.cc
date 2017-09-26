@@ -441,7 +441,9 @@ namespace MUSIC {
    ********************************************************************/
 
   EventOutputPort::EventOutputPort (const Application& app, std::string id)
-    : Port (app, id), routingMap (new OutputRoutingMap () /* deleted in buildTable */)
+    : Port (app, id),
+      OutputPort (app, id),
+      routingMap (new OutputRoutingMap () /* deleted in buildTable */)
   {
     /* remedius
      * Depending on the communication type (<commType>) and
@@ -587,7 +589,7 @@ namespace MUSIC {
 
 
   EventInputPort::EventInputPort (const Application& app, std::string id)
-    : Port (app, id)
+    : Port (app, id), InputPort (app, id)
   {
 
   }
@@ -721,14 +723,14 @@ namespace MUSIC {
    *
    ********************************************************************/
 
-  MessagePort::MessagePort (const Application& app)
-    : rank_ (app_.communicator ().Get_rank ())
+  MessagePort::MessagePort (const Application& app, std::string id)
+    : Port (app, id), rank_ (app_.communicator ().Get_rank ())
   {
   }
 
 
   MessageOutputPort::MessageOutputPort (const Application& app, std::string id)
-    : Port (app, id), MessagePort (app)
+    : Port (app, id), MessagePort (app, id), OutputPort (app, id)
   {
   }
 
@@ -794,7 +796,7 @@ namespace MUSIC {
 
 
   MessageInputPort::MessageInputPort (const Application& app, std::string id)
-    : Port (app, id), MessagePort (app)
+    : Port (app, id), MessagePort (app, id), InputPort (app, id)
   {
   }
 
