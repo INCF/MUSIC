@@ -15,7 +15,6 @@ libmusic_la_SOURCES = \
 	music/data_map.hh \
 	array_data.cc music/array_data.hh \
 	configuration.cc music/configuration.hh \
-	application.cc music/application.hh \
 	application_map.cc music/application_map.hh \
 	application_mapper.cc music/application_mapper.hh \
 	ioutils.cc music/ioutils.hh \
