@@ -186,7 +186,7 @@ namespace MUSIC
 	{
 		std::unique_ptr<MusicContext> ptr {fac_function (argc, argv)};
 		if (ptr != nullptr)
-			return std::move (ptr);
+			return ptr;
 	}
 	errorRank (err_factory_no_handler);
   }
@@ -196,7 +196,7 @@ namespace MUSIC
 	initialize_MPI (argc, argv);
 	auto context = createContextImpl (argc, argv);
 	assert (context->getComm ()!= MPI::COMM_NULL);
-	return std::move(context);
+	return context;
   }
 
   std::unique_ptr<MusicContext> MusicContextFactory::createContext (int& argc, char**& argv, int required, int* provided)
@@ -204,7 +204,7 @@ namespace MUSIC
 	initialize_MPI (argc, argv, required, provided);
 	auto context = createContextImpl (argc, argv);
 	assert (context->getComm ()!= MPI::COMM_NULL);
-	return std::move(context);
+	return context;
   }
 
   void MusicContextFactory::addContextFactoryfunction (ContextFactoryfunction fac_function)

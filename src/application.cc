@@ -32,14 +32,14 @@ namespace MUSIC
     : Application( std::unique_ptr<DefaultContext> (new DefaultContext ()))
   {}
 
-  Application::Application(std::unique_ptr<MusicContext> context, double timebase)
+  Application::Application(std::unique_ptr<MusicContext>&& context, double timebase)
     : Application(context->getConfiguration(), context->getComm(),
 		  context->launchedByMusic(), timebase)
   {
     assert (comm_ != MPI::COMM_NULL);
   }
 
-  Application::Application(std::unique_ptr<Configuration> config, MPI::Intracomm comm,
+  Application::Application(std::unique_ptr<Configuration>&& config, MPI::Intracomm comm,
 			   bool launchedByMusic, double timebase):
     config_ (std::move (config)),
     timebase_ (timebase),
