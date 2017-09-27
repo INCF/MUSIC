@@ -4,19 +4,20 @@ import music
 import sys
 from itertools import takewhile
 
-setup = music.Setup()
-stoptime = setup.config("stoptime")
-timestep = setup.config("timestep")
-buf = setup.config("buffer")
+# setup = music.Setup()
+application = music.Application()
+stoptime = application.config("stoptime")
+timestep = application.config("timestep")
+buf = application.config("buffer")
 
-errorAt = setup.config("errorAt")
+errorAt = application.config("errorAt")
 if errorAt < 0: errorAt = None
 
-comm = setup.comm
+comm = application.comm
 rank = comm.Get_rank()
 size = comm.Get_size()
 
-inp = setup.publishEventInput("in")
+inp = application.publishEventInput("in")
 
 width = inp.width()
 local = width // size
@@ -37,13 +38,15 @@ def eventfunc(d, t, i):
     sys.stderr.write("Receive rank {}: Event ({}, {}) at {}\n".
                      format(rank, i, d, time))
 
-inp.map(eventfunc, 
-        music.Index.GLOBAL, 
-        base=firstId, 
+inp.map(eventfunc,
+        music.Index.GLOBAL,
+        base=firstId,
         size=local,
         maxBuffered=buf)
 
-runtime = music.Runtime(setup, timestep)
+# runtime = music.Runtime(setup, timestep)
+application.enterSimulationLoop(timestep)
 times = takewhile(lambda t: t <= stoptime, runtime)
 for time in times:
     pass
+application.finalize()

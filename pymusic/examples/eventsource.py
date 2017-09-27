@@ -4,17 +4,17 @@ import music
 from itertools import groupby, takewhile
 import sys
 
-setup = music.Setup()
-stoptime = setup.config("stoptime")
-timestep = setup.config("timestep")
-buf = setup.config("buffer")
-events = setup.config("events")
+application = music.Application()
+stoptime = application.config("stoptime")
+timestep = application.config("timestep")
+buf = application.config("buffer")
+events = application.config("events")
 
-comm = setup.comm
+comm = application.comm
 rank = comm.Get_rank()
 size = comm.Get_size()
 
-out = setup.publishEventOutput("out")
+out = application.publishEventOutput("out")
 
 width = out.width()
 local = width // size
@@ -35,8 +35,9 @@ eventgen = ((firstId + i % local, i * stoptime / events)
 steps = groupby(eventgen, lambda i_t: int(i_t[0]/timestep))
 def step(): return next(steps, (None, None))
 
-runtime = setup.runtime(timestep)
-times = takewhile(lambda t: t < stoptime, runtime)
+# runtime = application.runtime(timestep)
+application.enterSimulationLoop(timestep)
+times = takewhile(lambda t: t < stoptime, application)
 nextStep, nextEvents = step()
 for t in times:
     if int(t/timestep) != nextStep: continue
@@ -47,3 +48,4 @@ for t in times:
         out.insertEvent(when, index, music.Index.GLOBAL)
 
     nextStep, nextEvents = step()
+application.finalize()
