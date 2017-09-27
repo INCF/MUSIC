@@ -9,3 +9,5 @@ Mikael Djurfeldt <mikael@djurfeldt.com>
 Johannes Hjorth wrote the viewevents utility.
 
 Eilif Müller added support for MPICH 2.0
+
+Martin Schulze added support for dynamic ports
