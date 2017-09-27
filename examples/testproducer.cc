@@ -2,12 +2,14 @@
 #include <cstdlib>
 #include <cmath>
 #include <iostream>
+#include <fstream>
 #include <music.hh>
 
 #define TIMESTEP 0.001
 
 MPI::Intracomm comm;
 double* data;
+double* data2;
 
 int
 main (int argc, char* argv[])
@@ -25,6 +27,7 @@ main (int argc, char* argv[])
   // For clarity, assume that width is a multiple of n_processes
   int nLocalVars = width / nProcesses;
   data = new double[nLocalVars];
+  data2 = new double[nLocalVars];
   for (int i = 0; i < nLocalVars; ++i)
     data[i] = 0.0;
 
@@ -35,8 +38,17 @@ main (int argc, char* argv[])
 			 nLocalVars);
   wave_port->map (&dmap);
 
+  MUSIC::ArrayData dmap2 (data2,
+			 MPI::DOUBLE,
+			 rank * nLocalVars,
+			 nLocalVars);
+
   double stoptime;
   app.config ("stoptime", &stoptime);
+
+  std::ostringstream filename;
+  filename << argv[1] << rank << ".producer.out";
+  std::ofstream file (filename.str ().data ());
 
   // Define simulation loop
   auto loop = [&] (double stoptime)
@@ -45,6 +57,9 @@ main (int argc, char* argv[])
 		{
 		  if (rank == 0)
 			{
+			  for (int i = 0; i < nLocalVars; ++i)
+				  file << data[i] << ' ';
+			  file << std::endl;
 			  // Generate original data on master node
 			  int i;
 			  double time = app.time ();
@@ -67,12 +82,15 @@ main (int argc, char* argv[])
 
   // Fiddling around
   auto& portManager = app.getPortConnectivityManager ();
-  /* portManager.connect ("consumer", "newPort", "producer", "newPort", 10, MUSIC::CommunicationType::POINTTOPOINT, MUSIC::ProcessingMethod::TREE); */
+  portManager.connect ("consumer", "newPort", "producer", "newPort", 10, MUSIC::CommunicationType::POINTTOPOINT, MUSIC::ProcessingMethod::TREE);
 
 
   wave_port.reset ();
   wave_port = app.publish<MUSIC::ContOutputPort> ("wavedata");
   wave_port->map(&dmap);
+
+  auto newPort = app.publish<MUSIC::ContInputPort> ("newPort");
+  newPort->map(&dmap2, 1.);
 
   // Second loop
   app.enterSimulationLoop (TIMESTEP);

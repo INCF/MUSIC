@@ -2,11 +2,13 @@
 #include <music.hh>
 #include <fstream>
 #include <sstream>
+#include <cmath>
 
 #define TIMESTEP 0.0005
 
 MPI::Intracomm comm;
 double* data;
+double* data2;
 
 int
 main (int argc, char* argv[])
@@ -31,9 +33,14 @@ main (int argc, char* argv[])
   int nLocalVars = width / nProcesses;
   data = new double[nLocalVars];
   std::ostringstream filename;
-  filename << argv[1] << rank << ".out";
+  filename << argv[1] << rank << ".consumer.out";
   std::cout << "filename "  << argv[1] << std::endl;
   std::ofstream file (filename.str ().data ());
+
+  // Init data2
+  data2 = new double[nLocalVars];
+  for (int i = 0; i < nLocalVars; ++i)
+    data2[i] = 0.0;
 
   // Declare where in memory to put data
   MUSIC::ArrayData dmap (data,
@@ -41,6 +48,11 @@ main (int argc, char* argv[])
 			 rank * nLocalVars,
 			 nLocalVars);
   wavePort->map (&dmap);
+
+  MUSIC::ArrayData dmap2 (data2,
+			 MPI::DOUBLE,
+			 rank * nLocalVars,
+			 nLocalVars);
 
   double stoptime;
   app.config ("stoptime", &stoptime);
@@ -54,6 +66,11 @@ main (int argc, char* argv[])
 		  for (int i = 0; i < nLocalVars; ++i)
 			  file << data[i] << ' ';
 		  file << std::endl;
+
+		  int i;
+		  double time = app.time ();
+		  for (i = 0; i < nLocalVars; ++i)
+			data2[i] = sin (2 * M_PI * time * i);
 		}
   };
   // First loop
@@ -63,16 +80,19 @@ main (int argc, char* argv[])
 
   // Fiddling around
   auto& portManager = app.getPortConnectivityManager ();
-  /* portManager.connect ("consumer", "newPort", "producer", "newPort", 10, MUSIC::CommunicationType::POINTTOPOINT, MUSIC::ProcessingMethod::TREE); */
+  portManager.connect ("consumer", "newPort", "producer", "newPort", 10, MUSIC::CommunicationType::POINTTOPOINT, MUSIC::ProcessingMethod::TREE);
+
   wavePort.reset () ;
   wavePort = app.publish<MUSIC::ContInputPort> ("wavedata");
-  wavePort->map (&dmap);
+  wavePort->map (&dmap, 1.);
+
+  auto newPort = app.publish<MUSIC::ContOutputPort> ("newPort");
+  newPort->map(&dmap2);
+
 
   // Second loop
   app.enterSimulationLoop (TIMESTEP);
   loop (stoptime * 2.);
-
-  // Finalize
   std::cout << "Finalizing" << std::endl;
   app.finalize ();
 

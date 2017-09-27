@@ -93,52 +93,6 @@ namespace MUSIC
     state_ = ApplicationState::STOPPED;
   }
 
-  // TODO all of this repetetive stuff could be realized as template function
-  // but then we have to use a single function name for all of them
-  // o
-
-
-  /* std::shared_ptr<ContInputPort> */
-  /* Application::publishContInput (std::string identifier) */
-  /* { */
-  /* 	return port_manager_.createPort<ContInputPort> (*this, identifier); */
-  /* } */
-
-
-  /* std::shared_ptr<ContOutputPort> */
-  /* Application::publishContOutput (std::string identifier) */
-  /* { */
-  /* 	return port_manager_.createPort<ContOutputPort> (*this, identifier); */
-  /* } */
-
-
-  /* std::shared_ptr<EventInputPort> */
-  /* Application::publishEventInput (std::string identifier) */
-  /* { */
-  /* 	return port_manager_.createPort<EventInputPort> (*this, identifier); */
-  /* } */
-
-
-  /* std::shared_ptr<EventOutputPort> */
-  /* Application::publishEventOutput (std::string identifier) */
-  /* { */
-  /* 	return port_manager_.createPort<EventOutputPort> (*this, identifier); */
-  /* } */
-
-
-  /* std::shared_ptr<MessageInputPort> */
-  /* Application::publishMessageInput (std::string identifier) */
-  /* { */
-  /* 	return port_manager_.createPort<MessageInputPort> (*this, identifier); */
-  /* } */
-
-
-  /* std::shared_ptr<MessageOutputPort> */
-  /* Application::publishMessageOutput (std::string identifier) */
-  /* { */
-  /* 	return port_manager_.createPort<MessageOutputPort> (*this, identifier); */
-  /* } */
-
   PortConnectivityManager& Application::getPortConnectivityManager ()
   {
     return port_manager_;
