@@ -63,6 +63,10 @@ namespace MUSIC
 				std::shared_ptr<Port> ptr (std::static_pointer_cast<Port> (port));
 				if (isInstantiated (ptr->name ()))
 					error (std::string ("Port already has been instantiated."));
+				// First make sure to remove any
+				// instance with the same key
+				portMap_.erase (port->name ());
+
 				portMap_.emplace (port->name (), port);
 			}
 
