@@ -59,6 +59,7 @@ namespace MUSIC
 	std::for_each (ports.begin (), ports.end (),
 			[&](std::shared_ptr<MUSIC::Port>& port_ptr)
 			{
+				assert (port_ptr->getConnections ().empty () == false);
 				for (auto& c : port_ptr->getConnections ())
 				{
 					connections->push_back (c);

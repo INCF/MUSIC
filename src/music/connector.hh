@@ -99,6 +99,12 @@ namespace MUSIC {
       return flag;
     }
 
+	static void removeFlag (Connector* connector)
+	{
+		unsigned int flag = connector->idFlag ();
+		flagMap_.erase (flag);
+	}
+
     static unsigned int makeProxyFlag ()
     {
       unsigned int flag = nextProxyFlag_;
@@ -129,7 +135,8 @@ namespace MUSIC {
       for (std::vector<Subconnector*>::iterator subconnector = rsubconn.begin ();
 	   subconnector != rsubconn.end ();
 	   ++subconnector)
-	delete *subconnector;
+		delete *subconnector;
+
     }
 	// Decides whether Connector is Interpolating or Plain
     virtual void specialize (Clock& localTime) { }
@@ -474,10 +481,12 @@ namespace MUSIC {
   protected:
     EventRouter *router_; //is used for processing received information
     EventCollectiveConnector( bool high);
+	virtual ~EventCollectiveConnector ();
   public:
     void createIntercomm () { Connector::createIntercomm (); }
     void freeIntercomm () { Connector::freeIntercomm (); }
   };
+
 
   class EventInputCollectiveConnector:  public EventInputConnector, public EventCollectiveConnector {
     EventRoutingMap<EventHandlerPtr*>* routingMap_input; //is used to fill the information for the receiver

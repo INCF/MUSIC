@@ -911,6 +911,11 @@ error( "LOCAL Indices are not supported with MUSIC_ANYSOURCE");
     idFlag_ = makeFlag (this);
   }
 
+  EventCollectiveConnector::~EventCollectiveConnector ()
+  {
+    removeFlag (this);
+  }
+
 
   Subconnector*
   EventInputCollectiveConnector::makeSubconnector (void *param)

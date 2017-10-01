@@ -47,11 +47,11 @@ namespace MUSIC
   class Application final
   {
   private:
-    Application(std::unique_ptr<Configuration>&& config, MPI::Intracomm comm, bool launchedByMusic, double timebase);
+    Application(std::unique_ptr<Configuration> config, MPI::Intracomm comm, bool launchedByMusic, double timebase);
 
   public:
     Application ();
-    Application (std::unique_ptr<MusicContext>&& context,
+    Application (std::unique_ptr<MusicContext> context,
 		 double timebase = MUSIC_DEFAULT_TIMEBASE);
     Application (int& argc, char**& argv, double timebase = MUSIC_DEFAULT_TIMEBASE);
     Application (int& argc, char**& argv, int required, int* provided, double timebase = MUSIC_DEFAULT_TIMEBASE);
