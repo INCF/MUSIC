@@ -64,6 +64,8 @@ namespace MUSIC {
 
     bool lookup(std::string name, std::string* result);
 
+    bool lookup (std::string name, bool* result);
+
     void insert (std::string name, std::string value);
 
     const ConfigDict &getDict();

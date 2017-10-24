@@ -398,6 +398,13 @@ namespace MUSIC {
     return config_->lookup (var, result);
   }
 
+
+  bool
+  Setup::config (string var, bool* result)
+  {
+    return config_->lookup (var, result);
+  }
+
   
   ContInputPort*
   Setup::publishContInput (std::string identifier)

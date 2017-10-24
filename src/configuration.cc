@@ -230,6 +230,24 @@ namespace MUSIC {
     return true; // Doesn't happen! Just for compiler!
   }
 
+  bool
+  Configuration::lookup (std::string name, bool* result)
+  {
+    std::map<std::string, std::string>::iterator pos = dict_.find (name);
+    if (pos == dict_.end ())
+      return defaultConfig_ && defaultConfig_->lookup (name, result);
+
+    std::istringstream iss(pos->second);
+    if (! (iss >> std::boolalpha >> *result).fail ())
+      return true;
+
+    std::ostringstream oss;
+    oss << "var " << name << " given wrong type (" << pos->second
+	<< "; expected bool) in config file";
+    error(oss.str ());
+    return true; // Doesn't happen! Just for compiler!
+  }
+
   std::string
   Configuration::Name ()
   {

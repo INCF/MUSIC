@@ -67,6 +67,8 @@ namespace MUSIC {
 
     bool config (string var, double* result);
 
+    bool config (string var, bool* result);
+
     ContInputPort* publishContInput (string identifier);
 
     ContOutputPort* publishContOutput (string identifier);
