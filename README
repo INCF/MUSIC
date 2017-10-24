@@ -37,7 +37,8 @@ MUSIC can be built and installed using the generic installation
 instructions found in the file INSTALL.  At the top of the source
 distribution directory, do:
 
-./configure
+./autogen.sh
+./configure --prefix=<PREFIX>
 make
 make install
 
