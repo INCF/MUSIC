@@ -96,17 +96,15 @@ directory.
 
 * Where to find more information
 
-The MUSIC manual and other information can be found on the MUSIC home
-page at the INCF Software Center:
+The MUSIC manual and other information can be found on the MUSIC wiki:
 
-  http://software.incf.org/software/music/home
+  https://github.com/INCF/MUSIC/wiki
 
-Questions and requests can be sent to music-project@incf.org
+Questions and requests can be sent to mdj@pdc.kth.se.
 
 
 * Submitting bug reports
 
-Bug reports can be sent to music-bugs@incf.org
+Bug reports should be submitted as issues on the MUSIC github page:
 
-Please refer to the MUSIC home page at the INCF software center with
-the URL given in the previous section.
+  https://github.com/INCF/MUSIC/issues
