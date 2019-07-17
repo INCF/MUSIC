@@ -60,8 +60,7 @@ def postponeSetup ():
     the first port.  Must be called before creation of MUSIC::Setup.
     """
     if not thisApp:
-        raise RuntimeError, \
-              'must define Application before calling postponeSetup ()'
+        raise RuntimeError('must define Application before calling postponeSetup ()')
     os.environ[CONFIGVARNAME] = 'POSTPONE:' + str (thisApp.number)
 
 
