@@ -21,7 +21,7 @@
 
 import os
 
-from music.predict_rank import predictRank
+from music import predictRank
 
 # This function now defined in predict_rank.py
 #

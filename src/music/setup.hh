@@ -114,6 +114,8 @@ namespace MUSIC {
 
     void init (int& argc, char**& argv);
 
+    void init_comm ();
+
     void maybeProcessMusicArgv (int& argc, char**& argv);
 
     void maybePostponedSetup ();
