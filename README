@@ -49,12 +49,15 @@ LD_LIBRARY_PATH:
 
 for the music utility to find its library.)
 
-A MUSIC multisimulation is specified in a configuration file given as
+A MUSIC co-simulation is specified in a configuration file given as
 the first argument to the music utility.  The test subdirectory
 contains a collection of examples, for example:
 
 cd test
 mpirun -np 4 /usr/local/bin/music demo.music
+
+On some systems, this way of invoking a MUSIC co-simulation isn't
+supported. Se blow for an alternative method.
 
 
 * Compilation and linking flags
@@ -76,7 +79,7 @@ MPI_LDFLAGS   Linking flags
 
 * Porting
 
-When launching a set of applications in a multisimulation, MUSIC needs
+When launching a set of applications in a co-simulation, MUSIC needs
 to go outside the MPI standard in two respects:
 
 1. It needs to know the MPI process rank of the running process before
@@ -92,6 +95,24 @@ to port the MUSIC library to a new version of MPI, please supply new
 definitions for the functions getRank and getConfig in
 mpidep/mpidep.c.  For more details, see the file PORTING in this
 directory.
+
+
+* Alternative way to invoke MUSIC co-simulations
+
+In case the method of launching MUSIC described under "Getting
+started" above fails, there is an alternative method:
+
+Let's assume that we want to launch application A with binary a and Na
+processes, and application B with binary b and Nb processes. These are
+listed in a standard MUSIC config file ab.music with block labels A
+and B. The standard way to launch these would be:
+
+  mpirun -np <Na+Nb> music ab.music
+
+(where <Na+Nb> is a number). These can alternatively be launched in
+MPMD style as:
+
+  mpirun -np Na ./a --music-config ab.music --app-label A : -np Nb ./b --music-config ab.music --app-label B
 
 
 * Where to find more information
