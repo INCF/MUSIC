@@ -1,0 +1,5 @@
+test/README
+test/*.cc
+test/*.music
+test/*.data
+test/*.dat

@@ -1,3 +1,55 @@
+music (1.1.16) unstable; urgency=medium
+
+  * Upstream release 1.1.16.
+
+ -- Mikael Djurfeldt <mdj@debian.org>  Sun, 01 Dec 2019 22:31:44 +0100
+
+music (1.0.7-4) unstable; urgency=medium
+
+  * Suggest music-doc in music-bin and libmusic-dev. (Closes: #849607)
+  * Bug #759332 was closed by nmu 1.0.7-1.3. (Closes: #759332)
+
+ -- Mikael Djurfeldt <mdj@debian.org>  Sat, 07 Oct 2017 13:07:20 +0200
+
+music (1.0.7-3) unstable; urgency=high
+
+  * Fix FTBFS on non-amd64 archs. (Closes: #877907)
+
+ -- Mikael Djurfeldt <mdj@debian.org>  Sat, 07 Oct 2017 12:48:54 +0200
+
+music (1.0.7-2) unstable; urgency=high
+
+  * Fix FTBFS with GCC 7. (Closes: #853566)
+  * Updated standards version to 3.9.8.
+
+ -- Mikael Djurfeldt <mdj@debian.org>  Fri, 06 Oct 2017 16:31:52 +0200
+
+music (1.0.7-1.3) unstable; urgency=medium
+
+  * Non-maintainer upload.
+  * Switch to source format 3.0 (quilt).
+  * Fix FTBFS with GCC 6, thanks to Graham Inggs.  (Closes: #811907)
+  * Rename libmusic1 to libmusic1v5 for the GCC 5 transition.
+    (Closes: #791210)
+  * Switch to minimal dh rules.  (Closes: #805951, #822005)
+
+ -- Andreas Beckmann <anbe@debian.org>  Fri, 16 Dec 2016 11:30:20 +0100
+
+music (1.0.7-1.2) unstable; urgency=low
+
+  * Non-maintainer upload.
+  * Fix ftbfs with GCC-4.7: add "#include <unistd.h>" to 
+    utils/VisualiseNeurons.cpp (Closes: #667291).
+
+ -- Mònica Ramírez Arceda <monica@debian.org>  Thu, 10 May 2012 13:40:31 +0200
+
+music (1.0.7-1.1) unstable; urgency=low
+
+  * Non-maintainer upload.
+  * Stop shipping .la files (Closes: #622439).
+
+ -- Luk Claes <luk@debian.org>  Mon, 06 Jun 2011 08:01:00 +0200
+
 music (1.0.7-1) unstable; urgency=high
 
   * Upstream release 1.0.7 (containing urgent bugfix).
