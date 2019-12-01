@@ -1,7 +1,24 @@
 MUSIC NEWS --- history of user-visible changes.
-Copyright (C) 2009, 2010 INCF
+Copyright (C) 2009, 2010, 2019 INCF
 
 Please send MUSIC bug reports to music-bugs@incf.org.
+
+
+Changes in 1.1.16:
+
+* music library
+
+** Interim release
+
+This is an interim release in preparation for the MUSIC 2.0 release.
+
+* music utility
+
+** Novel invocation style
+
+The standard method of launching a MUSIC co-simulation is through the
+music utility. On some systems, this method can't be supported. README
+documents an alternative novel way of launching MUSIC co-simulations.
 
 
 Changes in 1.0.7:
