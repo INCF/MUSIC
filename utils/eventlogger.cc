@@ -83,6 +83,7 @@ int    maxbuffered = 0;
 std::string imaptype = "linear";
 std::string indextype = "global";
 bool all = false;
+bool useBarrier = false;
 
 int
 main (int argc, char* argv[])
@@ -104,6 +105,7 @@ main (int argc, char* argv[])
 	  {"imaptype",  required_argument, 0, 'm'},
 	  {"indextype", required_argument, 0, 'i'},
 	  {"all",	no_argument,	   0, 'a'},
+	  {"adapter",	no_argument,	   0, 'z'},
 	  {"help",      no_argument,       0, 'h'},
 	  {"in",	required_argument, 0, IN},
 	  {"message-in", required_argument, 0, MESSAGE_IN},
@@ -113,7 +115,7 @@ main (int argc, char* argv[])
       int optionIndex = 0;
 
       // the + below tells getopt_long not to reorder argv
-      int c = getopt_long (argc, argv, "+t:l:b:m:i:ah", longOptions, &optionIndex);
+      int c = getopt_long (argc, argv, "+t:l:b:m:i:azh", longOptions, &optionIndex);
 
      //  detect the end of the options
       if (c == -1)
@@ -148,6 +150,9 @@ main (int argc, char* argv[])
 	  continue;
 	case 'a':
 	  all = true;
+	  continue;
+	case 'z':
+	  useBarrier = true;
 	  continue;
 	case IN:
 	  portName = optarg;
@@ -251,6 +256,9 @@ main (int argc, char* argv[])
 
   double stoptime;
   setup->config ("stoptime", &stoptime);
+
+  if (useBarrier)
+    MPI::COMM_WORLD.Barrier();
 
   // Run
   MUSIC::Runtime* runtime = new MUSIC::Runtime (setup, timestep);

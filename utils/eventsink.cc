@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2008, 2009 INCF
+ *  Copyright (C) 2008, 2009, 2018 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -78,6 +78,7 @@ string imaptype = "linear";
 string indextype = "global";
 string prefix;
 string suffix = ".dat";
+bool useBarrier = false;
 
 void
 getargs (int rank, int argc, char* argv[])
@@ -93,13 +94,14 @@ getargs (int rank, int argc, char* argv[])
 	  {"indextype", required_argument, 0, 'i'},
 	  {"help",      no_argument,       0, 'h'},
 	  {"in",	required_argument, 0, IN},
+	  {"adapter",	  no_argument, 0, 'z'},
 	  {0, 0, 0, 0}
 	};
       /* `getopt_long' stores the option index here. */
       int option_index = 0;
 
       // the + below tells getopt_long not to reorder argv
-      int c = getopt_long (argc, argv, "+t:m:i:h", longOptions, &option_index);
+      int c = getopt_long (argc, argv, "+t:m:i:hz", longOptions, &option_index);
 
       /* detect the end of the options */
       if (c == -1)
@@ -128,6 +130,9 @@ getargs (int rank, int argc, char* argv[])
 	  continue;
 	case IN:
 	  portName = optarg;
+	  continue;
+	case 'z':
+	  useBarrier = true;
 	  continue;
 	case '?':
 	  break; // ignore unknown options
@@ -215,6 +220,9 @@ main (int argc, char *argv[])
 
   double stoptime;
   setup->config ("stoptime", &stoptime);
+
+  if (useBarrier)
+    MPI::COMM_WORLD.Barrier();
 
   MUSIC::Runtime* runtime = new MUSIC::Runtime (setup, timestep);
 
