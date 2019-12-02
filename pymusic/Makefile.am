@@ -1,5 +1,7 @@
 
-EXTRA_DIST = setup.py.in tests.py pymusic.pyx pymusic.pxd pybuffer.pyx pybuffer.pxd 
+EXTRA_DIST = setup.py.in tests.py pymusic.pyx pymusic.pxd pybuffer.pyx pybuffer.pxd \
+             music/__init__.py music/music_c.h music/pybuffer.pxd music/pymusic.pxd \
+             music/pymusic_c.h mpi_compat.h
 
 BUILT_SOURCES = pymusic.cpp pybuffer.cpp
 

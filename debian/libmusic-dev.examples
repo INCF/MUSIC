@@ -1,5 +1,5 @@
-test/README
-test/*.cc
-test/*.music
-test/*.data
-test/*.dat
+examples/README
+examples/*.cc
+examples/*.music
+examples/*.data
+examples/*.dat
