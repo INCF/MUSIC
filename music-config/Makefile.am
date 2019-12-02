@@ -8,5 +8,5 @@ EXTRA_DIST = predict_rank.py.in
 
 predict_rank.py: Makefile predict_rank.py.in
 	rm -f $@ $@.tmp
-	$(edit) $${srcdir}$@.in >$@.tmp
+	$(edit) $(srcdir)/$@.in >$@.tmp
 	mv $@.tmp $@
