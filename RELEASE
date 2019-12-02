@@ -6,8 +6,6 @@ Checklist for a release:
 
 * update NEWS
 
-* version number in README
-
 * "Release x.y.z" in all ChangeLog:s except in rudeconfig/
 
 * make debian-source
