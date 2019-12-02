@@ -7,7 +7,7 @@ testlib_PROGRAMS =  test_ag #test_tng
 
 MUSIC_INCLUDE = -I$(top_srcdir)/src -I$(top_builddir)/src
 
-test_ag_SOURCES = test_ag.cc
+test_ag_SOURCES = test_ag.cc catch.hpp
 test_ag_CXXFLAGS = $(MUSIC_INCLUDE) @MPI_CXXFLAGS@
 test_ag_LDADD = $(top_builddir)/src/libmusic.la @MPI_LDFLAGS@
 
