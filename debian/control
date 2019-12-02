@@ -1,5 +1,5 @@
 Source: music
-Priority: extra
+Priority: optional
 Maintainer: Mikael Djurfeldt <mdj@debian.org>
 Build-Depends:
  debhelper (>= 10),
