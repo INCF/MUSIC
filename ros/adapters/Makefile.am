@@ -2,10 +2,10 @@ bin_PROGRAMS = connect_adapter ros_sensor_adapter ros_command_adapter
 
 
 # look for ros in the common paths
-LD_ROS_PATH = -L/opt/ros/melodic/lib/ \
+LD_ROS_PATH = -L/opt/ros/kinetic/lib/ \
 			  -L/opt/ros/jade/lib/
 
-INC_ROS_PATH = -I/opt/ros/melodic/include \
+INC_ROS_PATH = -I/opt/ros/kinetic/include \
 			   -I/opt/ros/jade/include
 
 AM_CXXFLAGS = $(INC_ROS_PATH) -I$(top_srcdir) -I$(top_srcdir)/src -I$(top_builddir)/src @MPI_CXXFLAGS@
