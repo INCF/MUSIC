@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2008, 2009 INCF
+ *  Copyright (C) 2008, 2009, 2019 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -377,7 +377,11 @@ main (int argc, char *argv[])
 {
   MUSIC::Setup* setup = new MUSIC::Setup (argc, argv);
   MPI_Errhandler errh;
+#if MUSIC_HAVE_MPI_COMM_CREATE_ERRHANDLER
+  MPI_Comm_create_errhandler (errhandler, &errh);
+#else
   MPI_Errhandler_create (errhandler, &errh);
+#endif
   MPI_Comm_set_errhandler (MPI_COMM_WORLD, errh);
   
   MPI::Intracomm comm = setup->communicator ();

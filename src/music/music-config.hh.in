@@ -2,7 +2,7 @@
 
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2008 INCF
+ *  Copyright (C) 2008, 2019 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -20,6 +20,7 @@
 
 #define MUSIC_HAVE_SIZE_T @MUSIC_HAVE_SIZE_T@
 #define MUSIC_HAVE_LONG_LONG @MUSIC_HAVE_LONG_LONG@
+#define MUSIC_HAVE_MPI_COMM_CREATE_ERRHANDLER @MUSIC_HAVE_MPI_COMM_CREATE_ERRHANDLER@
 #define MUSIC_USE_MPI @MUSIC_USE_MPI@
 #define MUSIC_ISENDWAITALL @MUSIC_ISENDWAITALL@
 #define MUSIC_ANYSOURCE @MUSIC_ANYSOURCE@

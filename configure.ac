@@ -222,7 +222,7 @@ dnl Must use $CXX, not $MPI_CXX, here
 
 CXX="$CXX $MPI_CXXFLAGS"
 LIBS="$LIBS $MPI_LDFLAGS"
-AC_CHECK_FUNCS([rts_get_personality ompi_comm_free])
+AC_CHECK_FUNCS([rts_get_personality ompi_comm_free MPI_Comm_create_errhandler])
 
 AC_MSG_CHECKING([for MPI::Init_thread method])
 ac_have_cxx_mpi_init_thread=no
@@ -286,6 +286,12 @@ if test $ac_cv_type_long_long = yes; then
   MUSIC_HAVE_LONG_LONG=1
 else
   MUSIC_HAVE_LONG_LONG=0
+fi
+
+if test $ac_cv_func_MPI_Comm_create_errhandler = yes; then
+  MUSIC_HAVE_MPI_COMM_CREATE_ERRHANDLER=1
+else
+  MUSIC_HAVE_MPI_COMM_CREATE_ERRHANDLER=0
 fi
 
 if test "$prefix" = NONE; then
@@ -378,6 +384,7 @@ AC_SUBST(MPI_CFLAGS)
 AC_SUBST(MPI_LDFLAGS)
 AC_SUBST(MUSIC_HAVE_SIZE_T)
 AC_SUBST(MUSIC_HAVE_LONG_LONG)
+AC_SUBST(MUSIC_HAVE_MPI_COMM_CREATE_ERRHANDLER)
 AC_SUBST(MUSIC_USE_MPI)
 AC_SUBST(MUSIC_ISENDWAITALL)
 AC_SUBST(MUSIC_ANYSOURCE)
