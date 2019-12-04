@@ -15,7 +15,7 @@ EXTRA_DIST = BUGS
 #	rm $(distdir)/TODO
 installcheck-local:
 if LAUNCHSTYLE_SET
-	/bin/sh $(DESTDIR)$(bindir)/music_tests.sh
+	/bin/sh $(DESTDIR)$(bindir)/music_tests
 else
 	@echo "checkinstall target is supported only when compiled with openMPI or MPICH libraries."
 	@exit 1

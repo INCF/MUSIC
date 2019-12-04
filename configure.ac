@@ -412,7 +412,7 @@ AC_CONFIG_FILES([
   utils/Makefile
   examples/Makefile
   testsuite/Makefile
-  testsuite/music_tests.sh
+  testsuite/music_tests
   testsuite/unittests/catch/Makefile
   testsuite/sanitytests/Makefile
   music-config/Makefile
