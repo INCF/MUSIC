@@ -8,4 +8,4 @@ endif
 EXTRA_DIST	= test_old
 
 install-data-hook:
-	@INSTALL_PROGRAM@ music_tests.sh $(DESTDIR)$(bindir)
+	@INSTALL_PROGRAM@ music_tests $(DESTDIR)$(bindir)
