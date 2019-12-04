@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# This script runs all tests that are located in the testsuite directory
+# This script runs all tests that are located in the MUSIC testsuite directory
 #
 
 usage ()
@@ -10,7 +10,7 @@ usage ()
     fi
     
     cat <<EOF
-Usage: music_tests.sh [options ...]
+Usage: music_tests [options ...]
 
 Options:
 
@@ -169,14 +169,14 @@ run_test()
     echo "#!/bin/sh" > "${TEST_RUNFILE}"
     echo "set +e" >> "${TEST_RUNFILE}"
     
-    command="'${TEST_BASEDIR}/${test_name}' > '${TEST_OUTFILE}' 2>&1"
+    command="${TEST_BASEDIR}/${test_name} > ${TEST_OUTFILE} 2>&1"
 
     echo "${command}" >> "${TEST_RUNFILE}"
-    echo "echo \$? > '${TEST_RETFILE}' ; exit 0" >> "${TEST_RUNFILE}"
+    echo "echo \$? > ${TEST_RETFILE} ; exit 0" >> "${TEST_RUNFILE}"
 
     chmod 755 "${TEST_RUNFILE}"
     
-    time_dirty="$( /bin/sh -c "time ${TIME_PARAM} '${TEST_RUNFILE}' " 2>&1 )"
+    time_dirty="$( /bin/bash -c "time ${TIME_PARAM} ${TEST_RUNFILE} " 2>&1 )"
     rm -f "${TEST_RUNFILE}"
 
     TIME_ELAPSED="$( echo "${time_dirty}" | awk 'NR == 1 { print $2 ; }' )"
@@ -313,7 +313,7 @@ done
 TEST_BASEDIR="@PKGDATADIR@/tests"
 echo >> "${TEST_LOGFILE}" "Running tests from ${TEST_BASEDIR}" 
 
-TEST_BINDIR="@prefix@/@bindir@"
+TEST_BINDIR="@BINDIR@"
 export TEST_BINDIR
 
 TEST_EXTRABINDIR="@PKGEXTRABINDIR@"
@@ -322,7 +322,7 @@ export TEST_EXTRABINDIR
 CMP="${CMP-cmp}"
 export CMP
 
-MUSIC_BINARY="@prefix@/@bindir@/MUSIC"
+MUSIC_BINARY="@BINDIR@/musicrun"
 export MUSIC_BINARY
 
 

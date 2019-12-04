@@ -294,17 +294,42 @@ else
   MUSIC_HAVE_MPI_COMM_CREATE_ERRHANDLER=0
 fi
 
-if test "$prefix" = NONE; then
-   PKGDATADIR=`eval echo $ac_default_prefix/share/$PACKAGE-$PACKAGE_VERSION`
+# Pre-evaluating some autoconf variables
+if test "x$prefix" = xNONE; then
+  PREFIX=$ac_default_prefix
+  prefix=$PREFIX
 else
-   PKGDATADIR=`eval echo $prefix/share/$PACKAGE-$PACKAGE_VERSION`
+  PREFIX="$prefix"
+fi
+if test "x$exec_prefix" = xNONE; then
+  EXEC_PREFIX="$PREFIX"
+  exec_prefix=$EXEC_PREFIX
+else
+  EXEC_PREFIX="`eval echo $exec_prefix`"
+fi
+if test "x$bindir" = 'x${exec_prefix}/bin'; then
+  BINDIR="$EXEC_PREFIX/bin"
+else
+  BINDIR="`eval echo $bindir`"
+fi
+if test "x$libdir" = 'x${exec_prefix}/lib'; then
+  LIBDIR="$EXEC_PREFIX/lib"
+else
+  LIBDIR="`eval echo $libdir`"
+fi
+if test "x$datarootdir" = 'x${prefix}/share'; then
+  DATAROOTDIR="$PREFIX/share"
+else
+  DATAROOTDIR="`eval echo $datarootdir`"
+fi
+if test "x$datadir" = 'x${datarootdir}'; then
+  DATADIR="$DATAROOTDIR"
+else
+  DATADIR="`eval echo $datadir`"
 fi
 
-if test "$prefix" = NONE; then
-   PKGEXTRABINDIR=`eval echo $ac_default_prefix/lib/$PACKAGE-$PACKAGE_VERSION`
-else
-   PKGEXTRABINDIR=`eval echo $prefix/lib/$PACKAGE-$PACKAGE_VERSION`
-fi
+PKGDATADIR="$DATADIR/$PACKAGE-$PACKAGE_VERSION"
+PKGEXTRABINDIR="$LIBDIR/$PACKAGE-$PACKAGE_VERSION"
 
 #TEST_SH_LIST=${srcdir}/*.test
 
@@ -393,6 +418,7 @@ AC_SUBST(OPTIONAL_UTILS)
 AC_SUBST(TESTDIR)
 AC_SUBST(EXAMPLESDIR)
 AC_SUBST(EXTRAS)
+AC_SUBST(BINDIR)
 AC_SUBST(PKGDATADIR)
 AC_SUBST(PKGEXTRABINDIR)
 AC_SUBST(LAUNCHSTYLE)
