@@ -14,7 +14,7 @@ Build-Depends:
  dh-python,
  python3,
  cython,
- python-mpi4py
+ python3-mpi4py
 Standards-Version: 4.4.1
 Section: libs
 Homepage: http://software.incf.org/software/music/home
