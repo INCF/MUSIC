@@ -1,0 +1,4 @@
+usr/lib/python*/dist-packages/music-*.egg-info
+usr/lib/python*/dist-packages/music/*.py
+usr/lib/python*/dist-packages/music/*.so
+usr/lib/python*/dist-packages/music/config/*.py

@@ -11,7 +11,11 @@ Build-Depends:
  texlive-latex-extra,
  asymptote,
  chrpath,
-Standards-Version: 3.9.8
+ dh-python,
+ python3,
+ cython,
+ python-mpi4py
+Standards-Version: 4.4.1
 Section: libs
 Homepage: http://software.incf.org/software/music/home
 
@@ -43,6 +47,18 @@ Description: Multi-Simulation Coordinator for MPI -- Runtime library
  simulator to a post-processing tool.
  .
  This package contains the MUSIC library.
+
+Package: python3-music
+Architecture: any
+Depends: python3-mpi4py, python3-six, ${python3:Depends}, ${shlibs:Depends}, ${misc:Depends}
+Description: Multi-Simulation Coordinator for MPI -- Runtime library
+ MUSIC allows spike events and continuous time series to be
+ communicated between parallel applications within the same MPI job in
+ a cluster computer.  Typical usage cases are connecting models
+ developed for different simulators and connecting a parallel
+ simulator to a post-processing tool.
+ .
+ This package contains the MUSIC library python bindings.
 
 Package: music-bin
 Section: science

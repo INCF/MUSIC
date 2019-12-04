@@ -1,6 +1,7 @@
 music (1.1.16-1) unstable; urgency=medium
 
   * Upstream release 1.1.16.
+  * Added package python3-music (python bindings for MUSIC).
 
  -- Mikael Djurfeldt <mdj@debian.org>  Sun, 01 Dec 2019 22:31:44 +0100
 

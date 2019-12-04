@@ -1,3 +1,6 @@
+## Process this file with Automake to create Makefile.in
+
+SUBDIRS = examples
 
 EXTRA_DIST = setup.py.in tests.py pymusic.pyx pymusic.pxd pybuffer.pyx pybuffer.pxd \
              music/__init__.py music/music_c.h music/pybuffer.pxd music/pymusic.pxd \
@@ -47,13 +50,21 @@ pybuffer_la_CXXFLAGS = \
 	$(PYBUFFER_CXXFLAGS) \
 	$(MPI_CXXFLAGS)
 
+if DEB_PACKAGE
 install-exec-hook:
 	$(PYTHON) setup.py build \
 	  --build-base=$(abs_builddir)/build install \
-	  --prefix=$(DESTDIR)$(prefix) \
+	  --install-layout=deb \
+	  --prefix=$(DESTDIR)$(prefix)
+else
+install-exec-hook:
+	$(PYTHON) setup.py build \
+	  --build-base=$(abs_builddir)/build install \
+	  --prefix=$(DESTDIR)$(prefix)
 	  --install-lib=$(DESTDIR)$(pyexecdir) \
 	  --install-scripts=$(DESTDIR)$(bindir) \
 	  --install-data=$(DESTDIR)$(pkgdatadir)
+endif
 
 clean-local:
 	-rm -rf $(abs_builddir)/build

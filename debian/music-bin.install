@@ -1,2 +1,13 @@
-usr/bin/*
-usr/share/man/man1/*
+usr/bin/music
+usr/lib/*/music-*
+usr/share/man/man1/contsink.1
+usr/share/man/man1/eventcounter.1
+usr/share/man/man1/eventgenerator.1
+usr/share/man/man1/eventlogger.1
+usr/share/man/man1/eventselect.1
+usr/share/man/man1/eventsink.1
+usr/share/man/man1/eventsource.1
+usr/share/man/man1/messagesource.1
+usr/share/man/man1/music.1
+usr/share/man/man1/viewevents.1
+usr/share/music-*

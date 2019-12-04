@@ -196,9 +196,6 @@ fi
 #  fi
 #fi
 
-AM_PATH_PYTHON
-AM_CONDITIONAL([HAVE_PYTHON], [test "$PYTHON" != :])
-
 AC_PROG_CC
 AC_PROG_LIBTOOL
 
@@ -337,7 +334,9 @@ AC_ARG_WITH([python],
     [AS_HELP_STRING([--without-python], [ignore the presence of Python and disable PyMUSIC])])
 
 AS_IF([test "x$with_python" != "xno"],
-      [AM_PATH_PYTHON([2.6], [have_python=yes], [have_python=no])],
+      [AS_IF([test "x$with_python" != "xyes"],
+             [PYTHON="$with_python"])
+       AM_PATH_PYTHON([2.6], [have_python=yes], [have_python=no])],
       [have_python=no])
 
 AS_IF([test "x$have_python" = "xyes"], [
@@ -368,9 +367,23 @@ fi
 
 AM_CONDITIONAL([HAVE_PYTHON], [test "x$have_python" = "xyes"])
 
+AC_ARG_ENABLE([deb],
+              [  --enable-deb            use deb package layout for install],
+              [case "${enableval}" in
+	         yes) deb_package=true ;;
+		 no) deb_package=false ;;
+		 *) deb_package=true ;;
+	       esac],[deb_package=false])
+AM_CONDITIONAL([DEB_PACKAGE], [test x$deb_package = xtrue])
+if test x$deb_package = xtrue; then
+  pythondir="\${exec_prefix}/lib/python3/dist-packages"
+  pyexecdir="\${exec_prefix}/lib/python3/dist-packages"
+fi
+
 # if Python is found, configure and compile PyMUSIC
 if test "x$have_python" = "xyes" ; then
  AC_CONFIG_FILES(pymusic/Makefile)
+ AC_CONFIG_FILES(pymusic/examples/Makefile)
  AC_CONFIG_FILES(pymusic/setup.py)
 fi
 
