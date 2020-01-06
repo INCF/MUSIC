@@ -117,6 +117,7 @@ namespace MUSIC {
   class ContOutputPort : public ContPort,
 			 public OutputPort,
 			 public TickingPort {
+    using OutputPort::mapImpl;
     void mapImpl (DataMap* indices, int maxBuffered);
     Connector* makeConnector (ConnectorInfo connInfo);
     friend class Implementer;
@@ -166,6 +167,7 @@ namespace MUSIC {
     void insertEvent (double t, LocalIndex id);
     EventOutputPort (Setup* s, std::string id);
 
+    using OutputPort::mapImpl;
     void mapImpl (IndexMap* indices,
 		  Index::Type type,
 		  int maxBuffered);
@@ -249,6 +251,7 @@ namespace MUSIC {
     void map (int maxBuffered);
     void insertMessage (double t, void* msg, size_t size);
   protected:
+    using OutputPort::mapImpl;
     void mapImpl (int maxBuffered);
     Connector* makeConnector (ConnectorInfo connInfo);
     friend class Implementer;

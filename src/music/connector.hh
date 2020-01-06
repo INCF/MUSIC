@@ -216,6 +216,7 @@ namespace MUSIC {
       else
 	info.setRemoteLeader (receiverLeader ());
     }
+    using Connector::isInput;
     bool isInput () { return receiverNode_ == currentNode_; }
     int senderLeader () const { return senderLeader_; }
     int senderNProcs () const { return senderNProcs_; }
@@ -451,6 +452,7 @@ namespace MUSIC {
     Subconnector* subconnector_;
   public:
     CollectiveConnector (bool high);
+    using Connector::makeSubconnector;
     virtual Subconnector* makeSubconnector (void *param) = 0;
     void createIntercomm ();
     void freeIntercomm ();
@@ -461,6 +463,7 @@ namespace MUSIC {
     MPI::Datatype data_type;
   protected:
     ContCollectiveConnector( MPI::Datatype type, bool high);
+    using Connector::makeSubconnector;
     Subconnector* makeSubconnector (void *param);
   };
 
@@ -486,6 +489,8 @@ namespace MUSIC {
   void tick() { Connector::tick();};
 #endif // MUSIC_ANYSOURCE
   protected:
+    using Connector::spatialNegotiation;
+    using EventInputConnector::makeSubconnector;
     void spatialNegotiation ( SpatialNegotiator* spatialNegotiator_);
     void addRoutingInterval(IndexInterval i, Subconnector* subconn);
     Subconnector* makeSubconnector (void *param);
@@ -508,6 +513,8 @@ namespace MUSIC {
     void tick (){Connector::tick();};
 #endif //MUSIC_ISENDWAITALL
   protected:
+    using Connector::spatialNegotiation;
+    using EventOutputConnector::makeSubconnector;
     void spatialNegotiation ( SpatialNegotiator* spatialNegotiator_);
     Subconnector* makeSubconnector (void *param);
   };
@@ -526,6 +533,7 @@ namespace MUSIC {
   virtual void tick() {Connector::tick();};
 #endif // MUSIC_ANYSOURCE
   protected:
+    using Connector::spatialNegotiation;
     void spatialNegotiation ( SpatialNegotiator* spatialNegotiator_);
   private:
     void receiveRemoteCommRankID(std::map<int,int> &remoteToCollectiveRankMap);
@@ -544,6 +552,7 @@ namespace MUSIC {
     void tick (){Connector::tick();};
 #endif
   protected:
+    using Connector::spatialNegotiation;
     void spatialNegotiation ( SpatialNegotiator* spatialNegotiator_);
   private:
     void sendLocalCommRankID();

@@ -106,7 +106,7 @@ namespace MUSIC {
   void Connector::spatialNegotiation (SpatialNegotiator * spatialNegotiator_)
   {
 
-    if (spatialNegotiator_ == NULL)
+    if (spatialNegotiator_ == nullptr)
       error ("spatialNegotiator was not initialized");
     std::map<int, Subconnector*> subconnectors;
     NegotiationIterator i
@@ -123,7 +123,7 @@ namespace MUSIC {
   	else
   	  {
   	    subconn = makeSubconnector (i->rank ());
-  	    if(subconn == NULL)
+  	    if(subconn == nullptr)
 	      error ("Subconnector was not initialized");
   	    subconnectors.insert (std::make_pair (i->rank (), subconn));
   	    rsubconn.push_back (subconn);
@@ -268,20 +268,20 @@ namespace MUSIC {
 					    MPI::Datatype data_type)
     : Connector (connInfo, indices, type, comm),
       ContConnector (sampler, data_type),
-      connector(NULL)
+      connector(nullptr)
   {
   }
 
   ContOutputConnector::ContOutputConnector (   Sampler& sampler,  MPI::Datatype type)
     :  ContConnector (sampler, type),
-       connector(NULL)
+       connector(nullptr)
   {
   }
 
 
   ContOutputConnector::~ContOutputConnector()
   {
-    if (connector != NULL)
+    if (connector != nullptr)
       delete connector;
   }
 
@@ -464,7 +464,7 @@ namespace MUSIC {
     : Connector (connInfo, indices, type, comm),
       ContConnector (sampler, data_type),
       delay_ (delay),
-      connector(NULL)
+      connector(nullptr)
   {
   }
 
@@ -472,14 +472,14 @@ namespace MUSIC {
   ContInputConnector::ContInputConnector ( Sampler& sampler, MPI::Datatype type,  double delay)
     : ContConnector (sampler, type),
       delay_ (delay),
-      connector(NULL)
+      connector(nullptr)
   {
   }
 
 
   ContInputConnector::~ContInputConnector()
   {
-    if (connector != NULL)
+    if (connector != nullptr)
       delete connector;
   }
 
@@ -849,7 +849,7 @@ error( "LOCAL Indices are not supported with MUSIC_ANYSOURCE");
    ********************************************************************/
 
   CollectiveConnector::CollectiveConnector (bool high)
-    : high_ (high), subconnector_ (NULL)
+    : high_ (high), subconnector_ (nullptr)
   {
     //idFlag_ = makeFlag ();
   }
@@ -885,7 +885,7 @@ error( "LOCAL Indices are not supported with MUSIC_ANYSOURCE");
   {
     std::multimap< int, Interval> intrvs
       = *static_cast< std::multimap< int, Interval>*> (param);
-    if (subconnector_ == NULL)
+    if (subconnector_ == nullptr)
       {
 	subconnector_ = new ContCollectiveSubconnector (intrvs,
 							width (),
@@ -897,7 +897,7 @@ error( "LOCAL Indices are not supported with MUSIC_ANYSOURCE");
 
 
   EventCollectiveConnector::EventCollectiveConnector (bool high)
-    : CollectiveConnector (high), router_ (NULL)
+    : CollectiveConnector (high), router_ (nullptr)
   {
     idFlag_ = makeFlag (this);
   }
@@ -906,7 +906,7 @@ error( "LOCAL Indices are not supported with MUSIC_ANYSOURCE");
   Subconnector*
   EventInputCollectiveConnector::makeSubconnector (void *param)
   {
-    if (subconnector_ == NULL)
+    if (subconnector_ == nullptr)
       subconnector_ = new EventInputCollectiveSubconnector (router_);
     return subconnector_;
   }
@@ -948,7 +948,7 @@ error( "LOCAL Indices are not supported with MUSIC_ANYSOURCE");
   {
     routingMap_input = new InputRoutingMap ();
     Subconnector* subconn
-      = EventInputCollectiveConnector::makeSubconnector (NULL);
+      = EventInputCollectiveConnector::makeSubconnector (nullptr);
     rsubconn.push_back (subconn);
     for (NegotiationIterator i = spatialNegotiator_->negotiateSimple (); !i.end (); ++i)
       addRoutingInterval (i->interval (), subconn);
@@ -973,7 +973,7 @@ error( "LOCAL Indices are not supported with MUSIC_ANYSOURCE");
    MPI::Intracomm comm,
    DirectRouter* router)
     : Connector (connInfo, indices, type, comm),
-      EventOutputConnector (NULL),
+      EventOutputConnector (nullptr),
       EventCollectiveConnector (false),
       directRouter_ (router)
   {
@@ -989,7 +989,7 @@ error( "LOCAL Indices are not supported with MUSIC_ANYSOURCE");
   EventOutputCollectiveConnector::makeSubconnector (void *param)
   {
     //  EventRouter * router_ = static_cast<EventRouter*>(param);
-    if(subconnector_ == NULL){
+    if(subconnector_ == nullptr){
       subconnector_ = new EventOutputCollectiveSubconnector ();
     }
     return subconnector_;
@@ -1000,7 +1000,7 @@ error( "LOCAL Indices are not supported with MUSIC_ANYSOURCE");
   {
     EventOutputCollectiveSubconnector* subconn
       = dynamic_cast<EventOutputCollectiveSubconnector*>
-      (EventOutputCollectiveConnector::makeSubconnector (NULL));
+      (EventOutputCollectiveConnector::makeSubconnector (nullptr));
     rsubconn.push_back (subconn);
     subconn->setRouter (directRouter_);
     //spatialNegotiator_->negotiateSimple ();
