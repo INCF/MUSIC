@@ -25,7 +25,7 @@ case "$MPI_CXX" in
         SYSGUESS=openmpi
         CXX="`mpicxx -showme | sed -e 's/^\([^ ]*\).*/\1/'`"
       else
-        changequote([, ])      
+        changequote([, ])
         AC_MSG_ERROR([
 Confused when trying to determine MPI_CXX, MPI_CXXFLAGS etc.
 Please set them manually.])
@@ -182,7 +182,7 @@ Could not determine proper value for MPI_LDFLAGS.  Please see README.])
   echo "$MPI_LDFLAGS"
 fi
 
-CXXFLAGS="-g -O3"
+CXXFLAGS="-g -O3 -std=c++11"
 
 #if test "$ac_test_CXXFLAGS" != set; then
 #  if test "$CXXFLAGS" = "-O2"; then
@@ -239,7 +239,7 @@ AC_MSG_RESULT($ac_have_cxx_mpi_init_thread)
 AC_ARG_ENABLE(mpi,
               [  --disable-mpi           disable mpi support],
               MUSIC_USE_MPI="$enableval", MUSIC_USE_MPI="yes")
-if test $MUSIC_USE_MPI = yes ; then 
+if test $MUSIC_USE_MPI = yes ; then
   MUSIC_USE_MPI=1
   MPI_UTILS="eventsource eventsink eventselect eventgenerator eventcounter eventlogger contsink messagesource"
   EXAMPLESDIR="examples"
@@ -254,7 +254,7 @@ AM_CONDITIONAL([COND_USE_MPI], [test x$MUSIC_USE_MPI = x1])
 AC_ARG_ENABLE(isend,
               [  --disable-isend          disable isend],
               MUSIC_ISENDWAITALL="$enableval", MUSIC_ISENDWAITALL="yes")
-if test $MUSIC_ISENDWAITALL = yes ; then 
+if test $MUSIC_ISENDWAITALL = yes ; then
   MUSIC_ISENDWAITALL=1
 else
   MUSIC_ISENDWAITALL=0
@@ -263,7 +263,7 @@ fi
 AC_ARG_ENABLE(anysource,
               [  --disable-anysource      disable any source receive],
               MUSIC_ANYSOURCE="$enableval", MUSIC_ANYSOURCE="yes")
-if test $MUSIC_ANYSOURCE = yes ; then 
+if test $MUSIC_ANYSOURCE = yes ; then
   MUSIC_ANYSOURCE=1
 else
   MUSIC_ANYSOURCE=0
@@ -341,7 +341,7 @@ AS_IF([test "x$with_python" != "xno"],
 
 AS_IF([test "x$have_python" = "xyes"], [
     PYTHON_INC=`$PYTHON -c 'import sys; from distutils import sysconfig; sys.stdout.write(sysconfig.get_python_inc())'`
-    AC_CHECK_FILE(["${PYTHON_INC}/Python.h"], 
+    AC_CHECK_FILE(["${PYTHON_INC}/Python.h"],
     		  [PYMUSIC_CPPFLAGS="-I${PYTHON_INC}"; PYBUFFER_CPPFLAGS="-I${PYTHON_INC}"],
                   [have_python=no])
 ])
@@ -395,7 +395,7 @@ ROS_SUBDIR=""
 AS_IF([test "x$with_ros" = "xyes"], [ROS_SUBDIR="ros"], [with_ros=no])
 AC_MSG_RESULT([$with_ros])
 
-# if ROS is to be compiled 
+# if ROS is to be compiled
 if test "x$with_ros" = "xyes" ; then
  AC_CONFIG_FILES(ros/Makefile)
  AC_CONFIG_FILES(ros/adapters/Makefile)
