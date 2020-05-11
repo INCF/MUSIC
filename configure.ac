@@ -387,6 +387,14 @@ if test "x$have_python" = "xyes" ; then
  AC_CONFIG_FILES(pymusic/setup.py)
 fi
 
+else # not USE_MPI
+
+# The Python portion of MUSIC as well as the Debian package generation
+# are MPI dependent
+
+AM_CONDITIONAL([HAVE_PYTHON], [false])
+AM_CONDITIONAL([DEB_PACKAGE], [false])
+
 fi
 
 AC_MSG_CHECKING([whether to build ROS Toolchain])
