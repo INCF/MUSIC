@@ -77,6 +77,20 @@ MPI_CFLAGS    C compilation flags
 MPI_LDFLAGS   Linking flags
 
 
+* Python support
+
+MUSIC comes with Python bindings. By default, the configure script
+looks for a Python interpreter in the path. If you want to use a
+particular Python interpreter, you can specify the path to it using
+the option --with-python:
+
+./configure --with-python=/my/bin/python
+
+Python support can be disabled using:
+
+./configure --without-python
+
+
 * Porting
 
 When launching a set of applications in a co-simulation, MUSIC needs
