@@ -47,3 +47,5 @@ runtime = music.Runtime(setup, timestep)
 times = takewhile(lambda t: t <= stoptime, runtime)
 for time in times:
     pass
+
+runtime.finalize()

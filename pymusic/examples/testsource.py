@@ -54,3 +54,5 @@ for t in times:
         out.insertEvent(when, i, index)
 
     nextStep, nextEvents = step()
+
+runtime.finalize()
