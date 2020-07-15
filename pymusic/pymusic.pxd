@@ -186,6 +186,7 @@ cdef class Runtime(object):
     cdef CRuntime* ptr
     cdef readonly MPI.Intracomm comm
     cdef set ports
+    cdef int isFinalized
 
 ###########################################################
 

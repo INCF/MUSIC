@@ -27,3 +27,5 @@ for time in times:
     sys.stdout.write(
         "t={}\treceiver {}: received Hello from sender {}\n".
         format(time, rank, srank))
+
+runtime.finalize()

@@ -47,3 +47,5 @@ for t in times:
         out.insertEvent(when, index, music.Index.GLOBAL)
 
     nextStep, nextEvents = step()
+
+runtime.finalize()

@@ -518,6 +518,7 @@ cdef class Runtime(object):
     def __cinit__(self, Setup setup, double h):
         self.ptr = new CRuntime(setup.ptr, h)
         self.ports = setup.ports
+        self.isFinalized = 0
         setup.null()
 
         cdef MPI.Intracomm comm = MPI.Intracomm()
@@ -525,7 +526,8 @@ cdef class Runtime(object):
         self.comm = comm
 
     def __dealloc__(self):
-        self.ptr.finalize()
+        if not self.isFinalized:
+           self.ptr.finalize()
 
         for p in self.ports:
             p.null()
@@ -533,7 +535,12 @@ cdef class Runtime(object):
         del self.ptr
 
     def time(self): return self.ptr.time()
+    
     def tick(self): tick(self.ptr)
+
+    def finalize(self):
+        self.isFinalized = 1
+        self.ptr.finalize()
 
     def __iter__(self):
         cdef CRuntime* ptr = self.ptr

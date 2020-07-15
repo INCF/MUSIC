@@ -36,3 +36,5 @@ for t in times:
         out.insertMessage(when, msg)
 
     nextStep, nextEvents = step()
+
+runtime.finalize()

@@ -22,3 +22,5 @@ times = takewhile(lambda t: t < stoptime, runtime)
 for time in times:
     data[0] = rank
     sys.stdout.write("t={}\tsender {}: Hello!\n".format(time, rank))
+
+runtime.finalize()
