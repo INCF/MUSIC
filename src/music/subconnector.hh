@@ -125,6 +125,7 @@ namespace MUSIC {
 			    int receiverPortCode,
 			    MPI::Datatype type);
     void initialCommunication (double param);
+    using Subconnector::maybeCommunicate;
     void maybeCommunicate ();
     void send ();
     void flush (bool& dataStillFlowing);
@@ -144,6 +145,7 @@ namespace MUSIC {
 			   MPI::Datatype type);
     BIFO* inputBuffer () { return &buffer_; }
     void initialCommunication (double initialBufferedTicks);
+    using Subconnector::maybeCommunicate;
     void maybeCommunicate ();
     void receive ();
     void flush (bool& dataStillFlowing);
@@ -187,6 +189,7 @@ namespace MUSIC {
  			    int remoteRank,
  			    int receiverRank,
  			    int receiverPortCode);
+     using Subconnector::maybeCommunicate;
  	 void maybeCommunicate ();
      virtual void receive () {};
      virtual void flush (bool& dataStillFlowing);
@@ -239,6 +242,7 @@ namespace MUSIC {
 			       int remoteRank,
 			       int receiverPortCode,
 			       FIBO* buffer);
+    using Subconnector::maybeCommunicate;
     void maybeCommunicate ();
     void send ();
     void flush (bool& dataStillFlowing);
@@ -256,6 +260,7 @@ namespace MUSIC {
 			      int receiverRank,
 			      int receiverPortCode,
 			      MessageHandler* mh);
+    using Subconnector::maybeCommunicate;
     void maybeCommunicate ();
     void receive ();
     void flush (bool& dataStillFlowing);
@@ -274,6 +279,7 @@ namespace MUSIC {
   protected:
     virtual ~CollectiveSubconnector ();
     CollectiveSubconnector (MPI::Intracomm intracomm);
+    using Subconnector::maybeCommunicate;
     void maybeCommunicate ();
     int calcCommDataSize (int local_data_size);
     std::vector<char> getCommData(char *cur_buff, int size);
@@ -307,6 +313,7 @@ namespace MUSIC {
     void fillOutputBuffer ();
 
     void flush (bool& dataStillFlowing) { }
+    using Subconnector::maybeCommunicate;
     void maybeCommunicate () { }
   };
 
@@ -324,6 +331,7 @@ namespace MUSIC {
     // the following is part of the MultiConnector protocol
     void processData (void* data, unsigned int size);
   private:
+    using Subconnector::maybeCommunicate;
     void maybeCommunicate () { }
   };
 
@@ -353,6 +361,7 @@ namespace MUSIC {
 	void freeAllgathervArrays ();
       }
       void initialCommunication (double initialBufferedTicks);
+      using Subconnector::maybeCommunicate;
       void maybeCommunicate ();
       void flush (bool& dataStillFlowing);
     private:
