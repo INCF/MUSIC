@@ -31,7 +31,7 @@ extern "C" {
 
 // Implementation-dependent code
 
-#ifndef CRAY_XE6
+#if !defined CRAY_XE6 && !defined CRAY_XC
 #ifdef HAVE_RTS_GET_PERSONALITY
 #define BGL
 #else
@@ -64,7 +64,7 @@ extern "C" {
  * argc and argv (MPICH) or through the environment (OpenMPI).
  *
  * return -1 on failure
- */ 
+ */
 
 int
 getRank (int argc, char *argv[])
@@ -135,6 +135,13 @@ getRank (int argc, char *argv[])
       ++n;
     }
   return -1;
+#endif
+#ifdef CRAY_XC
+  char* rank_char = std::getenv("SLURM_PROCID");
+  std::istringstream rank_iss(rank_char);
+  int rank_int;
+  rank_iss >> rank_int;
+  return rank_int;
 #endif
 }
 
