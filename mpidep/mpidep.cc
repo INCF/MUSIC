@@ -31,7 +31,7 @@ extern "C" {
 
 // Implementation-dependent code
 
-#if !defined CRAY_XE6 && !defined CRAY_XC
+#if !defined CRAY_XE6 && !defined CRAY_XC_DAINT
 #ifdef HAVE_RTS_GET_PERSONALITY
 #define BGL
 #else
@@ -136,7 +136,7 @@ getRank (int argc, char *argv[])
     }
   return -1;
 #endif
-#ifdef CRAY_XC
+#ifdef CRAY_XC_DAINT
   char* rank_char = std::getenv("SLURM_PROCID");
   std::istringstream rank_iss(rank_char);
   int rank_int;

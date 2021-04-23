@@ -69,9 +69,9 @@ Please set them manually.])
       AC_DEFINE(CRAY_XE6, 1, [Define if this is a Cray XE6 system.])
       CC=cc
       CXX=CC
-    elif uname -r | grep -q 4.12.14-197.56-default; then
-      SYSGUESS=cray_xc
-      AC_DEFINE(CRAY_XC, 1, [Define if this is a Cray XC system.])
+    elif hostname | grep -q daint; then
+      SYSGUESS=cray_xc_daint
+      AC_DEFINE(CRAY_XC_DAINT, 1, [Define if this is the Cray XC Daint system.])
       CC=cc
       CXX=CC
     else
@@ -115,7 +115,7 @@ else
     cray_xe6)
       MPI_CXXFLAGS=""
       ;;
-    cray_xc)
+    cray_xc_daint)
       MPI_CXXFLAGS=""
       ;;
     bgq_seq)
@@ -154,7 +154,7 @@ else
     cray_xe6)
       MPI_CFLAGS=""
       ;;
-    cray_xc)
+    cray_xc_daint)
       MPI_CFLAGS=""
       ;;
     bgq_seq)
@@ -182,7 +182,7 @@ else
     openmpi)
       MPI_LDFLAGS="`mpicxx -showme:link`"
       ;;
-    bgp|bgq|cray_xe6|cray_xc|bgq_seq)
+    bgp|bgq|cray_xe6|cray_xc_daint|bgq_seq)
       MPI_LDFLAGS=""
       ;;
     *)
