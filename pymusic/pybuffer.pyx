@@ -60,7 +60,7 @@ cdef class Buffer(object):
         cdef Py_buffer* pybuf = &self.pybuf
         PyObject_GetBuffer(data, pybuf, bufflags)
         self.dtype = TypeDict[getformat(pybuf)]
-        self.items = pybuf.len / pybuf.itemsize
+        self.items = pybuf.len // pybuf.itemsize
 
     def __dealloc__(self):
         PyBuffer_Release(&self.pybuf)
