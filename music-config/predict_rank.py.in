@@ -17,7 +17,7 @@ def c_argc_argv (argv):
 
     return (c_argc, c_argv)
 
-libmusic = ctypes.CDLL ("@libdir@/libmusic-c.so")
+libmusic = ctypes.CDLL ("@LIBDIR@/libmusic-c.so")
 
 def predictRank ():
     return libmusic.MUSIC_predictRank (*c_argc_argv (sys.argv))
