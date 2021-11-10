@@ -23,6 +23,7 @@
 #include "music/parse.hh"
 #include "music/error.hh"
 #include "music/application_mapper.hh"
+#include "music/ioutils.hh"
 #include <strings.h>
 #include <fstream>
 
@@ -101,8 +102,17 @@ namespace MUSIC {
         assert(config.length() > 0);
         launchedByMusic_ = true;
         if (!config.compare (0, 8, "POSTPONE"))
-          postponeSetup_ = true;
-        config_ = new Configuration (config);
+	  {
+	    postponeSetup_ = true;
+	    // *fixme* Error checking
+	    std::istringstream in (config);
+	    IOUtils::read (in); // POSTPONE
+	    in.ignore (); // delim
+	    std::string colorString = IOUtils::read (in);
+	    color_ = atoi (colorString.c_str ());
+	  }
+	else
+	  config_ = new Configuration (config);
       }
     else if (launchedMPMD (argc, argv, config))
       {
@@ -141,7 +151,7 @@ namespace MUSIC {
             argc = argc_;
             argv = argv_;
           }
-        comm = MPI::COMM_WORLD.Split (config_->Color (), myRank);
+        comm = MPI::COMM_WORLD.Split (postponeSetup_ ? color_ : config_->Color (), myRank);
       }
     else
       {

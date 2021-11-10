@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2007, 2008, 2009 INCF
+ *  Copyright (C) 2007, 2008, 2009, 2021 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -94,6 +94,7 @@ namespace MUSIC {
 
     bool launchedByMusic_;
     bool postponeSetup_;
+    int color_;
 
     // Since we don't want to expose this internal interface to the
     // user we put the member functions in the private part and give

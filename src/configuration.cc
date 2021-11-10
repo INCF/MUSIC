@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2007, 2008, 2009, 2012 INCF
+ *  Copyright (C) 2007, 2008, 2009, 2012, 2021 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -123,11 +123,11 @@ namespace MUSIC {
   {
     std::istringstream env (configStr);
     setName (IOUtils::read (env));
-    env.ignore ();
+    env.ignore (); // delim
     // do not need color information,
     // but we can use for error check
-    env.ignore ();
-    env.ignore ();
+    IOUtils::read (env);
+    env.ignore (); // delim
     applications_->read (env);
     env.ignore ();
     std::map<int, int> leaders = applications_->assignLeaders( Name ());
