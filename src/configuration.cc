@@ -38,7 +38,7 @@ namespace MUSIC {
    * This is the syntax of the _MUSIC_CONFIG_ variable:
    *
    * POSTPONE:COLOR means that configuration is postponed until the
-   * first port is created.  At this time, the variable is expected to
+   * first port is created.  At that time, the variable is expected to
    * contain the full configuration information:
    *
    *
