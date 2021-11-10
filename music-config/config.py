@@ -1,6 +1,6 @@
 #
 #  This file is part of MUSIC.
-#  Copyright (C) 2012 Mikael Djurfeldt
+#  Copyright (C) 2012, 2021 Mikael Djurfeldt
 #
 #  MUSIC is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 
 import os
 
-from music.predict_rank import predictRank
+from music.config.predict_rank import predictRank
 
 # This function now defined in predict_rank.py
 #
