@@ -12,7 +12,7 @@ def c_argc_argv (argv):
     t_argv = c_char_p*argc
 
     # construct argv for C
-    c_argv = t_argv (*tuple([c_char_p(arg) for arg in argv]))
+    c_argv = t_argv (*tuple([c_char_p(arg.encode ("utf-8")) for arg in argv]))
     c_argc = c_int (argc)
 
     return (c_argc, c_argv)
