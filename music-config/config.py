@@ -92,7 +92,7 @@ class ConnectivityMap (object):
         connections.append (connection)
 
     def conf (self):
-        conf = str (len (self.ports))
+        conf = str (len (self.ports)) # size
         for portName in self.ports:
             (direction, width, connections) = self.ports[portName]
             conf += ':' + portName + ':' + direction + ':' + width
@@ -211,12 +211,12 @@ def connect (fromApp, fromPort, toApp, toPort, width,
     fromApp.connectivityMap.register (fromPort, OUTPUT, width,
                                       toApp.name, toPort,
                                       str (portCode (toApp.name, toPort)),
-                                      str (toApp.leader), str (toApp.np),
+                                      str (toApp.number), str (toApp.np),
                                       str (commAlg), str (procMethod))
     toApp.connectivityMap.register (toPort, INPUT, width,
                                     toApp.name, toPort,
                                     str (portCode (toApp.name, toPort)),
-                                    str (fromApp.leader), str (fromApp.np),
+                                    str (fromApp.number), str (fromApp.np),
                                     str (commAlg), str (procMethod))
 
 
