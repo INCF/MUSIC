@@ -47,7 +47,7 @@ namespace MUSIC {
 
   }
 
-  
+
   Setup::Setup (int& argc, char**& argv, int required, int* provided)
     : argc_ (argc), argv_ (argv)
   {
@@ -272,8 +272,10 @@ namespace MUSIC {
   {
     if (postponeSetup_)
       {
-	delete config_;
-	config_ = new Configuration ();
+	postponeSetup_ = false;
+	std::string config = "";
+	launchedWithExec (config);
+	config_ = new Configuration (config);
 	fullInit ();
       }
   }
