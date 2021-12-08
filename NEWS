@@ -1,7 +1,35 @@
 MUSIC NEWS --- history of user-visible changes.
-Copyright (C) 2009, 2010, 2019 INCF
+Copyright (C) 2009, 2010, 2019, 2020, 2021 INCF
 
 Please send MUSIC bug reports to music-bugs@incf.org.
+
+
+Changes in 1.1.17:
+
+* music library
+
+** Support for Python3
+
+Python support was updated to support Python3.
+
+** Fixes to the postponed setup mechanism
+
+The PyNN/MUSIC interface depends on a postponed setup mechanism which
+now works.
+
+** Several bugfixes throughout
+
+* music utility
+
+** New manpages
+
+New manpages were created for contsink and messagesource.
+
+* python support
+
+** Call runtime.finalize()
+
+Call runtime.finalize() in python example utilities.
 
 
 Changes in 1.1.16:
