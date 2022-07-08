@@ -97,7 +97,7 @@ public:
       {
 	if (setup_->communicator ().Get_rank () == 0)
 	  std::cerr << "multiport port is not connected" << std::endl;
-	setup_->communicator ().Abort (1);
+	MPI_Abort (setup_->communicator (), 1);
       }
   }
 
@@ -210,7 +210,7 @@ public:
       {
 	if (setup_->communicator ().Get_rank () == 0)
 	  std::cerr << "multiport port is not connected" << std::endl;
-	setup_->communicator ().Abort (1);
+	MPI_Abort (setup_->communicator (), 1);
       }
   }
 

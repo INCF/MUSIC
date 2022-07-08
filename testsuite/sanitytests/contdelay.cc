@@ -134,7 +134,7 @@ main (int argc, char *argv[])
     {
       if (rank == 0)
 	std::cerr << "contdelay input port is not connected" << std::endl;
-      comm.Abort (1);
+      MPI_Abort (comm, 1);
     }
 
   MUSIC::ArrayData inMap (&inData,
@@ -149,7 +149,7 @@ main (int argc, char *argv[])
     {
       if (rank == 0)
 	std::cerr << "contdelay output port is not connected" << std::endl;
-      comm.Abort (1);
+      MPI_Abort (comm, 1);
     }
 
   MUSIC::ArrayData outMap (&outData,

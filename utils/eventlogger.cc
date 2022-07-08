@@ -179,7 +179,7 @@ main (int argc, char* argv[])
     {
       if (rank == 0)
 	std::cerr << "eventlogger: no connected input ports" << std::endl;
-      comm.Abort (1);
+      MPI_Abort (comm, 1);
     }
 
   // Port mapping
@@ -197,7 +197,7 @@ main (int argc, char* argv[])
 	{
 	  std::cerr << "port width not specified in Configuration file"
 		    << std::endl;
-	  comm.Abort (1);
+	  MPI_Abort (comm, 1);
 	}
 
       if (imaptype == "linear")

@@ -162,7 +162,7 @@ main (int argc, char *argv[])
     {
       if (rank == 0)
 	std::cerr << "eventgenerator port is not connected" << std::endl;
-      comm.Abort (1);
+      MPI_Abort (comm, 1);
     }
 
   MUSIC::Index::Type type;

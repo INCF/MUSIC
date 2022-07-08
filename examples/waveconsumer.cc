@@ -25,7 +25,7 @@ main (int args, char* argv[])
   if (wavedata->hasWidth ())
     width = wavedata->width ();
   else
-    comm.Abort (1);
+    MPI_Abort (comm, 1);
 
   // For clarity, assume that width is a multiple of n_processes
   int nLocalVars = width / nProcesses;

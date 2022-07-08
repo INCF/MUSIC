@@ -33,7 +33,7 @@ namespace MUSIC {
   error ()
   {
 #if MUSIC_USE_MPI
-    MPI::COMM_WORLD.Abort (1);
+    MPI_Abort (MPI_COMM_WORLD, 1);
 #else
     abort();
 #endif
