@@ -90,8 +90,10 @@ main (int argc, char* argv[])
 {
   MUSIC::Setup* setup = new MUSIC::Setup (argc, argv);
   comm = setup->communicator ();
-  int nProcesses = comm.Get_size (); // how many processes are there?
-  int rank = comm.Get_rank ();        // which process am I?
+  int nProcesses;
+  MPI_Comm_size (comm, &nProcesses); // how many processes are there?
+  int rank;
+  MPI_Comm_rank (comm, &rank); // which process am I?
 
   enum { IN, MESSAGE_IN };
   opterr = 0; // handle errors ourselves

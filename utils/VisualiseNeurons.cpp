@@ -107,8 +107,8 @@ void VisualiseNeurons::run(int argc, char **argv) {
 
   // Init music
   setup_ = new MUSIC::Setup(argc, argv);
-  MPI::Intracomm comm = setup_->communicator();
-  rank_ = comm.Get_rank(); 
+  MPI_Comm comm = setup_->communicator();
+  MPI_Comm_rank (comm, &rank_);
 
   if(rank_ > 0) {
     std::cerr << argv[0] << " only supports one process currently!" 
