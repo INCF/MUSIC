@@ -44,7 +44,7 @@ namespace MUSIC
     Runtime (Setup* s, double h);
     ~Runtime ();
 
-    MPI::Intracomm
+    MPI_Comm
     communicator ();
 
     void
@@ -60,7 +60,7 @@ namespace MUSIC
     std::string app_name;
     int leader_;
     std::vector<std::pair<double, Connector *> > schedule;
-    MPI::Intracomm comm;
+    MPI_Comm comm;
     std::vector<Port*> ports;
     std::vector<TickingPort*> tickingPorts;
     std::vector<Connector*> connectors;

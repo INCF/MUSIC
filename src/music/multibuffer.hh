@@ -246,7 +246,7 @@ namespace MUSIC {
     unsigned int computeSize (bool twostage);
 
   public:
-    MultiBuffer (MPI::Intracomm comm,
+    MultiBuffer (MPI_Comm comm,
 		 int leader,
 		 std::vector<Connector*>& connectors);
 
@@ -331,8 +331,8 @@ namespace MUSIC {
     //int nRanks_;
     typedef std::map<unsigned int, MCGroupInfo> GroupMap;
     GroupMap* groupMap_;
-    MPI::Group group_;
-    MPI::Intracomm comm_;
+    MPI_Group group_;
+    MPI_Comm comm_;
 #ifdef MUSIC_TWOSTAGE_ALLGATHER
     static const int TWOSTAGE_FINALIZE_FLAG = MultiBuffer::TWOSTAGE_FINALIZE_FLAG;
     bool twostage_;

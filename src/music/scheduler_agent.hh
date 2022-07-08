@@ -166,7 +166,7 @@ namespace MUSIC
 
 #if 0
     void
-    createMultiConnectors (Clock& localTime, MPI::Intracomm comm, int leader,
+    createMultiConnectors (Clock& localTime, MPI_Comm comm, int leader,
         std::vector<Connector*>& connectors);
 
 

@@ -48,8 +48,8 @@ namespace MUSIC {
   private:
   protected:
     //Synchronizer* synch;
-    MPI::Datatype type_;
-    MPI::Intercomm intercomm;
+    MPI_Datatype type_;
+    MPI_Comm intercomm;
     int remoteRank_;		// rank in inter-communicatir
     int remoteWorldRank_;	// rank in COMM_WORLD
     int receiverRank_;
@@ -59,9 +59,9 @@ namespace MUSIC {
   public:
     //*fixme* should not create subconnectors with uninitialized members
     Subconnector ():type_(MPI::BYTE), flushed(false){};
-    Subconnector (MPI::Datatype type):type_ (type), flushed(false) { }
-    Subconnector (MPI::Datatype type,
-		  MPI::Intercomm intercomm,
+    Subconnector (MPI_Datatype type):type_ (type), flushed(false) { }
+    Subconnector (MPI_Datatype type,
+		  MPI_Comm intercomm,
 		  int remoteLeader,
 		  int remoteRank,
 		  int receiverRank,
@@ -70,7 +70,7 @@ namespace MUSIC {
     virtual void report () { }
     virtual void initialCommunication (double param) { }
     virtual void maybeCommunicate () = 0;
-    virtual void maybeCommunicate (std::vector<MPI::Request> &) {};
+    virtual void maybeCommunicate (std::vector<MPI_Request> &) {};
     virtual void flush (bool& dataStillFlowing) = 0;
     bool isFlushed () { return flushed; }
     int localRank () const { return intercomm.Get_rank (); }
@@ -119,11 +119,11 @@ namespace MUSIC {
 	  ContOutputSubconnector():BufferingOutputSubconnector (0){};
   public:
     ContOutputSubconnector (//Synchronizer* synch,
-			    MPI::Intercomm intercomm,
+			    MPI_Comm intercomm,
 			    int remoteLeader,
 			    int remoteRank,
 			    int receiverPortCode,
-			    MPI::Datatype type);
+			    MPI_Datatype type);
     void initialCommunication (double param);
     using Subconnector::maybeCommunicate;
     void maybeCommunicate ();
@@ -137,12 +137,12 @@ namespace MUSIC {
     ContInputSubconnector(){};
   public:
     ContInputSubconnector (//Synchronizer* synch,
-			   MPI::Intercomm intercomm,
+			   MPI_Comm intercomm,
 			   int remoteLeader,
 			   int remoteRank,
 			   int receiverRank,
 			   int receiverPortCode,
-			   MPI::Datatype type);
+			   MPI_Datatype type);
     BIFO* inputBuffer () { return &buffer_; }
     void initialCommunication (double initialBufferedTicks);
     using Subconnector::maybeCommunicate;
@@ -166,7 +166,7 @@ namespace MUSIC {
     public:
 
 	  EventOutputSubconnector (//Synchronizer* synch,
-  			     MPI::Intercomm intercomm,
+  			     MPI_Comm intercomm,
   			     int remoteLeader,
   			     int remoteRank,
   			     int receiverPortCode);
@@ -184,7 +184,7 @@ namespace MUSIC {
  	  EventInputSubconnector(){};
    public:
      EventInputSubconnector (//Synchronizer* synch,
- 			    MPI::Intercomm intercomm,
+ 			    MPI_Comm intercomm,
  			    int remoteLeader,
  			    int remoteRank,
  			    int receiverRank,
@@ -201,7 +201,7 @@ namespace MUSIC {
 
   public:
     EventInputSubconnectorGlobal (//Synchronizer* synch,
-				  MPI::Intercomm intercomm,
+				  MPI_Comm intercomm,
 				  int remoteLeader,
 				  int remoteRank,
 				  int receiverRank,
@@ -217,7 +217,7 @@ namespace MUSIC {
  //   static EventHandlerLocalIndexDummy dummyHandler;
   public:
     EventInputSubconnectorLocal (//Synchronizer* synch,
-				 MPI::Intercomm intercomm,
+				 MPI_Comm intercomm,
 				 int remoteLeader,
 				 int remoteRank,
 				 int receiverRank,
@@ -237,7 +237,7 @@ namespace MUSIC {
     FIBO* buffer_;
   public:
     MessageOutputSubconnector (//Synchronizer* synch,
-			       MPI::Intercomm intercomm,
+			       MPI_Comm intercomm,
 			       int remoteLeader,
 			       int remoteRank,
 			       int receiverPortCode,
@@ -254,7 +254,7 @@ namespace MUSIC {
   //  static MessageHandlerDummy dummyHandler;
   public:
     MessageInputSubconnector (//Synchronizer* synch,
-			      MPI::Intercomm intercomm,
+			      MPI_Comm intercomm,
 			      int remoteLeader,
 			      int remoteRank,
 			      int receiverRank,
@@ -274,11 +274,11 @@ namespace MUSIC {
   {
     int nProcesses, *ppBytes, *displ;
   protected:
-    MPI::Intracomm intracomm_;
+    MPI_Comm intracomm_;
 
   protected:
     virtual ~CollectiveSubconnector ();
-    CollectiveSubconnector (MPI::Intracomm intracomm);
+    CollectiveSubconnector (MPI_Comm intracomm);
     using Subconnector::maybeCommunicate;
     void maybeCommunicate ();
     int calcCommDataSize (int local_data_size);
@@ -347,8 +347,8 @@ namespace MUSIC {
     public:
       ContCollectiveSubconnector (std::multimap<int, Interval> intervals,
 				  int width,
-				  MPI::Intracomm intracomm,
-				  MPI::Datatype type)
+				  MPI_Comm intracomm,
+				  MPI_Datatype type)
 	: Subconnector(type),
 	  CollectiveSubconnector (intracomm),
 	  intervals_(intervals),

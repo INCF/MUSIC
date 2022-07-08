@@ -29,14 +29,14 @@ namespace MUSIC {
    */
 
   class ArrayData : public DataMap {
-    MPI::Datatype type_;
+    MPI_Datatype type_;
     IndexMap* indexMap_;
   public:
     ArrayData (void* buffer, MPI::Datatype type, IndexMap* map);
     ArrayData (void* buffer, MPI::Datatype type, int baseIndex, int size);
     virtual ~ArrayData ();
     virtual DataMap* copy ();
-    virtual MPI::Datatype type () { return type_; }
+    virtual MPI_Datatype type () { return type_; }
     virtual IndexMap* indexMap () { return indexMap_; }
   };
 

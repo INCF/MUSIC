@@ -40,7 +40,7 @@ namespace MUSIC {
   Connector::Connector (ConnectorInfo info_,
 			IndexMap* indices,
 			Index::Type type,
-			MPI::Intracomm c)
+			MPI_Comm c)
     : info (info_),
       indices_ (indices->copy()),
       type_ (type),
@@ -54,8 +54,8 @@ namespace MUSIC {
   Connector::Connector (ConnectorInfo info_,
 			IndexMap* indices,
 			Index::Type type,
-			MPI::Intracomm c,
-			MPI::Intercomm ic)
+			MPI_Comm c,
+			MPI_Comm ic)
     : info (info_),
       indices_ (indices->copy()),
       type_ (type),
@@ -263,16 +263,16 @@ namespace MUSIC {
   ContOutputConnector::ContOutputConnector (ConnectorInfo connInfo,
 					    IndexMap* indices,
 					    Index::Type type,
-					    MPI::Intracomm comm,
+					    MPI_Comm comm,
 					    Sampler& sampler,
-					    MPI::Datatype data_type)
+					    MPI_Datatype data_type)
     : Connector (connInfo, indices, type, comm),
       ContConnector (sampler, data_type),
       connector(nullptr)
   {
   }
 
-  ContOutputConnector::ContOutputConnector (   Sampler& sampler,  MPI::Datatype type)
+  ContOutputConnector::ContOutputConnector (   Sampler& sampler,  MPI_Datatype type)
     :  ContConnector (sampler, type),
        connector(nullptr)
   {
@@ -457,9 +457,9 @@ namespace MUSIC {
   ContInputConnector::ContInputConnector (ConnectorInfo connInfo,
 		  	  	  	  IndexMap* indices,
 		  	  	  	  Index::Type type,
-					  MPI::Intracomm comm,
+					  MPI_Comm comm,
 					  Sampler& sampler,
-					  MPI::Datatype data_type,
+					  MPI_Datatype data_type,
 					  double delay)
     : Connector (connInfo, indices, type, comm),
       ContConnector (sampler, data_type),
@@ -469,7 +469,7 @@ namespace MUSIC {
   }
 
 
-  ContInputConnector::ContInputConnector ( Sampler& sampler, MPI::Datatype type,  double delay)
+  ContInputConnector::ContInputConnector ( Sampler& sampler, MPI_Datatype type,  double delay)
     : ContConnector (sampler, type),
       delay_ (delay),
       connector(nullptr)
@@ -773,7 +773,7 @@ error( "LOCAL Indices are not supported with MUSIC_ANYSOURCE");
   MessageOutputConnector::MessageOutputConnector (ConnectorInfo connInfo,
 		  	  	  	  	  IndexMap* indices,
 		  	  	  	  	  Index::Type type,
-						  MPI::Intracomm comm,
+						  MPI_Comm comm,
 						  std::vector<FIBO*>& buffers)
     : Connector (connInfo, indices, type, comm),
       buffer (1),
@@ -820,7 +820,7 @@ error( "LOCAL Indices are not supported with MUSIC_ANYSOURCE");
 						IndexMap* indices,
 						Index::Type type,
 						MessageHandler* handleMessage,
-						MPI::Intracomm comm)
+						MPI_Comm comm)
     : Connector (connInfo, indices, type, comm),
       handleMessage_ (handleMessage)
   {
@@ -871,7 +871,7 @@ error( "LOCAL Indices are not supported with MUSIC_ANYSOURCE");
   }
 
 
-  ContCollectiveConnector::ContCollectiveConnector (MPI::Datatype type,
+  ContCollectiveConnector::ContCollectiveConnector (MPI_Datatype type,
 						    bool high):
     CollectiveConnector (high),
     data_type (type)
@@ -916,7 +916,7 @@ error( "LOCAL Indices are not supported with MUSIC_ANYSOURCE");
   (ConnectorInfo connInfo,
    IndexMap* indices,
    Index::Type type,
-   MPI::Intracomm comm,
+   MPI_Comm comm,
    EventHandlerPtr handleEvent)
     : Connector (connInfo, indices, type, comm),
       EventInputConnector (handleEvent),
@@ -970,7 +970,7 @@ error( "LOCAL Indices are not supported with MUSIC_ANYSOURCE");
   (ConnectorInfo connInfo,
    IndexMap* indices,
    Index::Type type,
-   MPI::Intracomm comm,
+   MPI_Comm comm,
    DirectRouter* router)
     : Connector (connInfo, indices, type, comm),
       EventOutputConnector (nullptr),
@@ -1011,9 +1011,9 @@ error( "LOCAL Indices are not supported with MUSIC_ANYSOURCE");
   (ConnectorInfo connInfo,
    IndexMap* indices,
    Index::Type type,
-   MPI::Intracomm comm,
+   MPI_Comm comm,
    Sampler& sampler,
-   MPI::Datatype data_type,
+   MPI_Datatype data_type,
    double delay)
     : Connector(connInfo, indices,type, comm),
       ContInputConnector(sampler, data_type, delay),
@@ -1070,9 +1070,9 @@ error( "LOCAL Indices are not supported with MUSIC_ANYSOURCE");
   ContOutputCollectiveConnector::ContOutputCollectiveConnector(ConnectorInfo connInfo,
 							       IndexMap* indices,
 							       Index::Type type,
-							       MPI::Intracomm comm,
+							       MPI_Comm comm,
 							       Sampler& sampler,
-							       MPI::Datatype data_type):
+							       MPI_Datatype data_type):
     Connector(connInfo, indices,type, comm),
     ContOutputConnector( sampler, data_type),
     ContCollectiveConnector(data_type, false)

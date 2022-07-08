@@ -36,7 +36,7 @@
 namespace MUSIC
 {
 
-  Scheduler::Scheduler (MPI::Intracomm comm, int leader) :
+  Scheduler::Scheduler (MPI_Comm comm, int leader) :
       nodes (NULL), appl_data_ (NULL), conn_data_ (NULL)
   {
     comm_ = comm;

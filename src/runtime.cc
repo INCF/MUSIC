@@ -279,7 +279,7 @@ namespace MUSIC
   }
 
 
-  MPI::Intracomm
+  MPI_Comm
   Runtime::communicator ()
   {
     return comm;

@@ -43,7 +43,7 @@ namespace MUSIC {
     DataMap (void* base) : base_ (base) { };
     virtual DataMap* copy () = 0;
     void* base () const { return base_; }
-    virtual MPI::Datatype type () = 0;
+    virtual MPI_Datatype type () = 0;
     virtual IndexMap* indexMap () = 0;
   };
 

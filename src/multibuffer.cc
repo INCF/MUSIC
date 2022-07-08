@@ -38,7 +38,7 @@ namespace MUSIC {
    *
    ********************************************************************/
 
-  MultiBuffer::MultiBuffer (MPI::Intracomm comm,
+  MultiBuffer::MultiBuffer (MPI_Comm comm,
 			    int localLeader,
 			    std::vector<Connector*>& connectors)
     : localLeader_ (localLeader)
@@ -256,7 +256,7 @@ namespace MUSIC {
     MPI::COMM_WORLD.Allgather (MPI::IN_PLACE, 0, MPI::DATATYPE_NULL,
 			       &rankInfos.front (),
 			       sizeof (RankInfo) / sizeof (int),
-			       MPI::INT);
+			       MPI_INT);
     for (int wr = 0; wr < worldSize; ++wr)
       {
 	RankInfo& ri = rankInfos[wr];

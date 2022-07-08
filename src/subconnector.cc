@@ -35,8 +35,8 @@
 
 namespace MUSIC {
 
-  Subconnector::Subconnector (MPI::Datatype type,
-			      MPI::Intercomm intercomm_,
+  Subconnector::Subconnector (MPI_Datatype type,
+			      MPI_Comm intercomm_,
 			      int remoteLeader,
 			      int remoteRank,
 			      int receiverRank,
@@ -70,11 +70,11 @@ namespace MUSIC {
    ********************************************************************/
 
   ContOutputSubconnector::ContOutputSubconnector (//Synchronizer* synch_,
-						  MPI::Intercomm intercomm_,
+						  MPI_Comm intercomm_,
 						  int remoteLeader,
 						  int remoteRank,
 						  int receiverPortCode_,
-						  MPI::Datatype type)
+						  MPI_Datatype type)
     : Subconnector (type,
 		    intercomm_,
 		    remoteLeader,
@@ -154,12 +154,12 @@ namespace MUSIC {
 
   
   ContInputSubconnector::ContInputSubconnector (//Synchronizer* synch_,
-						MPI::Intercomm intercomm,
+						MPI_Comm intercomm,
 						int remoteLeader,
 						int remoteRank,
 						int receiverRank,
 						int receiverPortCode,
-						MPI::Datatype type)
+						MPI_Datatype type)
     : Subconnector (type,
 		    intercomm,
 		    remoteLeader,
@@ -192,7 +192,7 @@ namespace MUSIC {
   ContInputSubconnector::receive ()
   {
     char* data;
-    MPI::Status status;
+    MPI_Status status;
     int size, maxCount;
     maxCount = CONT_BUFFER_MAX / type_.Get_size ();
     do
@@ -241,7 +241,7 @@ namespace MUSIC {
 
 
   EventOutputSubconnector::EventOutputSubconnector (//Synchronizer* synch_,
-						    MPI::Intercomm intercomm,
+						    MPI_Comm intercomm,
 						    int remoteLeader,
 						    int remoteRank,
 						    int receiverPortCode)
@@ -340,7 +340,7 @@ namespace MUSIC {
 
 
   EventInputSubconnector::EventInputSubconnector (//Synchronizer* synch_,
-						  MPI::Intercomm intercomm,
+						  MPI_Comm intercomm,
 						  int remoteLeader,
 						  int remoteRank,
 						  int receiverRank,
@@ -358,7 +358,7 @@ namespace MUSIC {
 
   EventInputSubconnectorGlobal::EventInputSubconnectorGlobal
   (//Synchronizer* synch_,
-   MPI::Intercomm intercomm,
+   MPI_Comm intercomm,
    int remoteLeader,
    int remoteRank,
    int receiverRank,
@@ -389,7 +389,7 @@ namespace MUSIC {
 
   EventInputSubconnectorLocal::EventInputSubconnectorLocal
   (//Synchronizer* synch_,
-   MPI::Intercomm intercomm,
+   MPI_Comm intercomm,
    int remoteLeader,
    int remoteRank,
    int receiverRank,
@@ -452,7 +452,7 @@ namespace MUSIC {
   EventInputSubconnectorGlobal::receive ()
   {
     char data[SPIKE_BUFFER_MAX];
-    MPI::Status status;
+    MPI_Status status;
     int size;
     //double starttime, endtime;
     //starttime = MPI_Wtime();
@@ -501,7 +501,7 @@ namespace MUSIC {
   {
     MUSIC_LOGRE ("receive");
     char data[SPIKE_BUFFER_MAX];
-    MPI::Status status;
+    MPI_Status status;
     int size;
     do
       {
@@ -567,7 +567,7 @@ namespace MUSIC {
    ********************************************************************/
 
   MessageOutputSubconnector::MessageOutputSubconnector (//Synchronizer* synch_,
-							MPI::Intercomm intercomm,
+							MPI_Comm intercomm,
 							int remoteLeader,
 							int remoteRank,
 							int receiverPortCode,
@@ -634,7 +634,7 @@ namespace MUSIC {
 
 
   MessageInputSubconnector::MessageInputSubconnector (//Synchronizer* synch_,
-						      MPI::Intercomm intercomm,
+						      MPI_Comm intercomm,
 						      int remoteLeader,
 						      int remoteRank,
 						      int receiverRank,
@@ -667,7 +667,7 @@ namespace MUSIC {
   MessageInputSubconnector::receive ()
   {
     char data[MESSAGE_BUFFER_MAX];
-    MPI::Status status;
+    MPI_Status status;
     int size;
     do
       {
@@ -719,7 +719,7 @@ namespace MUSIC {
    *
    ********************************************************************/
 
-  CollectiveSubconnector::CollectiveSubconnector (MPI::Intracomm intracomm)
+  CollectiveSubconnector::CollectiveSubconnector (MPI_Comm intracomm)
     : intracomm_ (intracomm)
   {
   }

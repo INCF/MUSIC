@@ -156,7 +156,7 @@ namespace MUSIC {
     else
       {
         // launched with mpirun
-        comm = MPI::COMM_WORLD;
+        comm = MPI_COMM_WORLD;
         timebase_ = MUSIC_DEFAULT_TIMEBASE;
       }
   }
@@ -320,7 +320,7 @@ namespace MUSIC {
   }
 
   
-  MPI::Intracomm
+  MPI_Comm
   Setup::communicator ()
   {
     return comm;

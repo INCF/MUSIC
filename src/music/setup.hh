@@ -59,7 +59,7 @@ namespace MUSIC {
 
     ~Setup ();
 
-    MPI::Intracomm communicator ();
+    MPI_Comm communicator ();
 
     bool config (string var, string* result);
 
@@ -82,7 +82,7 @@ namespace MUSIC {
     MessageOutputPort* publishMessageOutput (string identifier);
 
   private:
-    MPI::Intracomm comm;
+    MPI_Comm comm;
     Configuration* config_;
     std::vector<Port*> ports_;
     std::vector<Connection*>* connections_;

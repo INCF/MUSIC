@@ -139,7 +139,7 @@ namespace MUSIC
 
 #if 0
   void
-  MulticommAgent::createMultiConnectors (Clock& localTime, MPI::Intracomm comm,
+  MulticommAgent::createMultiConnectors (Clock& localTime, MPI_Comm comm,
       int leader, std::vector<Connector*>& connectors)
   {
     multiBuffer_ = new MultiBuffer (comm, leader, connectors);

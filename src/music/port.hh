@@ -111,7 +111,7 @@ namespace MUSIC {
   class ContPort :  public virtual Port {
   protected:
     Sampler sampler;
-    MPI::Datatype type_;
+    MPI_Datatype type_;
   };
 
   class ContOutputPort : public ContPort,

@@ -136,7 +136,7 @@ namespace MUSIC {
   }
 
 
-  SpatialNegotiator::SpatialNegotiator (IndexMap* ind, Index::Type type_, MPI::Intracomm c)
+  SpatialNegotiator::SpatialNegotiator (IndexMap* ind, Index::Type type_, MPI_Comm c)
   : comm(c), indices (ind), type (type_)
   {
 
@@ -456,7 +456,7 @@ namespace MUSIC {
 
 
   void
-  SpatialNegotiator::send (MPI::Comm& comm,
+  SpatialNegotiator::send (MPI_Comm& comm,
 			   int destRank,
 			   NegotiationIntervals& intervals)
   {
@@ -473,7 +473,7 @@ namespace MUSIC {
 
 
   void
-  SpatialNegotiator::receive (MPI::Comm& comm,
+  SpatialNegotiator::receive (MPI_Comm& comm,
 			      int sourceRank,
 			      NegotiationIntervals& intervals)
   {
@@ -515,8 +515,8 @@ namespace MUSIC {
   }
 
   SpatialOutputNegotiator::SpatialOutputNegotiator (IndexMap* indices,
-						    Index::Type type, MPI::Intracomm c,
-						    MPI::Intercomm ic)
+						    Index::Type type, MPI_Comm c,
+						    MPI_Comm ic)
       : SpatialNegotiator (indices, type,  c)
   {
 	     intercomm = ic;
@@ -568,8 +568,8 @@ namespace MUSIC {
   }
   
   SpatialInputNegotiator::SpatialInputNegotiator (IndexMap* indices,
-						    Index::Type type, MPI::Intracomm c,
-						    MPI::Intercomm ic)
+						    Index::Type type, MPI_Comm c,
+						    MPI_Comm ic)
       : SpatialNegotiator (indices, type,  c)
   {
 	  intercomm = ic;
