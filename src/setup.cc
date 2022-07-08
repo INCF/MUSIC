@@ -55,7 +55,7 @@ namespace MUSIC {
     if (MPI::Is_initialized ())
       errorRank (err_MPI_Init);
     maybeProcessMusicArgv (argc, argv);
-#ifdef HAVE_CXX_MPI_INIT_THREAD
+#ifdef HAVE_MPI_INIT_THREAD
     *provided = MPI::Init_thread (argc, argv, required);
 #else
     // Only C version provided in libmpich
