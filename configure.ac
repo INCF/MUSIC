@@ -219,22 +219,7 @@ dnl Must use $CXX, not $MPI_CXX, here
 
 CXX="$CXX $MPI_CXXFLAGS"
 LIBS="$LIBS $MPI_LDFLAGS"
-AC_CHECK_FUNCS([rts_get_personality ompi_comm_free MPI_Comm_create_errhandler])
-
-AC_MSG_CHECKING([for MPI::Init_thread method])
-ac_have_cxx_mpi_init_thread=no
-AC_COMPILE_IFELSE(
-  [AC_LANG_SOURCE([
-#include <mpi.h>
-int main (int argc, char **argv)
-{
-  int res = MPI::Init_thread (argc, argv, 0);
-}
-])],
-AC_DEFINE(HAVE_CXX_MPI_INIT_THREAD, 1, [Define to 1 if you have the MPI::Init_thread method])
-ac_have_cxx_mpi_init_thread=yes
-)
-AC_MSG_RESULT($ac_have_cxx_mpi_init_thread)
+AC_CHECK_FUNCS([rts_get_personality ompi_comm_free MPI_Comm_create_errhandler MPI_Init_thread])
 
 AC_ARG_ENABLE(mpi,
               [  --disable-mpi           disable mpi support],
