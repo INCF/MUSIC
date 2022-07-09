@@ -390,7 +390,7 @@ namespace MUSIC
   void
   TemporalNegotiator::broadcastNegotiationData ()
   {
-    MPI::Intracomm comm = setup_->communicator ();
+    MPI_Comm comm = setup_->communicator ();
 
     if (hasPeers ())
       {

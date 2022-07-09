@@ -32,8 +32,8 @@ namespace MUSIC {
     MPI_Datatype type_;
     IndexMap* indexMap_;
   public:
-    ArrayData (void* buffer, MPI::Datatype type, IndexMap* map);
-    ArrayData (void* buffer, MPI::Datatype type, int baseIndex, int size);
+    ArrayData (void* buffer, MPI_Datatype type, IndexMap* map);
+    ArrayData (void* buffer, MPI_Datatype type, int baseIndex, int size);
     virtual ~ArrayData ();
     virtual DataMap* copy ();
     virtual MPI_Datatype type () { return type_; }

@@ -25,7 +25,7 @@
 
 namespace MUSIC {
   
-  ArrayData::ArrayData (void* buffer, MPI::Datatype type, IndexMap* map)
+  ArrayData::ArrayData (void* buffer, MPI_Datatype type, IndexMap* map)
     : DataMap (buffer), type_ (type), indexMap_ (map->copy ())
   {
   }
@@ -36,7 +36,7 @@ namespace MUSIC {
   }
   
   ArrayData::ArrayData (void* buffer,
-			MPI::Datatype type,
+			MPI_Datatype type,
 			int baseIndex,
 			int size)
     : DataMap (buffer)

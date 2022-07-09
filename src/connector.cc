@@ -745,7 +745,7 @@ error( "LOCAL Indices are not supported with MUSIC_ANYSOURCE");
 	  //SPIKE_MSG tag
 	  int size = rsubconn.size();
 	  char data[SPIKE_BUFFER_MAX];
-	  MPI::Status status;
+	  MPI_Status status;
 	  while(size > 0 && flushes > 0){
 	  intercomm.Recv (data,
 	  				SPIKE_BUFFER_MAX,
