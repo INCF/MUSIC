@@ -58,7 +58,7 @@ extern "C" {
 #endif
 
 /*
- * Predict the local MPI process rank before having called MPI::Init
+ * Predict the local MPI process rank before having called MPI_Init
  *
  * MPI implementations typically passes meta information either through
  * argc and argv (MPICH) or through the environment (OpenMPI).
