@@ -594,7 +594,9 @@ namespace MUSIC {
       ostr << std::endl;
       std::cout << ostr.str () << std::flush;
 #endif
-      group_ = MPI::COMM_WORLD.Get_group ().Range_incl (nRanges, range);
+      MPI_Group worldGroup;
+      MPI_Comm_group (MPI_COMM_WORLD, &worldGroup);
+      MPI_Group_range_incl (worldGroup, nRanges, range, &group_);
       delete[] range;
     }
 
@@ -607,18 +609,18 @@ namespace MUSIC {
       idstr_ << ':' << cid->first << cid->second;
     id_ = "mc" + idstr_.str ();
 
-    if (!isContiguous || group_.Get_size () < MPI::COMM_WORLD.Get_size ())
-      comm_ = MPI::COMM_WORLD.Create (group_);
+    if (!isContiguous || mpi_get_size (group_) < mpi_get_size (MPI_COMM_WORLD))
+      MPI_Comm_create (MPI_COMM_WORLD, group_, &comm_);
     else
-      comm_ = MPI::COMM_WORLD;
-    MPI::COMM_WORLD.Barrier ();
+      comm_ = MPI_COMM_WORLD;
+    MPI_Barrier (MPI_COMM_WORLD);
 
     std::vector<int> ranks (size ());
     std::vector<int> indices (size ());
     for (int rank = 0; rank < size (); ++rank)
       ranks[rank] = rank;
-    MPI::Group::Translate_ranks (group_, size (), &ranks[0],
-				 MPI::COMM_WORLD.Get_group (), &indices[0]);
+    MPI_Group_translate_ranks (group_, size (), &ranks[0],
+			       mpi_get_group (MPI_COMM_WORLD), &indices[0]);
 #ifdef MUSIC_TWOSTAGE_ALLGATHER
     twostage_ = true;
 #endif
@@ -895,8 +897,9 @@ namespace MUSIC {
 	if (block_[rank ()]->finalizeFlag (buffer_))
 	  recvc |= TWOSTAGE_FINALIZE_FLAG;
 	recvcounts_[rank ()] = recvc;
-	comm_.Allgather (MPI::IN_PLACE, 0, MPI::DATATYPE_NULL,
-			 recvcounts_, 1, MPI::INT);
+	MPI_Allgather (MPI_IN_PLACE, 0, MPI_DATATYPE_NULL,
+		       recvcounts_, 1, MPI_INT,
+		       comm_);
 	checkRestructure (); // sets doAllgather_
 	if (doAllgather_)
 	  {
@@ -904,8 +907,9 @@ namespace MUSIC {
 #ifdef MUSIC_DEBUG
 	    dumprecvc (id_, recvcounts_, displs_, comm_.Get_size ());
 #endif
-	    comm_.Allgatherv (MPI::IN_PLACE, 0, MPI::DATATYPE_NULL,
-			      buffer_, recvcounts_, displs_, MPI::BYTE);
+	    MPI_Allgatherv (MPI_IN_PLACE, 0, MPI_DATATYPE_NULL,
+			    buffer_, recvcounts_, displs_, MPI_BYTE,
+			    comm_);
 	    processReceived ();
 	  }
       }
@@ -918,8 +922,9 @@ namespace MUSIC {
 #ifdef MUSIC_DEBUG
 	dumprecvc (id_, recvcounts_, displs_, comm_.Get_size ());
 #endif
-	comm_.Allgatherv (MPI::IN_PLACE, 0, MPI::DATATYPE_NULL,
-			  buffer_, recvcounts_, displs_, MPI::BYTE);
+	MPI_Allgatherv (MPI_IN_PLACE, 0, MPI_DATATYPE_NULL,
+			buffer_, recvcounts_, displs_, MPI_BYTE,
+			comm_);
 	for (BlockPtrs::iterator b = block_.begin ();
 	     b != block_.end ();
 	     ++b)
@@ -933,8 +938,9 @@ namespace MUSIC {
 #ifdef MUSIC_DEBUG
 	      dumprecvc (id_, recvcounts_, displs_, comm_.Get_size ());
 #endif
-	      comm_.Allgatherv (MPI::IN_PLACE, 0, MPI::DATATYPE_NULL,
-				buffer_, recvcounts_, displs_, MPI::BYTE);
+	      MPI_Allgatherv (MPI_IN_PLACE, 0, MPI_DATATYPE_NULL,
+			      buffer_, recvcounts_, displs_, MPI_BYTE,
+			      comm_);
 	      break;
 	    }
 	processInput ();

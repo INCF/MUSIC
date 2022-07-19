@@ -78,17 +78,19 @@ namespace MUSIC {
   Connector::createIntercomm ()
   {
 
-    intercomm = comm.Create_intercomm (0,
-				       MPI::COMM_WORLD,
-				       info.remoteLeader (),
-				       CREATE_INTERCOMM_MSG);
+    MPI_Intercomm_create (comm,
+			  0,
+			  MPI_COMM_WORLD,
+			  info.remoteLeader (),
+			  CREATE_INTERCOMM_MSG,
+			  &intercomm);
   }
 
 
   void
   Connector::freeIntercomm ()
   {
-    intercomm.Free ();
+    MPI_Comm_free (&intercomm);
   }
 
 
@@ -217,7 +219,7 @@ namespace MUSIC {
 		  (*s)->maybeCommunicate(requests);
 	  }
 	  //The spec  guarantees vectors store their elements contiguously:
-	  MPI::Request::Waitall(requests.size(),  (MPI::Request *)&requests[0]);
+	  MPI_Waitall(requests.size(), (MPI_Request *)&requests[0], MPI_STATUSES_IGNORE);
   }
 #endif //MUSIC_ISENDWAITALL
 
@@ -250,12 +252,14 @@ namespace MUSIC {
       {
 	// exchange tickInterval with peer leader
 	sRemoteTickInterval = tickInterval.serialize ();
-	intercomm.Sendrecv_replace (&sRemoteTickInterval, 2, MPI::UNSIGNED_LONG,
-				    0, TICKINTERVAL_MSG,
-				    0, TICKINTERVAL_MSG);
+	MPI_Sendrecv_replace (&sRemoteTickInterval, 2, MPI_UNSIGNED_LONG,
+			      0, TICKINTERVAL_MSG,
+			      0, TICKINTERVAL_MSG,
+			      intercomm,
+			      MPI_STATUS_IGNORE);
       }
     // broadcast to peers
-    comm.Bcast (&sRemoteTickInterval, 2, MPI::UNSIGNED_LONG, 0);
+    MPI_Bcast (&sRemoteTickInterval, 2, MPI_UNSIGNED_LONG, 0, comm);
     return sRemoteTickInterval.deserialize ();
   }
 
@@ -747,16 +751,18 @@ error( "LOCAL Indices are not supported with MUSIC_ANYSOURCE");
 	  char data[SPIKE_BUFFER_MAX];
 	  MPI_Status status;
 	  while(size > 0 && flushes > 0){
-	  intercomm.Recv (data,
-	  				SPIKE_BUFFER_MAX,
-	  				MPI::BYTE,
-	  				MPI_ANY_SOURCE,
-	  				SPIKE_MSG,
-	  				status);
+	  MPI_Recv (data,
+		    SPIKE_BUFFER_MAX,
+		    MPI_BYTE,
+		    MPI_ANY_SOURCE,
+		    SPIKE_MSG,
+		    intercomm,
+		    &status);
 
-	  int msize = status.Get_count(MPI::BYTE);
-	  if (rRank2Subconnector[status.Get_source()]->receive(data, msize))
-		  flushes--;
+	  int msize;
+	  MPI_Get_count (&status, MPI_BYTE, &msize);
+	  if (rRank2Subconnector[status.MPI_SOURCE]->receive (data, msize))
+	    flushes--;
 	  if( msize < SPIKE_BUFFER_MAX)
 		 size--;
 	  }
@@ -859,14 +865,14 @@ error( "LOCAL Indices are not supported with MUSIC_ANYSOURCE");
   CollectiveConnector::createIntercomm ()
   {
     Connector::createIntercomm ();
-    intracomm_ = intercomm.Merge (high_);
+    MPI_Intercomm_merge (intercomm, high_, &intracomm_);
   }
 
 
   void
   CollectiveConnector::freeIntercomm ()
   {
-    intracomm_.Free ();
+    MPI_Comm_free (&intracomm_);
     Connector::freeIntercomm ();
   }
 
@@ -1051,15 +1057,17 @@ error( "LOCAL Indices are not supported with MUSIC_ANYSOURCE");
   ContInputCollectiveConnector::receiveRemoteCommRankID(std::map<int,int> &remoteToCollectiveRankMap)
   {
     int nProcesses, intra_rank;
-    nProcesses = intercomm.Get_remote_size();
+    MPI_Comm_remote_size (intercomm, &nProcesses);
 
     for (int i =0; i < nProcesses; ++i)
       {
-	intercomm.Recv (&intra_rank,
-			1,
-			MPI::INT,
-			i,
-			SPATIAL_NEGOTIATION_MSG);
+	MPI_Recv (&intra_rank,
+		  1,
+		  MPI_INT,
+		  i,
+		  SPATIAL_NEGOTIATION_MSG,
+		  intercomm,
+		  MPI_STATUS_IGNORE);
 	remoteToCollectiveRankMap.insert(std::make_pair(i,intra_rank));
 	MUSIC_LOG0( "Remote Communication Rank:" << i << "is mapped to Collective Communication Rank:" << intra_rank );
       }
@@ -1098,15 +1106,16 @@ error( "LOCAL Indices are not supported with MUSIC_ANYSOURCE");
   ContOutputCollectiveConnector::sendLocalCommRankID()
   {
     int nProcesses, intra_rank;
-    nProcesses = intercomm.Get_remote_size();
-    intra_rank = intracomm_.Get_rank();
+    MPI_Comm_remote_size (intercomm, &nProcesses);
+    intra_rank = mpi_get_rank (intracomm_);
     std::map<int,int> rCommToCollCommRankMap;
     for (int i =0; i < nProcesses; ++i){
-      intercomm.Ssend(&intra_rank,
-		      1,
-		      MPI::INT,
-		      i,
-		      SPATIAL_NEGOTIATION_MSG);
+      MPI_Ssend (&intra_rank,
+		 1,
+		 MPI_INT,
+		 i,
+		 SPATIAL_NEGOTIATION_MSG,
+		 intercomm);
     }
   }
 }

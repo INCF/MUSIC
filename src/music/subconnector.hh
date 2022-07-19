@@ -269,7 +269,7 @@ namespace MUSIC {
 
   /* remedius
    * CollectiveSubconnector class is used for collective communication
-   * based on MPI::ALLGATHER function.
+   * based on the MPI_Allgather function.
    */
   class CollectiveSubconnector : public virtual Subconnector
   {

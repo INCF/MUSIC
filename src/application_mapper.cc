@@ -96,8 +96,8 @@ namespace MUSIC {
         // communicate st.st_ino
         long *inos = new long[nRanks];
         inos[my_rank] = my_ino;
-        MPI::COMM_WORLD.Allgather (MPI::IN_PLACE, 0, MPI::LONG, inos, 1,
-            MPI::LONG);
+        MPI_Allgather (MPI_IN_PLACE, 0, MPI_LONG, inos, 1,
+		       MPI_LONG, MPI_COMM_WORLD);
 
         int index = 0;
         int i = 0;

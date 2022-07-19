@@ -115,20 +115,22 @@ namespace MUSIC {
       {
 
 	MUSIC_LOGR ("Sending to rank " << remoteRank_);
-	intercomm.Ssend (buffer,
-			 CONT_BUFFER_MAX / type_.Get_size (),
-			 type_,
-			 remoteRank_,
-			 CONT_MSG);
+	MPI_Ssend (buffer,
+		   CONT_BUFFER_MAX / mpi_get_size (type_),
+		   type_,
+		   remoteRank_,
+		   CONT_MSG,
+		   intercomm);
 	buffer += CONT_BUFFER_MAX;
 	size -= CONT_BUFFER_MAX;
       }
     MUSIC_LOGR ("Last send to rank " << remoteRank_);
-    intercomm.Ssend (buffer,
-		     size / type_.Get_size (),
-		     type_,
-		     remoteRank_,
-		     CONT_MSG);
+    MPI_Ssend (buffer,
+	       size / mpi_get_size (type_),
+	       type_,
+	       remoteRank_,
+	       CONT_MSG,
+	       intercomm);
   }
 
   
@@ -146,7 +148,7 @@ namespace MUSIC {
 	else
 	  {
 	    char dummy;
-	    intercomm.Ssend (&dummy, 0, type_, remoteRank_, FLUSH_MSG);
+	    MPI_Ssend (&dummy, 0, type_, remoteRank_, FLUSH_MSG, intercomm);
 	    flushed = true;
 	  }
       }
@@ -200,20 +202,21 @@ namespace MUSIC {
 	data = static_cast<char*> (buffer_.insertBlock ());
 	MUSIC_LOGR ("Receiving from rank " << remoteRank_);
 
-	intercomm.Recv (data,
-			maxCount,
-			type_,
-			remoteRank_,
-			MPI::ANY_TAG,
-			status);
-	if (status.Get_tag () == FLUSH_MSG)
+	MPI_Recv (data,
+		  maxCount,
+		  type_,
+		  remoteRank_,
+		  MPI_ANY_TAG,
+		  intercomm,
+		  &status);
+	if (status.MPI_TAG == FLUSH_MSG)
 	  {
 	    flushed = true;
 	    MUSIC_LOGR ("received flush message");
 	    return;
 	  }
-	size = status.Get_count (type_);
-	buffer_.trimBlock (type_.Get_size () * size);
+	MPI_Get_count (&status, type_, &size);
+	buffer_.trimBlock (mpi_get_size (type_) * size);
       }
     while (size == maxCount);
   }
@@ -280,15 +283,21 @@ namespace MUSIC {
     char* buffer = static_cast <char*> (data);
     while (size >= SPIKE_BUFFER_MAX)
       {
-	requests.push_back(intercomm.Isend (buffer,
-					    SPIKE_BUFFER_MAX,
-					    type_,
-					    remoteRank_,
-					    SPIKE_MSG));
+	MPI_Request request;
+	MPI_Isend (buffer,
+		   SPIKE_BUFFER_MAX,
+		   type_,
+		   remoteRank_,
+		   SPIKE_MSG,
+		   intercomm,
+		   &request);
+	requests.push_back (request);
 	buffer += SPIKE_BUFFER_MAX;
 	size -= SPIKE_BUFFER_MAX;
       }
-    requests.push_back( intercomm.Isend (buffer, size, type_, remoteRank_, SPIKE_MSG));
+    MPI_Request request;
+    MPI_Isend (buffer, size, type_, remoteRank_, SPIKE_MSG, intercomm, &request);
+    requests.push_back (request);
   }
 
   
@@ -302,15 +311,16 @@ namespace MUSIC {
     char* buffer = static_cast <char*> (data);
     while (size >= SPIKE_BUFFER_MAX)
       {
-	intercomm.Ssend (buffer,
-			 SPIKE_BUFFER_MAX,
-			 type_,
-			 remoteRank_,
-			 SPIKE_MSG);
+	MPI_Ssend (buffer,
+		   SPIKE_BUFFER_MAX,
+		   type_,
+		   remoteRank_,
+		   SPIKE_MSG,
+		   intercomm);
 	buffer += SPIKE_BUFFER_MAX;
 	size -= SPIKE_BUFFER_MAX;
       }
-    intercomm.Ssend (buffer, size, type_, remoteRank_, SPIKE_MSG);
+    MPI_Ssend (buffer, size, type_, remoteRank_, SPIKE_MSG, intercomm);
   }
 
   
@@ -459,14 +469,15 @@ namespace MUSIC {
 
     do
       {
-	intercomm.Recv (data,
-			SPIKE_BUFFER_MAX,
-			type_,
-			remoteRank_,
-			SPIKE_MSG,
-			status);
+	MPI_Recv (data,
+		  SPIKE_BUFFER_MAX,
+		  type_,
+		  remoteRank_,
+		  SPIKE_MSG,
+		  intercomm,
+		  &status);
 
-	size = status.Get_count (type_);
+	MPI_Get_count (&status, type_, &size);
 	Event* ev = (Event*) data;
 	/* remedius
 	 * since the message can be of size 0 and contains garbage=FLUSH_MARK,
@@ -505,13 +516,14 @@ namespace MUSIC {
     int size;
     do
       {
-	intercomm.Recv (data,
-			SPIKE_BUFFER_MAX,
-			type_,
-			remoteRank_,
-			SPIKE_MSG,
-			status);
-	size = status.Get_count (type_);
+	MPI_Recv (data,
+		  SPIKE_BUFFER_MAX,
+		  type_,
+		  remoteRank_,
+		  SPIKE_MSG,
+		  intercomm,
+		  &status);
+	MPI_Get_count (&status, type_, &size);
 	Event* ev = (Event*) data;
 	/* remedius
 	 * since the message can be of size 0 and contains garbage=FLUSH_MARK,
@@ -601,15 +613,16 @@ namespace MUSIC {
     char* buffer = static_cast <char*> (data);
     while (size >= MESSAGE_BUFFER_MAX)
       {
-	intercomm.Ssend (buffer,
-			 MESSAGE_BUFFER_MAX,
-			 type_,
-			 remoteRank_,
-			 MESSAGE_MSG);
+	MPI_Ssend (buffer,
+		   MESSAGE_BUFFER_MAX,
+		   type_,
+		   remoteRank_,
+		   MESSAGE_MSG,
+		   intercomm);
 	buffer += MESSAGE_BUFFER_MAX;
 	size -= MESSAGE_BUFFER_MAX;
       }
-    intercomm.Ssend (buffer, size, type_, remoteRank_, MESSAGE_MSG);
+    MPI_Ssend (buffer, size, type_, remoteRank_, MESSAGE_MSG, intercomm);
   }
 
 
@@ -627,7 +640,7 @@ namespace MUSIC {
 	else
 	  {
 	    char dummy;
-	    intercomm.Ssend (&dummy, 0, type_, remoteRank_, FLUSH_MSG);
+	    MPI_Ssend (&dummy, 0, type_, remoteRank_, FLUSH_MSG, intercomm);
 	  }
       }
   }
@@ -671,19 +684,20 @@ namespace MUSIC {
     int size;
     do
       {
-	intercomm.Recv (data,
-			MESSAGE_BUFFER_MAX,
-			type_,
-			remoteRank_,
-			MPI::ANY_TAG,
-			status);
-	if (status.Get_tag () == FLUSH_MSG)
+	MPI_Recv (data,
+		  MESSAGE_BUFFER_MAX,
+		  type_,
+		  remoteRank_,
+		  MPI_ANY_TAG,
+		  intercomm,
+		  &status);
+	if (status.MPI_TAG == FLUSH_MSG)
 	  {
 	    flushed = true;
 	    MUSIC_LOGRE ("received flush message");
 	    return;
 	  }
-	size = status.Get_count (type_);
+	MPI_Get_count (&status, type_, &size);
 	int current = 0;
 	while (current < size)
 	  {
@@ -760,7 +774,7 @@ namespace MUSIC {
   {
     int dsize;
     //distributing the size of the buffer
-    intracomm_.Allgather (&local_data_size, 1, MPI_INT, ppBytes, 1, MPI_INT);
+    MPI_Allgather (&local_data_size, 1, MPI_INT, ppBytes, 1, MPI_INT, intracomm_);
     //could it be that dsize is more then unsigned int?
     dsize = 0;
     for(int i=0; i < nProcesses; ++i){
@@ -785,15 +799,16 @@ namespace MUSIC {
     unsigned int dsize;
     char *recv_buff;
     std::vector<char> commData;
-    recv_buff=NULL;
+    recv_buff = NULL;
 
-    dsize = calcCommDataSize(size);
+    dsize = calcCommDataSize (size);
 
     if(dsize > 0){
       //distributing the data
       recv_buff = new char[dsize];
-      intracomm_.Allgatherv(cur_buff, size, MPI::BYTE, recv_buff, ppBytes, displ, MPI::BYTE );
-      std::copy(recv_buff,recv_buff+dsize,std::back_inserter(commData));
+      MPI_Allgatherv (cur_buff, size, MPI_BYTE, recv_buff, ppBytes, displ, MPI_BYTE,
+		      intracomm_);
+      std::copy (recv_buff, recv_buff + dsize, std::back_inserter (commData));
       delete[] recv_buff;
     }
     return commData;

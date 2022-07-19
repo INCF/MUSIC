@@ -240,8 +240,9 @@ namespace MUSIC
                   {
                     //  std::cout << "Rank " << mpi_get_rank (MPI_COMM_WORLD)
                     //      << ": Proxy " << proxyId << std::endl;
-                    MPI::COMM_WORLD.Create (MPI::GROUP_EMPTY);
-                    MPI::COMM_WORLD.Barrier ();
+		    MPI_Comm newcomm;
+                    MPI_Comm_create (MPI_COMM_WORLD, MPI_GROUP_EMPTY, &newcomm);
+                    MPI_Barrier (MPI_COMM_WORLD);
                     (*multiProxies)[proxyId] = true;
                   }
               }
@@ -278,8 +279,9 @@ namespace MUSIC
               }// if we do not participate in the multicommunication and the multiconnector was not yet created
             else if (multiId == 0 && !((*multiProxies)[proxyId]))
               {
-                MPI::COMM_WORLD.Create (MPI::GROUP_EMPTY);
-                MPI::COMM_WORLD.Barrier ();
+		MPI_Comm newcomm;
+                MPI_Comm_create (MPI_COMM_WORLD, MPI_GROUP_EMPTY, &newcomm);
+                MPI_Barrier (MPI_COMM_WORLD);
                 (*multiProxies)[proxyId] = true;
               }
 
@@ -422,9 +424,9 @@ namespace MUSIC
               } // if we do not participate in the multicommunication and the multiconnector was not yet created
             else if (multiId == 0 && ! ( (*multiProxies)[proxyId]))
               {
-
-                MPI::COMM_WORLD.Create (MPI::GROUP_EMPTY);
-                MPI::COMM_WORLD.Barrier ();
+		MPI_Comm newcomm;
+                MPI_Comm_create (MPI_COMM_WORLD, MPI_GROUP_EMPTY, &newcomm);
+                MPI_Barrier (MPI_COMM_WORLD);
                 (*multiProxies)[proxyId] = true;
 
               }

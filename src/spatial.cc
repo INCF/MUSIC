@@ -167,12 +167,12 @@ namespace MUSIC {
 
     // Now take maximum over all processes
     std::vector<int> m (nProcesses);
-    comm.Allgather (&u, 1, MPI::INT, &m[0], 1, MPI::INT);
+    MPI_Allgather (&u, 1, MPI_INT, &m[0], 1, MPI_INT, comm);
     for (unsigned int i = 0; i < nProcesses; ++i)
       if (m[i] > u)
 	u = m[i];
     width = u;
-    comm.Allgather (&w, 1, MPI::INT, &m[0], 1, MPI::INT);
+    MPI_Allgather (&w, 1, MPI_INT, &m[0], 1, MPI_INT, comm);
     for (unsigned int i = 0; i < nProcesses; ++i)
       if (m[i] > w)
 	w = m[i];
@@ -189,9 +189,9 @@ namespace MUSIC {
     if (localRank == 0)
       {
 	// Receiver might need to know sender width
-	intercomm.Send (&width, 1, MPI::INT, 0, WIDTH_MSG);
+	MPI_Send (&width, 1, MPI_INT, 0, WIDTH_MSG, intercomm);
 	int remoteWidth;
-	intercomm.Recv (&remoteWidth, 1, MPI::INT, 0, WIDTH_MSG);
+	MPI_Recv (&remoteWidth, 1, MPI_INT, 0, WIDTH_MSG, intercomm, MPI_STATUS_IGNORE);
 	if (remoteWidth != width)
 	  {
 	    std::ostringstream msg;
@@ -209,7 +209,7 @@ namespace MUSIC {
     if (localRank == 0)
       {
 	int remoteWidth;
-	intercomm.Recv (&remoteWidth, 1, MPI::INT, 0, WIDTH_MSG);
+	MPI_Recv (&remoteWidth, 1, MPI_INT, 0, WIDTH_MSG, intercomm, MPI_STATUS_IGNORE);
 	// NOTE: For now, the handling of Index::WILDCARD_MAX is a bit
 	// incomplete since, if there is any index interval on the
 	// receiver side with index larger than the sender side width,
@@ -220,10 +220,10 @@ namespace MUSIC {
 	 */
 	if (width == Index::WILDCARD_MAX || width < remoteWidth )
 	  width = remoteWidth;
-	intercomm.Send (&width, 1, MPI::INT, 0, WIDTH_MSG);
+	MPI_Send (&width, 1, MPI_INT, 0, WIDTH_MSG, intercomm);
       }
     // Broadcast result (if we used a wildcard)
-    comm.Bcast (&width, 1, MPI::INT, 0);
+    MPI_Bcast (&width, 1, MPI_INT, 0, comm);
     if (maxLocalWidth_ == Index::WILDCARD_MAX)
       maxLocalWidth_ = width;
   }
@@ -463,12 +463,13 @@ namespace MUSIC {
     SpatialNegotiationData* data = &intervals[0];
     int nIntervals = intervals.size ();
     // first send size
-    comm.Send (&nIntervals, 1, MPI::INT, destRank, SPATIAL_NEGOTIATION_MSG);
-    comm.Send (data,
-	       sizeof (SpatialNegotiationData) / sizeof (int) * nIntervals,
-	       MPI::INT,
-	       destRank,
-	       SPATIAL_NEGOTIATION_MSG);
+    MPI_Send (&nIntervals, 1, MPI_INT, destRank, SPATIAL_NEGOTIATION_MSG, comm);
+    MPI_Send (data,
+	      sizeof (SpatialNegotiationData) / sizeof (int) * nIntervals,
+	      MPI_INT,
+	      destRank,
+	      SPATIAL_NEGOTIATION_MSG,
+	      comm);
   }
 
 
@@ -478,14 +479,17 @@ namespace MUSIC {
 			      NegotiationIntervals& intervals)
   {
     int nIntervals;
-    comm.Recv (&nIntervals, 1, MPI::INT, sourceRank, SPATIAL_NEGOTIATION_MSG);
+    MPI_Recv (&nIntervals, 1, MPI_INT, sourceRank, SPATIAL_NEGOTIATION_MSG, comm,
+	      MPI_STATUS_IGNORE);
     intervals.resize (nIntervals);
-    comm.Recv (&intervals[0],
-	       sizeof (SpatialNegotiationData) / sizeof (int)
-	       * nIntervals,
-	       MPI::INT,
-	       sourceRank,
-	       SPATIAL_NEGOTIATION_MSG);
+    MPI_Recv (&intervals[0],
+	      sizeof (SpatialNegotiationData) / sizeof (int)
+	      * nIntervals,
+	      MPI_INT,
+	      sourceRank,
+	      SPATIAL_NEGOTIATION_MSG,
+	      comm,
+	      MPI_STATUS_IGNORE);
   }
 
 

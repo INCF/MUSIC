@@ -224,7 +224,7 @@ main (int argc, char *argv[])
   setup->config ("stoptime", &stoptime);
 
   if (useBarrier)
-    MPI::COMM_WORLD.Barrier();
+    MPI_Barrier (MPI_COMM_WORLD);
 
   MUSIC::Runtime* runtime = new MUSIC::Runtime (setup, timestep);
 

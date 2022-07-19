@@ -41,7 +41,7 @@ namespace MUSIC {
     if (MPI::Is_initialized ())
       errorRank (err_MPI_Init);
     maybeProcessMusicArgv (argc, argv);
-    MPI::Init (argc, argv);
+    MPI_Init (&argc, &argv);
 
     init (argc, argv);
 
@@ -55,12 +55,7 @@ namespace MUSIC {
     if (MPI::Is_initialized ())
       errorRank (err_MPI_Init);
     maybeProcessMusicArgv (argc, argv);
-#ifdef HAVE_MPI_INIT_THREAD
-    *provided = MPI::Init_thread (argc, argv, required);
-#else
-    // Only C version provided in libmpich
     MPI_Init_thread (&argc, &argv, required, provided);
-#endif
     init (argc, argv);
   }
 
@@ -151,7 +146,7 @@ namespace MUSIC {
             argc = argc_;
             argv = argv_;
           }
-        comm = MPI::COMM_WORLD.Split (postponeSetup_ ? color_ : config_->Color (), myRank);
+        MPI_Comm_split (MPI_COMM_WORLD, postponeSetup_ ? color_ : config_->Color (), myRank, &comm);
       }
     else
       {
@@ -227,13 +222,13 @@ namespace MUSIC {
         config.seekg (0, std::ios_base::beg);
       }
     // first broadcast the size of the file
-    MPI::COMM_WORLD.Bcast (&size, 1, MPI::INT, 0);
+    MPI_Bcast (&size, 1, MPI_INT, 0, MPI_COMM_WORLD);
     buffer = new char[size];
 
     if (myRank == 0)
       config.read (buffer, size);
     // then broadcast the file but itself
-    MPI::COMM_WORLD.Bcast (buffer, size, MPI::BYTE, 0);
+    MPI_Bcast (buffer, size, MPI_BYTE, 0, MPI_COMM_WORLD);
     // parseMapFile (app_name, std::string (buffer, size), result);
     if (myRank == 0)
       config.close ();

@@ -433,13 +433,13 @@ namespace MUSIC
 #if defined (OPEN_MPI) && MPI_VERSION <= 2
     // This is needed in OpenMPI version <= 1.2 for the freeing of the
     // intercommunicators to go well
-    MPI::COMM_WORLD.Barrier ();
+    MPI_Barrier (MPI_COMM_WORLD);
 #endif
     for (std::vector<Connector*>::iterator connector = connectors.begin ();
         connector != connectors.end (); ++connector)
       (*connector)->freeIntercomm ();
 
-    MPI::Finalize ();
+    MPI_Finalize ();
   }
 
 

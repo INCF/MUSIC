@@ -123,8 +123,8 @@ namespace MUSIC {
     int size = mpi_get_size (MPI_COMM_WORLD);
     int rank = mpi_get_rank (MPI_COMM_WORLD);
     int *colors = new int[size];
-    colors[my_rank] = lookup (my_app_label)->color ();
-    MPI::COMM_WORLD.Allgather (MPI::IN_PLACE, 0, MPI::INT, colors, 1, MPI::INT);
+    colors[rank] = lookup (my_app_label)->color ();
+    MPI_Allgather (MPI_IN_PLACE, 0, MPI_INT, colors, 1, MPI_INT, MPI_COMM_WORLD);
 
     int prev_color = -1;
     for (int i = 0; i < size; ++i)

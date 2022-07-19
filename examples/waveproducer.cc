@@ -55,7 +55,7 @@ main (int argc, char* argv[])
 	}
 
       // Broadcast these data out to all nodes
-      comm.Bcast (data, nLocalVars, MPI::DOUBLE, 0);
+      MPI_Bcast (data, nLocalVars, MPI::DOUBLE, 0, comm);
     }
 
   runtime->finalize ();

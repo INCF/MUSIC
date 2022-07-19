@@ -383,10 +383,11 @@ namespace MUSIC
                 {
                   if (!multiProxies[multiProxyId])
                     {
-                      std::cout << "Rank " << MPI::COMM_WORLD.Get_rank ()
-                      << ": *" << std::endl << std::flush;
-                      MPI::COMM_WORLD.Create (MPI::GROUP_EMPTY);
-                      MPI::COMM_WORLD.Barrier ();
+                      std::cout << "Rank " << mpi_get_rank (MPI_COMM_WORLD)
+				<< ": *" << std::endl << std::flush;
+		      MPI_Comm comm;
+                      MPI_Comm_create (MPI_COMM_WORLD, MPI_GROUP_EMPTY, &comm);
+                      MPI_Barrier (MPI_COMM_WORLD);
                       //*fixme* Impossible to delete the following object
                       multiProxies[multiProxyId] = true;
                     }
