@@ -20,6 +20,14 @@
 
 namespace MUSIC {
 
+  bool
+  mpi_is_initialized ()
+  {
+    int isInitialized;
+    MPI_Initialized (&isInitialized);
+    return isInitialized;
+  }
+
   int
   mpi_get_rank (MPI_Comm comm)
   {
