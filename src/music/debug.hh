@@ -47,11 +47,13 @@
 
 #define MUSIC_LOGBR(C, X)			\
   {						\
-    int _r = (C).Get_rank ();			\
-    int _n = (C).Get_size ();			\
+    int _r;                                     \
+    MPI_Comm_rank ((C), &_r);			\
+    int _n;                                     \
+    MPI_Comm_size ((C), &_n);			\
     for (int _i = 0; _i < _n; ++_i)		\
       {						\
-	(C).Barrier ();				\
+	MPI_Barrier ((C));			\
 	if (_i == _r)				\
 	  MUSIC_LOGR (X);			\
       }						\
