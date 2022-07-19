@@ -32,7 +32,7 @@ main (int argc, char* argv[])
     
   // Declare what data we have to export
   MUSIC::ArrayData dmap (data,
-			 MPI::DOUBLE,
+			 MPI_DOUBLE,
 			 rank * nLocalVars,
 			 nLocalVars);
   wavedata->map (&dmap);
@@ -55,7 +55,7 @@ main (int argc, char* argv[])
 	}
 
       // Broadcast these data out to all nodes
-      MPI_Bcast (data, nLocalVars, MPI::DOUBLE, 0, comm);
+      MPI_Bcast (data, nLocalVars, MPI_DOUBLE, 0, comm);
     }
 
   runtime->finalize ();

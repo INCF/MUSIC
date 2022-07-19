@@ -138,7 +138,7 @@ main (int argc, char *argv[])
     }
 
   MUSIC::ArrayData inMap (&inData,
-			  MPI::DOUBLE,
+			  MPI_DOUBLE,
 			  0,
 			  1);
   in->map (&inMap, delay, maxbuffered);
@@ -153,7 +153,7 @@ main (int argc, char *argv[])
     }
 
   MUSIC::ArrayData outMap (&outData,
-			   MPI::DOUBLE,
+			   MPI_DOUBLE,
 			   0,
 			   1);
   out->map (&outMap, maxbuffered);
@@ -165,7 +165,7 @@ main (int argc, char *argv[])
   if (aux->isConnected ())
     {
       MUSIC::ArrayData auxMap (&auxData,
-			      MPI::DOUBLE,
+			      MPI_DOUBLE,
 			      0,
 			      1);
       aux->map (&auxMap, delay, maxbuffered);

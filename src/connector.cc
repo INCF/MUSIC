@@ -213,11 +213,13 @@ namespace MUSIC {
   void
   OutputConnector::tick ()
   {
-	  std::vector<MPI::Request>requests;
-	  for (std::vector<Subconnector*>::iterator s = rsubconn.begin ();	 s != rsubconn.end ();
-			  ++s){
-		  (*s)->maybeCommunicate(requests);
-	  }
+	  std::vector<MPI_Request> requests;
+	  for (std::vector<Subconnector*>::iterator s = rsubconn.begin ();
+	       s != rsubconn.end ();
+	       ++s)
+	    {
+	      (*s)->maybeCommunicate (requests);
+	    }
 	  //The spec  guarantees vectors store their elements contiguously:
 	  MPI_Waitall(requests.size(), (MPI_Request *)&requests[0], MPI_STATUSES_IGNORE);
   }
@@ -745,7 +747,7 @@ error( "LOCAL Indices are not supported with MUSIC_ANYSOURCE");
  EventInputConnector::tick ()
    {
 	  //SPIKE_BUFFER_MAX size
-	  //MPI::BYTE type
+	  //MPI_BYTE type
 	  //SPIKE_MSG tag
 	  int size = rsubconn.size();
 	  char data[SPIKE_BUFFER_MAX];

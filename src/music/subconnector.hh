@@ -59,7 +59,7 @@ namespace MUSIC {
 
   public:
     //*fixme* should not create subconnectors with uninitialized members
-    Subconnector ():type_(MPI::BYTE), flushed(false){};
+    Subconnector () : type_ (MPI_BYTE), flushed (false) {};
     Subconnector (MPI_Datatype type):type_ (type), flushed(false) { }
     Subconnector (MPI_Datatype type,
 		  MPI_Comm intercomm,
@@ -172,10 +172,10 @@ namespace MUSIC {
   			     int remoteRank,
   			     int receiverPortCode);
       void maybeCommunicate ();
-      void maybeCommunicate (std::vector<MPI::Request> &);
+      void maybeCommunicate (std::vector<MPI_Request> &);
 
       void send ();
-      void send (std::vector<MPI::Request> &);
+      void send (std::vector<MPI_Request> &);
       void flush (bool& dataStillFlowing);
 
     };

@@ -121,7 +121,7 @@ main (int argc, char *argv[])
 
 
   MUSIC::ArrayData dmap (dataarray,
-			 MPI::DOUBLE,
+			 MPI_DOUBLE,
 			 0,
 			 1);
 

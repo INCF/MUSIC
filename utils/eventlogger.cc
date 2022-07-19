@@ -10,7 +10,7 @@ extern "C" {
 
 const double DEFAULT_TIMESTEP = 0.01;
 
-MPI::Intracomm comm;
+MPI_Comm comm;
 
 void
 usage (int rank)

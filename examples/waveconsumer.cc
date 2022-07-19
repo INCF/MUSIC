@@ -36,7 +36,7 @@ main (int args, char* argv[])
     
   // Declare where in memory to put data
   MUSIC::ArrayData dmap (data,
-			 MPI::DOUBLE,
+			 MPI_DOUBLE,
 			 rank * nLocalVars,
 			 nLocalVars);
   wavedata->map (&dmap);

@@ -56,7 +56,7 @@ namespace MUSIC {
     setupRankMap (mpi_get_rank (comm), rankMap);
 #if 0
     std::ostringstream ostr;
-    ostr << "Rank " << mpi_get_rank (MPI::COMM_WORLD) << ": rankMap ";
+    ostr << "Rank " << mpi_get_rank (MPI_COMM_WORLD) << ": rankMap ";
     for (RankMap::iterator i = rankMap->begin ();
 	 i != rankMap->end ();
 	 ++i)
@@ -190,7 +190,7 @@ namespace MUSIC {
 #if 0
     {
       std::ostringstream ostr;
-      ostr << "Rank " << mpi_get_rank (MPI::COMM_WORLD) << ": block_ ranks ";
+      ostr << "Rank " << mpi_get_rank (MPI_COMM_WORLD) << ": block_ ranks ";
       for (Blocks::iterator b = block_.begin (); b != block_.end (); ++b)
 	ostr << b->rank () << ' ';
       std::cout << ostr.str () << std::endl;
@@ -300,7 +300,7 @@ namespace MUSIC {
     // compute required total size
     unsigned int summedSize = 0;
     unsigned int thisRankSize = 0;
-    int thisRank = mpi_get_rank (MPI::COMM_WORLD);
+    int thisRank = mpi_get_rank (MPI_COMM_WORLD);
     for (Blocks::iterator b = block_.begin (); b != block_.end (); ++b)
       {
 	unsigned int size;

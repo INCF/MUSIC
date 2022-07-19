@@ -188,10 +188,10 @@ namespace MUSIC {
       {
 	int localIndex = i->begin () - i->local ();
 	int iSize = i->end () - i->begin ();
-	if (dataMap->type () == MPI::DOUBLE)
+	if (dataMap->type () == MPI_DOUBLE)
 	  interpolate (pos, iSize, interpolationCoefficient,
 		       static_cast<double*> (dataMap->base ()) + localIndex);
-	else if (dataMap->type () == MPI::FLOAT)
+	else if (dataMap->type () == MPI_FLOAT)
 	  interpolate (pos, iSize, interpolationCoefficient,
 		       static_cast<float*> (dataMap->base ()) + localIndex);
 	else

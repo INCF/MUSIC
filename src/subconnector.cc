@@ -248,7 +248,7 @@ namespace MUSIC {
 						    int remoteLeader,
 						    int remoteRank,
 						    int receiverPortCode)
-    : Subconnector (MPI::BYTE,
+    : Subconnector (MPI_BYTE,
 		    intercomm,
 		    remoteLeader,
 		    remoteRank,
@@ -267,14 +267,14 @@ namespace MUSIC {
 
   
   void
-  EventOutputSubconnector::maybeCommunicate (std::vector<MPI::Request> &requests)
+  EventOutputSubconnector::maybeCommunicate (std::vector<MPI_Request> &requests)
   {
     send (requests);
   }
 
   
   void
-  EventOutputSubconnector::send (std::vector<MPI::Request> &requests)
+  EventOutputSubconnector::send (std::vector<MPI_Request> &requests)
   {
     MUSIC_LOGRE ("ISend");
     void* data;
@@ -355,7 +355,7 @@ namespace MUSIC {
 						  int remoteRank,
 						  int receiverRank,
 						  int receiverPortCode)
-    : Subconnector (MPI::BYTE,
+    : Subconnector (MPI_BYTE,
 		    intercomm,
 		    remoteLeader,
 		    remoteRank,
@@ -374,7 +374,7 @@ namespace MUSIC {
    int receiverRank,
    int receiverPortCode,
    EventHandlerGlobalIndex* eh)
-    : Subconnector (MPI::BYTE,
+    : Subconnector (MPI_BYTE,
 		    intercomm,
 		    remoteLeader,
 		    remoteRank,
@@ -405,7 +405,7 @@ namespace MUSIC {
    int receiverRank,
    int receiverPortCode,
    EventHandlerLocalIndex* eh)
-    : Subconnector (MPI::BYTE,
+    : Subconnector (MPI_BYTE,
 		    intercomm,
 		    remoteLeader,
 		    remoteRank,
@@ -584,7 +584,7 @@ namespace MUSIC {
 							int remoteRank,
 							int receiverPortCode,
 							FIBO* buffer)
-    : Subconnector (MPI::BYTE,
+    : Subconnector (MPI_BYTE,
 		    intercomm,
 		    remoteLeader,
 		    remoteRank,
@@ -653,7 +653,7 @@ namespace MUSIC {
 						      int receiverRank,
 						      int receiverPortCode,
 						      MessageHandler* mh)
-    : Subconnector (MPI::BYTE,
+    : Subconnector (MPI_BYTE,
 		    intercomm,
 		    remoteLeader,
 		    remoteRank,

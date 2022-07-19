@@ -111,7 +111,7 @@ main (int argc, char* argv[])
 
   // Declare where in memory to put data
   MUSIC::ArrayData dmap (data,
-			 MPI::DOUBLE,
+			 MPI_DOUBLE,
 			 rank * localWidth,
 			 myWidth);
   contdata->map (&dmap, delay, interpolate);
