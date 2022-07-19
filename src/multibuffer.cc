@@ -207,8 +207,7 @@ namespace MUSIC {
     for (Blocks::iterator b = block_.begin (); b != block_.end (); ++b)
       start = std::max (start, b->headerSize ());
 
-    MPI::COMM_WORLD.Allreduce (MPI::IN_PLACE, &start, 1, MPI::UNSIGNED,
-			       MPI::MAX);
+    MPI_Allreduce (MPI_IN_PLACE, &start, 1, MPI_UNSIGNED, MPI_MAX, MPI_COMM_WORLD);
 
     errorBlockSize_ = start;
 
@@ -255,10 +254,11 @@ namespace MUSIC {
     int worldRank = mpi_get_rank (MPI_COMM_WORLD);
     std::vector<RankInfo> rankInfos (worldSize);
     rankInfos[worldRank] = RankInfo (localLeader_, localRank);
-    MPI::COMM_WORLD.Allgather (MPI::IN_PLACE, 0, MPI::DATATYPE_NULL,
-			       &rankInfos.front (),
-			       sizeof (RankInfo) / sizeof (int),
-			       MPI_INT);
+    MPI_Allgather (MPI_IN_PLACE, 0, MPI_DATATYPE_NULL,
+		   &rankInfos.front (),
+		   sizeof (RankInfo) / sizeof (int),
+		   MPI_INT,
+		   MPI_COMM_WORLD);
     for (int wr = 0; wr < worldSize; ++wr)
       {
 	RankInfo& ri = rankInfos[wr];
