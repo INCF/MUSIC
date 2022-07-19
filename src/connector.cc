@@ -70,7 +70,7 @@ namespace MUSIC {
   bool
   Connector::isLeader ()
   {
-    return comm.Get_rank () == 0;
+    return mpi_get_rank (comm) == 0;
   }
 
   
@@ -131,7 +131,7 @@ namespace MUSIC {
   	    rsubconn.push_back (subconn);
 
   	  }
-  	MUSIC_LOG (MPI::COMM_WORLD.Get_rank ()
+  	MUSIC_LOG (mpi_get_rank (MPI_COMM_WORLD)
   		   << ": ("
   		   << i->begin () << ", "
   		   << i->end () << ", "
@@ -493,7 +493,7 @@ namespace MUSIC {
   Subconnector*
   ContInputConnector::makeSubconnector (int remoteRank)
   {
-    int receiverRank = intercomm.Get_rank ();
+    int receiverRank = mpi_get_rank (intercomm);
     return new ContInputSubconnector (//synchronizer (),
 				      intercomm,
 				      remoteLeader (),
@@ -683,8 +683,8 @@ namespace MUSIC {
   EventOutputConnector::makeSubconnector (int remoteRank)
   {
     //////
-/*                int world_size = MPI::COMM_WORLD.Get_size();
-                if (MPI::COMM_WORLD.Get_rank() < world_size/2)
+/*              int world_size = mpi_get_size (MPI_COMM_WORLD);
+                if (mpi_get_rank (MPI_COMM_WORLD) < world_size/2)
                   std::cout << remoteRank << std::flush << std::endl;*/
     return new EventOutputSubconnector (//&synch,
 					intercomm,
@@ -705,7 +705,7 @@ namespace MUSIC {
   Subconnector*
   EventInputConnector::makeSubconnector (int remoteRank)
   {
-    int receiverRank = intercomm.Get_rank ();
+    int receiverRank = mpi_get_rank (intercomm);
     if (type_ == Index::GLOBAL){
     	EventInputSubconnectorGlobal *subcc =
     	 new EventInputSubconnectorGlobal (//&synch,
@@ -840,7 +840,7 @@ error( "LOCAL Indices are not supported with MUSIC_ANYSOURCE");
   Subconnector*
   MessageInputConnector::makeSubconnector (int remoteRank)
   {
-    int receiverRank = intercomm.Get_rank ();
+    int receiverRank = mpi_get_rank (intercomm);
     return new MessageInputSubconnector (//&synch,
 					 intercomm,
 					 remoteLeader (),
@@ -1041,9 +1041,9 @@ error( "LOCAL Indices are not supported with MUSIC_ANYSOURCE");
 
     for (NegotiationIterator i  = spatialNegotiator_->negotiate (info.nProcesses (), this);  !i.end (); ++i)
       {
-	int begin = (i->displ())*data_type_.Get_size();
+	int begin = (i->displ()) * mpi_get_size (data_type_);
 	// length field is stored overlapping the end field
-	int end = (i->end() - i->begin()) * data_type_.Get_size();
+	int end = (i->end() - i->begin()) * mpi_get_size (data_type_);
 	receiver_intrvs.insert (std::make_pair ( remoteToCollectiveRankMap[i->rank ()], Interval(begin, end)));
 	intrvs.push_back(i->interval());
       }

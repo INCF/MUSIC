@@ -17,8 +17,7 @@
  */
 #include "music/setup.hh"
 #if MUSIC_USE_MPI
-#include <mpi.h>
-
+#include "music/mpi_utils.hh"
 #include "music/runtime.hh"
 #include "music/parse.hh"
 #include "music/error.hh"
@@ -38,7 +37,7 @@ namespace MUSIC {
     : argc_ (argc), argv_ (argv)
   {
     checkInstantiatedOnce (isInstantiated_, "Setup");
-    if (MPI::Is_initialized ())
+    if (mpi_is_initialized ())
       errorRank (err_MPI_Init);
     maybeProcessMusicArgv (argc, argv);
     MPI_Init (&argc, &argv);
@@ -52,7 +51,7 @@ namespace MUSIC {
     : argc_ (argc), argv_ (argv)
   {
     checkInstantiatedOnce (isInstantiated_, "Setup");
-    if (MPI::Is_initialized ())
+    if (mpi_is_initialized ())
       errorRank (err_MPI_Init);
     maybeProcessMusicArgv (argc, argv);
     MPI_Init_thread (&argc, &argv, required, provided);

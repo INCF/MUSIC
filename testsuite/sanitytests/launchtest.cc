@@ -24,8 +24,8 @@ int
 main (int argc, char *argv[])
 {
   MUSIC::Setup* musicSetup = new MUSIC::Setup (argc, argv);
-  MPI::Intracomm comm = musicSetup->communicator ();
-  int rank = comm.Get_rank ();
+  MPI_Comm comm = musicSetup->communicator ();
+  int rank = MUSIC::mpi_get_rank (comm);
   double param;
   if (!musicSetup->config ("param", &param))
     param = -1.0;

@@ -32,7 +32,7 @@
 #include "rudeconfig/src/config.h"
 
 #if MUSIC_USE_MPI
-  #include <mpi.h>
+  #include "music/mpi_utils.hh"
 #endif
 
 #if HAVE_SYS_STAT_H
@@ -131,7 +131,7 @@ void
         bool leader_avail = false;
         mapApplications ();
 #if MUSIC_USE_MPI
-        if (MPI::Is_initialized ())
+        if (mpi_is_initialized ())
           {
             applications_->assignLeaders (config_->Name ());
             leader_avail = true;
