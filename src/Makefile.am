@@ -5,6 +5,7 @@ ACLOCAL = $(top_srcdir)/aclocal.sh
 lib_LTLIBRARIES = libmusic.la libmusic-c.la
 
 libmusic_la_SOURCES = \
+	mpi_utils.cc music/mpi_utils.hh \
 	runtime.cc music/runtime.hh \
 	setup.cc music/setup.hh \
 	error.cc music/error.hh music/debug.hh \
@@ -88,6 +89,6 @@ musicinclude_HEADERS = music/runtime.hh music/setup.hh \
 		       music/message.hh music/music-config.hh \
 		       music/predict_rank.hh  music/predict_rank-c.h \
 		       music/communication.hh music/version.hh \
-		       music/memory.hh 
+		       music/memory.hh music/mpi_utils.hh
 
 MKDEP = gcc -M $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)

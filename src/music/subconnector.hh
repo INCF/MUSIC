@@ -29,6 +29,7 @@
 #include <music/BIFO.hh>
 #include <music/event.hh>
 #include <music/message.hh>
+#include <music/mpi_utils.hh>
 
 namespace MUSIC {
 

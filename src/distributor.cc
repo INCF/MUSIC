@@ -31,6 +31,7 @@
 #include <cstring>
 
 #include "music/event.hh"
+#include "music/mpi_utils.hh"
 
 namespace MUSIC {
 

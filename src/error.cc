@@ -22,6 +22,7 @@
 #include <mpi.h>
 #endif
 
+#include "music/mpi_utils.hh"
 #include "music/error.hh"
 
 #include <iostream>

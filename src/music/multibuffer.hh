@@ -22,6 +22,7 @@
 
 #include "music/music-config.hh"
 
+#include "music/mpi_utils.hh"
 #include "music/connector.hh"
 
 #include <vector>

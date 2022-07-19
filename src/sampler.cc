@@ -28,6 +28,7 @@
 #include "music/array_data.hh"
 #include "music/index_map_factory.hh"
 #include "music/error.hh"
+#include "music/mpi_utils.hh"
 
 #include <cstring>
 
