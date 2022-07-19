@@ -631,7 +631,7 @@ namespace MUSIC {
    ********************************************************************/
 
   MessagePort::MessagePort (Setup* s)
-    : rank_ (s->communicator ().Get_rank ())
+    : rank_ (mpi_get_rank (s->communicator ()))
   {
   }
   

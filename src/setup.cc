@@ -92,7 +92,7 @@ namespace MUSIC {
   void
   Setup::init (int& argc, char**& argv)
   {
-    int myRank = MPI::COMM_WORLD.Get_rank ();
+    int myRank = mpi_get_rank (MPI_COMM_WORLD);
     std::string config = "";
     launchedByMusic_ = false;
     postponeSetup_ = false;
@@ -208,7 +208,7 @@ namespace MUSIC {
     std::ifstream config;
     char* buffer;
     int size = 0;
-    int myRank = MPI::COMM_WORLD.Get_rank ();
+    int myRank = mpi_get_rank (MPI_COMM_WORLD);
     // Rank #0 is reading a file and broadcast it to each rank in the launch
     if (myRank == 0)
       {
@@ -286,7 +286,7 @@ namespace MUSIC {
   {
     ApplicationMap* apps = applicationMap ();
     int nRequestedProc = apps->nProcesses ();
-    int nMPIProc = MPI::COMM_WORLD.Get_size ();
+    int nMPIProc = mpi_get_size (MPI_COMM_WORLD);
     if (nMPIProc != nRequestedProc)
       {
 	std::ostringstream msg;
@@ -365,7 +365,7 @@ namespace MUSIC {
   int
   Setup::nProcs ()
   {
-    return comm.Get_size ();
+    return mpi_get_size (comm);
   }
 
 

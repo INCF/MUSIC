@@ -181,7 +181,7 @@ namespace MUSIC
       MultiBuffer* multiBuffer,
       std::vector<MultiConnector*>& multiConnectors)
     {
-      //if (MPI::COMM_WORLD.Get_rank () == 2)
+      //if (mpi_get_rank (MPI_COMM_WORLD) == 2)
       //  std::cout << "prep localTime = " << localTime.time () << std::endl;
       // We need to create the MultiConnectors ahead of time since their
       // creation requires communication between all members of
@@ -377,7 +377,7 @@ namespace MUSIC
                     }
                 }
 
-              //if (MPI::COMM_WORLD.Get_rank () == 2)
+              //if mpi_get_rank ((MPI_COMM_WORLD) == 2)
               //	std::cout << "Prep multiId = " << multiId << std::endl;
               if (cCache.size () == 0)
                 {

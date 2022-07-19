@@ -74,7 +74,7 @@ namespace MUSIC {
     virtual void maybeCommunicate (std::vector<MPI_Request> &) {};
     virtual void flush (bool& dataStillFlowing) = 0;
     bool isFlushed () { return flushed; }
-    int localRank () const { return intercomm.Get_rank (); }
+    int localRank () const { return mpi_get_rank (intercomm); }
     int remoteRank () const { return remoteRank_; }
     //*fixme* are the following still needed or can they be removed?
     int remoteWorldRank () const { return remoteWorldRank_; }
@@ -352,8 +352,8 @@ namespace MUSIC {
 				  MPI_Datatype type)
 	: Subconnector(type),
 	  CollectiveSubconnector (intracomm),
-	  intervals_(intervals),
-	  width_(width*type.Get_size ())
+	  intervals_ (intervals),
+	  width_ (width * mpi_get_size (type))
       {
 	allocAllgathervArrays ();
       }

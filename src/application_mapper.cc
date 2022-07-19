@@ -87,9 +87,8 @@ namespace MUSIC {
       }
     else
       {
-
-        int my_rank = MPI::COMM_WORLD.Get_rank ();
-        int nRanks = MPI::COMM_WORLD.Get_size ();
+        int nRanks = mpi_get_size (MPI_COMM_WORLD);
+        int my_rank = mpi_get_rank (MPI_COMM_WORLD);
 
 #if HAVE_SYS_STAT_H
 

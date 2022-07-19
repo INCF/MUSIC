@@ -154,7 +154,7 @@ namespace MUSIC {
       bool errorFlag (BufferType buffer) const
       {
 	//*fixme* Can set start_ to proper offset
-	unsigned int offset = rank_ == MPI::COMM_WORLD.Get_rank () ? 0 : start_;
+	unsigned int offset = rank_ == mpi_get_rank (MPI_COMM_WORLD) ? 0 : start_;
 	return *headerPtr (buffer + offset) & MultiBuffer::ERROR_FLAG;
       }
       void clearBufferFlags (BufferType buffer)
@@ -175,7 +175,7 @@ namespace MUSIC {
       }
       unsigned int requestedDataSize (BufferType buffer, int i) const
       {
-	unsigned int offset = rank_ == MPI::COMM_WORLD.Get_rank () ? 0 : start_;
+	unsigned int offset = rank_ == mpi_get_rank (MPI_COMM_WORLD) ? 0 : start_;
 	return headerPtr (buffer + offset)[1 + i];
       }
       BufferInfoPtrs::iterator begin () { return bufferInfoPtr_.begin (); }
@@ -345,8 +345,8 @@ namespace MUSIC {
     void processInput ();
     void mergeGroup (int leader, bool isInput);
 
-    int rank () const { return comm_.Get_rank (); }
-    int size () const { return comm_.Get_size (); }
+    int rank () const { return mpi_get_rank (comm_); }
+    int size () const { return mpi_get_size (comm_); }
     //void setErrorFlag (MultiBuffer::BufferType buffer);
 #ifdef MUSIC_TWOSTAGE_ALLGATHER
     void processReceived ();

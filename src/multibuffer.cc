@@ -45,16 +45,18 @@ namespace MUSIC {
   {
     //bool hang = true;
     //while (hang) ;
-    MPI::Group worldGroup = MPI::COMM_WORLD.Get_group ();
-    MPI::Group localGroup = comm.Get_group ();
-    int localSize = localGroup.Get_size ();
+    MPI_Group worldGroup;
+    MPI_Comm_group (MPI_COMM_WORLD, &worldGroup);
+    MPI_Group localGroup;
+    MPI_Comm_group (comm, &localGroup);
+    int localSize = mpi_get_size (localGroup);
 
     // maps leaders to vectors mapping local ranks to COMM_WORLD ranks
     RankMap* rankMap = new RankMap ();
-    setupRankMap (comm.Get_rank (), rankMap);
+    setupRankMap (mpi_get_rank (comm), rankMap);
 #if 0
     std::ostringstream ostr;
-    ostr << "Rank " << MPI::COMM_WORLD.Get_rank () << ": rankMap ";
+    ostr << "Rank " << mpi_get_rank (MPI::COMM_WORLD) << ": rankMap ";
     for (RankMap::iterator i = rankMap->begin ();
 	 i != rankMap->end ();
 	 ++i)
@@ -119,7 +121,7 @@ namespace MUSIC {
 	    // create OutputSubconnectorInfo
 	    OutputSubconnector* s
 	      = dynamic_cast<OutputSubconnector*> (connector->subconnector ());
-	    BufferInfo* bi = &*(isi.begin () + comm.Get_rank ());
+	    BufferInfo* bi = &*(isi.begin () + mpi_get_rank (comm));
 	    outputConnectorMap_.insert
 	      (OutputConnectorMap::value_type (connector,
 					       OutputSubconnectorInfo (s, bi)));
@@ -188,7 +190,7 @@ namespace MUSIC {
 #if 0
     {
       std::ostringstream ostr;
-      ostr << "Rank " << MPI::COMM_WORLD.Get_rank () << ": block_ ranks ";
+      ostr << "Rank " << mpi_get_rank (MPI::COMM_WORLD) << ": block_ ranks ";
       for (Blocks::iterator b = block_.begin (); b != block_.end (); ++b)
 	ostr << b->rank () << ' ';
       std::cout << ostr.str () << std::endl;
@@ -249,8 +251,8 @@ namespace MUSIC {
   void
   MultiBuffer::setupRankMap (int localRank, RankMap* rankMap)
   {
-    int worldRank = MPI::COMM_WORLD.Get_rank ();
-    int worldSize = MPI::COMM_WORLD.Get_size ();
+    int worldSize = mpi_get_size (MPI_COMM_WORLD);
+    int worldRank = mpi_get_rank (MPI_COMM_WORLD);
     std::vector<RankInfo> rankInfos (worldSize);
     rankInfos[worldRank] = RankInfo (localLeader_, localRank);
     MPI::COMM_WORLD.Allgather (MPI::IN_PLACE, 0, MPI::DATATYPE_NULL,
@@ -298,7 +300,7 @@ namespace MUSIC {
     // compute required total size
     unsigned int summedSize = 0;
     unsigned int thisRankSize = 0;
-    int thisRank = MPI::COMM_WORLD.Get_rank ();
+    int thisRank = mpi_get_rank (MPI::COMM_WORLD);
     for (Blocks::iterator b = block_.begin (); b != block_.end (); ++b)
       {
 	unsigned int size;
@@ -386,7 +388,7 @@ namespace MUSIC {
 		// current rank => error staging area is used for
 		// requested buffer sizes and buffer contains output
 		// data
-		if (b->rank () == MPI::COMM_WORLD.Get_rank ()
+		if (b->rank () == mpi_get_rank (MPI_COMM_WORLD)
 		    && newStart > oldPos)
 		  memmove (buffer_ + newStart,
 			   buffer_ + oldPos,
@@ -552,7 +554,7 @@ namespace MUSIC {
     {
 #ifdef MUSIC_DEBUG
       std::ostringstream ostr;
-      ostr << "Rank " << MPI::COMM_WORLD.Get_rank () << ": Create ";
+      ostr << "Rank " << mpi_get_rank (MPI_COMM_WORLD) << ": Create ";
 #endif
       int nRanges = 0;
       for (GroupMap::iterator g = groupMap_->begin ();
@@ -624,7 +626,7 @@ namespace MUSIC {
       {
 	Blocks::iterator b = multiBuffer_->getBlock (indices[rank]);
 #ifdef MUSIC_DEBUG
-	if (b == multiBuffer_->blockEnd () && MPI::COMM_WORLD.Get_rank () == 0)
+	if (b == multiBuffer_->blockEnd () && mpi_get_rank (MPI_COMM_WORLD) == 0)
 	  {
 	    std::cout << "asked for rank " << indices[rank] << " among:" << std::endl;
 	    multiBuffer_->dumpBlocks ();
@@ -861,12 +863,12 @@ namespace MUSIC {
   {
     std::ostringstream ostr;
 #if 1
-    ostr << "Rank " << MPI::COMM_WORLD.Get_rank () << ": "
+    ostr << "Rank " << mpi_get_rank (MPI_COMM_WORLD) << ": "
 	 << id << ": Allgather " << *recvc;
     for (int i = 1; i < n; ++i)
       ostr << ", " << recvc[i];
 #else
-    ostr << "Rank " << MPI::COMM_WORLD.Get_rank () << ": "
+    ostr << "Rank " << mpi_get_rank (MPI_COMM_WORLD) << ": "
 	 << id << ": Allgather "
 	 << *displs << ':' << *recvc;
     for (int i = 1; i < n; ++i)

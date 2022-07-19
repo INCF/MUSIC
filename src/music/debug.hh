@@ -24,19 +24,19 @@
 #define MUSIC_LOG(X) (std::cerr << X << std::endl << std::flush)
 #if MUSIC_USE_MPI
 #define MUSIC_LOGN(N, X) \
-  { if (MPI::COMM_WORLD.Get_rank () == N) MUSIC_LOG (X); }
+  { if (mpi_get_rank (MPI_COMM_WORLD) == N) MUSIC_LOG (X); }
 
 #define MUSIC_LOG0(X) MUSIC_LOGN (0, X)
 
 #define MUSIC_LOGR(X)					\
   {							\
-    std::cerr << MPI::COMM_WORLD.Get_rank () << ": "	\
+    std::cerr << mpi_get_rank (MPI_COMM_WORLD) << ": "	\
               << X << std::endl << std::flush;		\
   }
 
 #define MUSIC_LOGRE(X)					\
   {							\
-    int _r = MPI::COMM_WORLD.Get_rank ();		\
+    int _r = mpi_get_rank (MPI_COMM_WORLD);		\
     char* _e = getenv ("MUSIC_DEBUG_RANK");		\
     if (_e != NULL && atoi (_e) == _r)			\
       {							\

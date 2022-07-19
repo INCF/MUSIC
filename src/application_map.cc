@@ -19,7 +19,7 @@
 
 #include "music/application_map.hh"
 #if MUSIC_USE_MPI
-  #include <mpi.h>
+#include "music/mpi_utils.hh"
 #endif
 #include "music/ioutils.hh"
 #include <iostream>
@@ -120,8 +120,8 @@ namespace MUSIC {
   {
     std::map<int, int> leaders;
 
-    int size = MPI::COMM_WORLD.Get_size ();
-    int my_rank = MPI::COMM_WORLD.Get_rank ();
+    int size = mpi_get_size (MPI_COMM_WORLD);
+    int rank = mpi_get_rank (MPI_COMM_WORLD);
     int *colors = new int[size];
     colors[my_rank] = lookup (my_app_label)->color ();
     MPI::COMM_WORLD.Allgather (MPI::IN_PLACE, 0, MPI::INT, colors, 1, MPI::INT);

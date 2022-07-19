@@ -75,14 +75,14 @@ namespace MUSIC
   bool
   TemporalNegotiator::isLeader ()
   {
-    return setup_->communicator ().Get_rank () == 0;
+    return mpi_get_rank (setup_->communicator ()) == 0;
   }
 
 
   bool
   TemporalNegotiator::hasPeers ()
   {
-    return setup_->communicator ().Get_size () > 1;
+    return mpi_get_size (setup_->communicator ()) > 1;
   }
 
 

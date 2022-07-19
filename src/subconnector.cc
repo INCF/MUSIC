@@ -194,7 +194,7 @@ namespace MUSIC {
     char* data;
     MPI_Status status;
     int size, maxCount;
-    maxCount = CONT_BUFFER_MAX / type_.Get_size ();
+    maxCount = CONT_BUFFER_MAX / mpi_get_size (type_);
     do
       {
 	data = static_cast<char*> (buffer_.insertBlock ());
@@ -733,7 +733,7 @@ namespace MUSIC {
   void
   CollectiveSubconnector::allocAllgathervArrays ()
   {
-    nProcesses = intracomm_.Get_size ();
+    nProcesses = mpi_get_size (intracomm_);
     ppBytes = new int[nProcesses];
     displ = new int[nProcesses];
   }

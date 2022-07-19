@@ -68,8 +68,10 @@ namespace MUSIC {
   getRank ()
   {
 #if MUSIC_USE_MPI
-    if (MPI::Is_initialized ())
-      return MPI::COMM_WORLD.Get_rank ();
+    int isInitialized;
+    MPI_Initialized (&isInitialized);
+    if (isInitialized)
+      return mpi_get_rank (MPI_COMM_WORLD);
 #endif
       return -1;
   }

@@ -104,7 +104,7 @@ namespace MUSIC {
 	BIFO* buffer = b->first;
 	Intervals& intervals = b->second;
 	sort (intervals.begin (), intervals.end ());
-	int elementSize = dataMap->type ().Get_size ();
+	int elementSize = mpi_get_size (dataMap->type ());
 	int size = 0;
 	for (Intervals::iterator i = intervals.begin ();
 	     i != intervals.end ();

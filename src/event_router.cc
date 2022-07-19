@@ -58,7 +58,7 @@ namespace MUSIC {
       }
 #if 0
     if (size - size_ != extra_.size ())
-      std::cout << "Rank " << MPI::COMM_WORLD.Get_rank ()
+      std::cout << "Rank " << mpi_get_rank (MPI_COMM_WORLD)
 		<< ": DirectRouter: Had " << extra_.size ()
 		<< " extra spike space, size changed from "
 		<< size_ << " to " << size << " = " << size - size_

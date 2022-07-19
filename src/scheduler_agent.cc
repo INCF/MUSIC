@@ -238,7 +238,7 @@ namespace MUSIC
                 unsigned int proxyId = (*comm).proxyId ();
                 if (proxyId != 0 && ! (*multiProxies)[proxyId])
                   {
-                    //  std::cout << "Rank " << MPI::COMM_WORLD.Get_rank ()
+                    //  std::cout << "Rank " << mpi_get_rank (MPI_COMM_WORLD)
                     //      << ": Proxy " << proxyId << std::endl;
                     MPI::COMM_WORLD.Create (MPI::GROUP_EMPTY);
                     MPI::COMM_WORLD.Barrier ();

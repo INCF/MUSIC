@@ -112,7 +112,7 @@ namespace MUSIC
 
     delete s;
 #ifdef MUSIC_AFTER_RUNTIME_CONSTRUCTOR_REPORT
-    if (MPI::COMM_WORLD.Get_rank () == 0)
+    if (mpi_get_rank (MPI_COMM_WORLD) == 0)
     reportMem ();
 #if 0
     // Code used for debugging and analysis
@@ -408,7 +408,7 @@ namespace MUSIC
 
             if (multiConnectors[multiId] == NULL)
               {
-                std::cout << "Rank " << MPI::COMM_WORLD.Get_rank ()
+                std::cout << "Rank " << mpi_get_rank (MPI_COMM_WORLD)
                 << " aborting on multiId " << multiId
                 << " remote leader = " << connector->remoteLeader ()
                 << std::endl;
@@ -504,7 +504,7 @@ namespace MUSIC
                   }
               }
 
-            //if (MPI::COMM_WORLD.Get_rank () == 2)
+            //if (mpi_get_rank (MPI_COMM_WORLD) == 2)
             //  std::cout << "multiId = " << multiId << std::endl;
             if (multiConnectors[multiId] == NULL)
               {
