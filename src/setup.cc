@@ -280,7 +280,7 @@ namespace MUSIC {
   {
     ApplicationMap* apps = applicationMap ();
     int nRequestedProc = apps->nProcesses ();
-    int nMPIProc = mpi_get_size (MPI_COMM_WORLD);
+    int nMPIProc = mpi_get_comm_size (MPI_COMM_WORLD);
     if (nMPIProc != nRequestedProc)
       {
 	std::ostringstream msg;
@@ -359,7 +359,7 @@ namespace MUSIC {
   int
   Setup::nProcs ()
   {
-    return mpi_get_size (comm);
+    return mpi_get_comm_size (comm);
   }
 
 

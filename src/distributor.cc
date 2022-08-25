@@ -104,7 +104,7 @@ namespace MUSIC {
 	FIBO* buffer = b->first;
 	Intervals& intervals = b->second;
 	sort (intervals.begin (), intervals.end ());
-	int elementSize = mpi_get_size (dataMap->type ());
+	int elementSize = mpi_get_type_size (dataMap->type ());
 	int size = 0;
 	for (Intervals::iterator i = intervals.begin ();
 	     i != intervals.end ();

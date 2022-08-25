@@ -683,7 +683,7 @@ namespace MUSIC {
   EventOutputConnector::makeSubconnector (int remoteRank)
   {
     //////
-/*              int world_size = mpi_get_size (MPI_COMM_WORLD);
+/*              int world_size = mpi_get_comm_size (MPI_COMM_WORLD);
                 if (mpi_get_rank (MPI_COMM_WORLD) < world_size/2)
                   std::cout << remoteRank << std::flush << std::endl;*/
     return new EventOutputSubconnector (//&synch,
@@ -1041,9 +1041,9 @@ error( "LOCAL Indices are not supported with MUSIC_ANYSOURCE");
 
     for (NegotiationIterator i  = spatialNegotiator_->negotiate (info.nProcesses (), this);  !i.end (); ++i)
       {
-	int begin = (i->displ()) * mpi_get_size (data_type_);
+	int begin = (i->displ()) * mpi_get_type_size (data_type_);
 	// length field is stored overlapping the end field
-	int end = (i->end() - i->begin()) * mpi_get_size (data_type_);
+	int end = (i->end() - i->begin()) * mpi_get_type_size (data_type_);
 	receiver_intrvs.insert (std::make_pair ( remoteToCollectiveRankMap[i->rank ()], Interval(begin, end)));
 	intrvs.push_back(i->interval());
       }

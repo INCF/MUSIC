@@ -353,7 +353,7 @@ namespace MUSIC {
 	: Subconnector(type),
 	  CollectiveSubconnector (intracomm),
 	  intervals_ (intervals),
-	  width_ (width * mpi_get_size (type))
+	  width_ (width * mpi_get_type_size (type))
       {
 	allocAllgathervArrays ();
       }

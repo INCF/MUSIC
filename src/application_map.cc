@@ -120,7 +120,7 @@ namespace MUSIC {
   {
     std::map<int, int> leaders;
 
-    int size = mpi_get_size (MPI_COMM_WORLD);
+    int size = mpi_get_comm_size (MPI_COMM_WORLD);
     int rank = mpi_get_rank (MPI_COMM_WORLD);
     int *colors = new int[size];
     colors[rank] = lookup (my_app_label)->color ();

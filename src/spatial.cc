@@ -140,7 +140,7 @@ namespace MUSIC {
   : comm(c), indices (ind), type (type_)
   {
 
-	  nProcesses = mpi_get_size (comm);
+	  nProcesses = mpi_get_comm_size (comm);
 	  localRank = mpi_get_rank (comm);
 	  negotiateWidth ();
 

@@ -49,7 +49,7 @@ namespace MUSIC {
     MPI_Comm_group (MPI_COMM_WORLD, &worldGroup);
     MPI_Group localGroup;
     MPI_Comm_group (comm, &localGroup);
-    int localSize = mpi_get_size (localGroup);
+    int localSize = mpi_get_group_size (localGroup);
 
     // maps leaders to vectors mapping local ranks to COMM_WORLD ranks
     RankMap* rankMap = new RankMap ();
@@ -250,7 +250,7 @@ namespace MUSIC {
   void
   MultiBuffer::setupRankMap (int localRank, RankMap* rankMap)
   {
-    int worldSize = mpi_get_size (MPI_COMM_WORLD);
+    int worldSize = mpi_get_comm_size (MPI_COMM_WORLD);
     int worldRank = mpi_get_rank (MPI_COMM_WORLD);
     std::vector<RankInfo> rankInfos (worldSize);
     rankInfos[worldRank] = RankInfo (localLeader_, localRank);
@@ -609,7 +609,8 @@ namespace MUSIC {
       idstr_ << ':' << cid->first << cid->second;
     id_ = "mc" + idstr_.str ();
 
-    if (!isContiguous || mpi_get_size (group_) < mpi_get_size (MPI_COMM_WORLD))
+    if (!isContiguous
+	|| mpi_get_group_size (group_) < mpi_get_comm_size (MPI_COMM_WORLD))
       MPI_Comm_create (MPI_COMM_WORLD, group_, &comm_);
     else
       comm_ = MPI_COMM_WORLD;

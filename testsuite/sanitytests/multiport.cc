@@ -105,7 +105,7 @@ public:
   {
     MPI_Comm comm = setup_->communicator ();
     int rank = MUSIC::mpi_get_rank (comm);
-    int nProcesses = MUSIC::mpi_get_size (comm);
+    int nProcesses = MUSIC::mpi_get_comm_size (comm);
 
     if (indextype == "global")
       type = MUSIC::Index::GLOBAL;
@@ -218,7 +218,7 @@ public:
   {
     MPI_Comm comm = setup_->communicator ();
     int rank = MUSIC::mpi_get_rank (comm);
-    int nProcesses = MUSIC::mpi_get_size (comm);
+    int nProcesses = MUSIC::mpi_get_comm_size (comm);
 
     if (imaptype == "linear")
       {

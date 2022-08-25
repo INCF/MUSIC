@@ -82,7 +82,7 @@ namespace MUSIC
   bool
   TemporalNegotiator::hasPeers ()
   {
-    return mpi_get_size (setup_->communicator ()) > 1;
+    return mpi_get_comm_size (setup_->communicator ()) > 1;
   }
 
 

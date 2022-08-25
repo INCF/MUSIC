@@ -64,7 +64,7 @@ namespace MUSIC {
   void
   Sampler::initialize ()
   {
-    elementSize = mpi_get_size (dataMap_->type ());
+    elementSize = mpi_get_type_size (dataMap_->type ());
     
     size = 0;
     IndexMap* indices = dataMap_->indexMap ();

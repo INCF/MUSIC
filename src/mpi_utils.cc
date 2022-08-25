@@ -37,7 +37,7 @@ namespace MUSIC {
   }
 
   int
-  mpi_get_size (MPI_Comm comm)
+  mpi_get_comm_size (MPI_Comm comm)
   {
     int size;
     MPI_Comm_size (comm, &size);
@@ -45,7 +45,7 @@ namespace MUSIC {
   }
 
   int
-  mpi_get_size (MPI_Group group)
+  mpi_get_group_size (MPI_Group group)
   {
     int size;
     MPI_Group_size (group, &size);
@@ -53,7 +53,7 @@ namespace MUSIC {
   }
 
   int
-  mpi_get_size (MPI_Datatype type)
+  mpi_get_type_size (MPI_Datatype type)
   {
     int size;
     MPI_Type_size (type, &size);

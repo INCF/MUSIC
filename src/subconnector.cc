@@ -116,7 +116,7 @@ namespace MUSIC {
 
 	MUSIC_LOGR ("Sending to rank " << remoteRank_);
 	MPI_Ssend (buffer,
-		   CONT_BUFFER_MAX / mpi_get_size (type_),
+		   CONT_BUFFER_MAX / mpi_get_type_size (type_),
 		   type_,
 		   remoteRank_,
 		   CONT_MSG,
@@ -126,7 +126,7 @@ namespace MUSIC {
       }
     MUSIC_LOGR ("Last send to rank " << remoteRank_);
     MPI_Ssend (buffer,
-	       size / mpi_get_size (type_),
+	       size / mpi_get_type_size (type_),
 	       type_,
 	       remoteRank_,
 	       CONT_MSG,
@@ -196,7 +196,7 @@ namespace MUSIC {
     char* data;
     MPI_Status status;
     int size, maxCount;
-    maxCount = CONT_BUFFER_MAX / mpi_get_size (type_);
+    maxCount = CONT_BUFFER_MAX / mpi_get_type_size (type_);
     do
       {
 	data = static_cast<char*> (buffer_.insertBlock ());
@@ -216,7 +216,7 @@ namespace MUSIC {
 	    return;
 	  }
 	MPI_Get_count (&status, type_, &size);
-	buffer_.trimBlock (mpi_get_size (type_) * size);
+	buffer_.trimBlock (mpi_get_type_size (type_) * size);
       }
     while (size == maxCount);
   }
@@ -747,7 +747,7 @@ namespace MUSIC {
   void
   CollectiveSubconnector::allocAllgathervArrays ()
   {
-    nProcesses = mpi_get_size (intracomm_);
+    nProcesses = mpi_get_comm_size (intracomm_);
     ppBytes = new int[nProcesses];
     displ = new int[nProcesses];
   }

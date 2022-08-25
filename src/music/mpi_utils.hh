@@ -26,9 +26,9 @@ namespace MUSIC
 {
   bool mpi_is_initialized ();
   int mpi_get_rank (MPI_Comm comm);
-  int mpi_get_size (MPI_Comm comm);
-  int mpi_get_size (MPI_Group group);
-  int mpi_get_size (MPI_Datatype type);
+  int mpi_get_comm_size (MPI_Comm comm);
+  int mpi_get_group_size (MPI_Group group);
+  int mpi_get_type_size (MPI_Datatype type);
   MPI_Group mpi_get_group (MPI_Comm comm);
 }
 

@@ -346,7 +346,7 @@ namespace MUSIC {
     void mergeGroup (int leader, bool isInput);
 
     int rank () const { return mpi_get_rank (comm_); }
-    int size () const { return mpi_get_size (comm_); }
+    int size () const { return mpi_get_comm_size (comm_); }
     //void setErrorFlag (MultiBuffer::BufferType buffer);
 #ifdef MUSIC_TWOSTAGE_ALLGATHER
     void processReceived ();
