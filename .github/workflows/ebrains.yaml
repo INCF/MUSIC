@@ -20,5 +20,5 @@ jobs:
         with:
           source_repo: "INCF/MUSIC"
           source_branch: "refs/tags/*"
-          destination_repo: "https://ghpusher:${{ secrets.EBRAINS_GITLAB_ACCESS_TOKEN }}@gitlab.ebrains.eu/djurfeldt/MUSIC.git"
+          destination_repo: "https://ghpusher:${{ secrets.EBRAINS_GITLAB_ACCESS_TOKEN }}@gitlab.ebrains.eu/djurfeld/MUSIC.git"
           destination_branch: "refs/tags/*"
