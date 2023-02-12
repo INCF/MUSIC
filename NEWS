@@ -1,7 +1,31 @@
 MUSIC NEWS --- history of user-visible changes.
-Copyright (C) 2009, 2010, 2019, 2020, 2021 INCF
+Copyright (C) 2009, 2010, 2019, 2020, 2021, 2023 INCF
 
 Please send MUSIC bug reports to music-bugs@incf.org.
+
+
+Changes in 1.2.0:
+
+* music library
+
+** Switch from C++ to C MPI interface
+
+The MPI C++ interface has been deprecated for some time. MUSIC has now
+switched to using the MPI C interface internally and now also uses it
+in some places in the MUSIC API, for example in Setup::communicator().
+
+The switch should be backward compatible when compiling existing
+applications since objects will be implicitly type converted.
+
+** The MUSIC library version has been bumped to 1.2.0
+
+This is due to the ABI change induced by the switch to the MPI C
+interface.
+
+** The MUSIC repository is now mirrored at eBrains
+
+The MUSIC repository now uses github workflows to update a mirror at
+https://gitlab.ebrains.eu/djurfeld/MUSIC.git
 
 
 Changes in 1.1.17:
