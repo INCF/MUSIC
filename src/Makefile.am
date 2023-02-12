@@ -59,7 +59,7 @@ libmusic_c_la_HEADERS = music-c.h  music/predict_rank-c.h
 libmusic_c_la_CXXFLAGS = -DBUILDING_MUSIC_LIBRARY @MPI_CXXFLAGS@
 libmusic_c_la_CFLAGS = -DBUILDING_MUSIC_LIBRARY @MPI_CFLAGS@
 libmusic_c_la_LDFLAGS = \
-	-version-info 1:0:0 -export-dynamic \
+	-version-info 1:2:0 -export-dynamic \
 	$(top_builddir)/src/libmusic.la @MPI_LDFLAGS@
 libmusic_c_ladir = $(includedir)
 libmusic_c_la_DEPENDENCIES = libmusic.la
