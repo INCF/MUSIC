@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2007, 2008, 2009 INCF
+ *  Copyright (C) 2007, 2008, 2009, 2022 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@
 #include <mpi.h>
 #endif
 
+#include "music/mpi_utils.hh"
 #include "music/error.hh"
 
 #include <iostream>
@@ -33,7 +34,7 @@ namespace MUSIC {
   error ()
   {
 #if MUSIC_USE_MPI
-    MPI::COMM_WORLD.Abort (1);
+    MPI_Abort (MPI_COMM_WORLD, 1);
 #else
     abort();
 #endif
@@ -67,8 +68,10 @@ namespace MUSIC {
   getRank ()
   {
 #if MUSIC_USE_MPI
-    if (MPI::Is_initialized ())
-      return MPI::COMM_WORLD.Get_rank ();
+    int isInitialized;
+    MPI_Initialized (&isInitialized);
+    if (isInitialized)
+      return mpi_get_rank (MPI_COMM_WORLD);
 #endif
       return -1;
   }

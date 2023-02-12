@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2008, 2009 INCF
+ *  Copyright (C) 2008, 2009, 2022 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -631,7 +631,7 @@ namespace MUSIC {
    ********************************************************************/
 
   MessagePort::MessagePort (Setup* s)
-    : rank_ (s->communicator ().Get_rank ())
+    : rank_ (mpi_get_rank (s->communicator ()))
   {
   }
   

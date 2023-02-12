@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2012 INCF
+ *  Copyright (C) 2012, 2022 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@
 
 #include "music/music-config.hh"
 
+#include "music/mpi_utils.hh"
 #include "music/connector.hh"
 
 #include <vector>
@@ -153,7 +154,7 @@ namespace MUSIC {
       bool errorFlag (BufferType buffer) const
       {
 	//*fixme* Can set start_ to proper offset
-	unsigned int offset = rank_ == MPI::COMM_WORLD.Get_rank () ? 0 : start_;
+	unsigned int offset = rank_ == mpi_get_rank (MPI_COMM_WORLD) ? 0 : start_;
 	return *headerPtr (buffer + offset) & MultiBuffer::ERROR_FLAG;
       }
       void clearBufferFlags (BufferType buffer)
@@ -174,7 +175,7 @@ namespace MUSIC {
       }
       unsigned int requestedDataSize (BufferType buffer, int i) const
       {
-	unsigned int offset = rank_ == MPI::COMM_WORLD.Get_rank () ? 0 : start_;
+	unsigned int offset = rank_ == mpi_get_rank (MPI_COMM_WORLD) ? 0 : start_;
 	return headerPtr (buffer + offset)[1 + i];
       }
       BufferInfoPtrs::iterator begin () { return bufferInfoPtr_.begin (); }
@@ -246,7 +247,7 @@ namespace MUSIC {
     unsigned int computeSize (bool twostage);
 
   public:
-    MultiBuffer (MPI::Intracomm comm,
+    MultiBuffer (MPI_Comm comm,
 		 int leader,
 		 std::vector<Connector*>& connectors);
 
@@ -331,8 +332,8 @@ namespace MUSIC {
     //int nRanks_;
     typedef std::map<unsigned int, MCGroupInfo> GroupMap;
     GroupMap* groupMap_;
-    MPI::Group group_;
-    MPI::Intracomm comm_;
+    MPI_Group group_;
+    MPI_Comm comm_;
 #ifdef MUSIC_TWOSTAGE_ALLGATHER
     static const int TWOSTAGE_FINALIZE_FLAG = MultiBuffer::TWOSTAGE_FINALIZE_FLAG;
     bool twostage_;
@@ -344,8 +345,8 @@ namespace MUSIC {
     void processInput ();
     void mergeGroup (int leader, bool isInput);
 
-    int rank () const { return comm_.Get_rank (); }
-    int size () const { return comm_.Get_size (); }
+    int rank () const { return mpi_get_rank (comm_); }
+    int size () const { return mpi_get_comm_size (comm_); }
     //void setErrorFlag (MultiBuffer::BufferType buffer);
 #ifdef MUSIC_TWOSTAGE_ALLGATHER
     void processReceived ();

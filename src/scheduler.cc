@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2012 INCF
+ *  Copyright (C) 2012, 2022 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -36,7 +36,7 @@
 namespace MUSIC
 {
 
-  Scheduler::Scheduler (MPI::Intracomm comm, int leader) :
+  Scheduler::Scheduler (MPI_Comm comm, int leader) :
       nodes (NULL), appl_data_ (NULL), conn_data_ (NULL)
   {
     comm_ = comm;
@@ -181,7 +181,7 @@ namespace MUSIC
       MultiBuffer* multiBuffer,
       std::vector<MultiConnector*>& multiConnectors)
     {
-      //if (MPI::COMM_WORLD.Get_rank () == 2)
+      //if (mpi_get_rank (MPI_COMM_WORLD) == 2)
       //  std::cout << "prep localTime = " << localTime.time () << std::endl;
       // We need to create the MultiConnectors ahead of time since their
       // creation requires communication between all members of
@@ -377,16 +377,17 @@ namespace MUSIC
                     }
                 }
 
-              //if (MPI::COMM_WORLD.Get_rank () == 2)
+              //if mpi_get_rank ((MPI_COMM_WORLD) == 2)
               //	std::cout << "Prep multiId = " << multiId << std::endl;
               if (cCache.size () == 0)
                 {
                   if (!multiProxies[multiProxyId])
                     {
-                      std::cout << "Rank " << MPI::COMM_WORLD.Get_rank ()
-                      << ": *" << std::endl << std::flush;
-                      MPI::COMM_WORLD.Create (MPI::GROUP_EMPTY);
-                      MPI::COMM_WORLD.Barrier ();
+                      std::cout << "Rank " << mpi_get_rank (MPI_COMM_WORLD)
+				<< ": *" << std::endl << std::flush;
+		      MPI_Comm comm;
+                      MPI_Comm_create (MPI_COMM_WORLD, MPI_GROUP_EMPTY, &comm);
+                      MPI_Barrier (MPI_COMM_WORLD);
                       //*fixme* Impossible to delete the following object
                       multiProxies[multiProxyId] = true;
                     }

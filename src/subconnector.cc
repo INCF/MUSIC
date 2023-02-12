@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2008, 2009, 2010 INCF
+ *  Copyright (C) 2008, 2009, 2010, 2022 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -35,8 +35,8 @@
 
 namespace MUSIC {
 
-  Subconnector::Subconnector (MPI::Datatype type,
-			      MPI::Intercomm intercomm_,
+  Subconnector::Subconnector (MPI_Datatype type,
+			      MPI_Comm intercomm_,
 			      int remoteLeader,
 			      int remoteRank,
 			      int receiverRank,
@@ -70,11 +70,11 @@ namespace MUSIC {
    ********************************************************************/
 
   ContOutputSubconnector::ContOutputSubconnector (//Synchronizer* synch_,
-						  MPI::Intercomm intercomm_,
+						  MPI_Comm intercomm_,
 						  int remoteLeader,
 						  int remoteRank,
 						  int receiverPortCode_,
-						  MPI::Datatype type)
+						  MPI_Datatype type)
     : Subconnector (type,
 		    intercomm_,
 		    remoteLeader,
@@ -115,20 +115,22 @@ namespace MUSIC {
       {
 
 	MUSIC_LOGR ("Sending to rank " << remoteRank_);
-	intercomm.Ssend (buffer,
-			 CONT_BUFFER_MAX / type_.Get_size (),
-			 type_,
-			 remoteRank_,
-			 CONT_MSG);
+	MPI_Ssend (buffer,
+		   CONT_BUFFER_MAX / mpi_get_type_size (type_),
+		   type_,
+		   remoteRank_,
+		   CONT_MSG,
+		   intercomm);
 	buffer += CONT_BUFFER_MAX;
 	size -= CONT_BUFFER_MAX;
       }
     MUSIC_LOGR ("Last send to rank " << remoteRank_);
-    intercomm.Ssend (buffer,
-		     size / type_.Get_size (),
-		     type_,
-		     remoteRank_,
-		     CONT_MSG);
+    MPI_Ssend (buffer,
+	       size / mpi_get_type_size (type_),
+	       type_,
+	       remoteRank_,
+	       CONT_MSG,
+	       intercomm);
   }
 
   
@@ -146,7 +148,7 @@ namespace MUSIC {
 	else
 	  {
 	    char dummy;
-	    intercomm.Ssend (&dummy, 0, type_, remoteRank_, FLUSH_MSG);
+	    MPI_Ssend (&dummy, 0, type_, remoteRank_, FLUSH_MSG, intercomm);
 	    flushed = true;
 	  }
       }
@@ -154,12 +156,12 @@ namespace MUSIC {
 
   
   ContInputSubconnector::ContInputSubconnector (//Synchronizer* synch_,
-						MPI::Intercomm intercomm,
+						MPI_Comm intercomm,
 						int remoteLeader,
 						int remoteRank,
 						int receiverRank,
 						int receiverPortCode,
-						MPI::Datatype type)
+						MPI_Datatype type)
     : Subconnector (type,
 		    intercomm,
 		    remoteLeader,
@@ -192,28 +194,29 @@ namespace MUSIC {
   ContInputSubconnector::receive ()
   {
     char* data;
-    MPI::Status status;
+    MPI_Status status;
     int size, maxCount;
-    maxCount = CONT_BUFFER_MAX / type_.Get_size ();
+    maxCount = CONT_BUFFER_MAX / mpi_get_type_size (type_);
     do
       {
 	data = static_cast<char*> (buffer_.insertBlock ());
 	MUSIC_LOGR ("Receiving from rank " << remoteRank_);
 
-	intercomm.Recv (data,
-			maxCount,
-			type_,
-			remoteRank_,
-			MPI::ANY_TAG,
-			status);
-	if (status.Get_tag () == FLUSH_MSG)
+	MPI_Recv (data,
+		  maxCount,
+		  type_,
+		  remoteRank_,
+		  MPI_ANY_TAG,
+		  intercomm,
+		  &status);
+	if (status.MPI_TAG == FLUSH_MSG)
 	  {
 	    flushed = true;
 	    MUSIC_LOGR ("received flush message");
 	    return;
 	  }
-	size = status.Get_count (type_);
-	buffer_.trimBlock (type_.Get_size () * size);
+	MPI_Get_count (&status, type_, &size);
+	buffer_.trimBlock (mpi_get_type_size (type_) * size);
       }
     while (size == maxCount);
   }
@@ -241,11 +244,11 @@ namespace MUSIC {
 
 
   EventOutputSubconnector::EventOutputSubconnector (//Synchronizer* synch_,
-						    MPI::Intercomm intercomm,
+						    MPI_Comm intercomm,
 						    int remoteLeader,
 						    int remoteRank,
 						    int receiverPortCode)
-    : Subconnector (MPI::BYTE,
+    : Subconnector (MPI_BYTE,
 		    intercomm,
 		    remoteLeader,
 		    remoteRank,
@@ -264,14 +267,14 @@ namespace MUSIC {
 
   
   void
-  EventOutputSubconnector::maybeCommunicate (std::vector<MPI::Request> &requests)
+  EventOutputSubconnector::maybeCommunicate (std::vector<MPI_Request> &requests)
   {
     send (requests);
   }
 
   
   void
-  EventOutputSubconnector::send (std::vector<MPI::Request> &requests)
+  EventOutputSubconnector::send (std::vector<MPI_Request> &requests)
   {
     MUSIC_LOGRE ("ISend");
     void* data;
@@ -280,15 +283,21 @@ namespace MUSIC {
     char* buffer = static_cast <char*> (data);
     while (size >= SPIKE_BUFFER_MAX)
       {
-	requests.push_back(intercomm.Isend (buffer,
-					    SPIKE_BUFFER_MAX,
-					    type_,
-					    remoteRank_,
-					    SPIKE_MSG));
+	MPI_Request request;
+	MPI_Isend (buffer,
+		   SPIKE_BUFFER_MAX,
+		   type_,
+		   remoteRank_,
+		   SPIKE_MSG,
+		   intercomm,
+		   &request);
+	requests.push_back (request);
 	buffer += SPIKE_BUFFER_MAX;
 	size -= SPIKE_BUFFER_MAX;
       }
-    requests.push_back( intercomm.Isend (buffer, size, type_, remoteRank_, SPIKE_MSG));
+    MPI_Request request;
+    MPI_Isend (buffer, size, type_, remoteRank_, SPIKE_MSG, intercomm, &request);
+    requests.push_back (request);
   }
 
   
@@ -302,15 +311,16 @@ namespace MUSIC {
     char* buffer = static_cast <char*> (data);
     while (size >= SPIKE_BUFFER_MAX)
       {
-	intercomm.Ssend (buffer,
-			 SPIKE_BUFFER_MAX,
-			 type_,
-			 remoteRank_,
-			 SPIKE_MSG);
+	MPI_Ssend (buffer,
+		   SPIKE_BUFFER_MAX,
+		   type_,
+		   remoteRank_,
+		   SPIKE_MSG,
+		   intercomm);
 	buffer += SPIKE_BUFFER_MAX;
 	size -= SPIKE_BUFFER_MAX;
       }
-    intercomm.Ssend (buffer, size, type_, remoteRank_, SPIKE_MSG);
+    MPI_Ssend (buffer, size, type_, remoteRank_, SPIKE_MSG, intercomm);
   }
 
   
@@ -340,12 +350,12 @@ namespace MUSIC {
 
 
   EventInputSubconnector::EventInputSubconnector (//Synchronizer* synch_,
-						  MPI::Intercomm intercomm,
+						  MPI_Comm intercomm,
 						  int remoteLeader,
 						  int remoteRank,
 						  int receiverRank,
 						  int receiverPortCode)
-    : Subconnector (MPI::BYTE,
+    : Subconnector (MPI_BYTE,
 		    intercomm,
 		    remoteLeader,
 		    remoteRank,
@@ -358,13 +368,13 @@ namespace MUSIC {
 
   EventInputSubconnectorGlobal::EventInputSubconnectorGlobal
   (//Synchronizer* synch_,
-   MPI::Intercomm intercomm,
+   MPI_Comm intercomm,
    int remoteLeader,
    int remoteRank,
    int receiverRank,
    int receiverPortCode,
    EventHandlerGlobalIndex* eh)
-    : Subconnector (MPI::BYTE,
+    : Subconnector (MPI_BYTE,
 		    intercomm,
 		    remoteLeader,
 		    remoteRank,
@@ -389,13 +399,13 @@ namespace MUSIC {
 
   EventInputSubconnectorLocal::EventInputSubconnectorLocal
   (//Synchronizer* synch_,
-   MPI::Intercomm intercomm,
+   MPI_Comm intercomm,
    int remoteLeader,
    int remoteRank,
    int receiverRank,
    int receiverPortCode,
    EventHandlerLocalIndex* eh)
-    : Subconnector (MPI::BYTE,
+    : Subconnector (MPI_BYTE,
 		    intercomm,
 		    remoteLeader,
 		    remoteRank,
@@ -452,21 +462,22 @@ namespace MUSIC {
   EventInputSubconnectorGlobal::receive ()
   {
     char data[SPIKE_BUFFER_MAX];
-    MPI::Status status;
+    MPI_Status status;
     int size;
     //double starttime, endtime;
     //starttime = MPI_Wtime();
 
     do
       {
-	intercomm.Recv (data,
-			SPIKE_BUFFER_MAX,
-			type_,
-			remoteRank_,
-			SPIKE_MSG,
-			status);
+	MPI_Recv (data,
+		  SPIKE_BUFFER_MAX,
+		  type_,
+		  remoteRank_,
+		  SPIKE_MSG,
+		  intercomm,
+		  &status);
 
-	size = status.Get_count (type_);
+	MPI_Get_count (&status, type_, &size);
 	Event* ev = (Event*) data;
 	/* remedius
 	 * since the message can be of size 0 and contains garbage=FLUSH_MARK,
@@ -501,17 +512,18 @@ namespace MUSIC {
   {
     MUSIC_LOGRE ("receive");
     char data[SPIKE_BUFFER_MAX];
-    MPI::Status status;
+    MPI_Status status;
     int size;
     do
       {
-	intercomm.Recv (data,
-			SPIKE_BUFFER_MAX,
-			type_,
-			remoteRank_,
-			SPIKE_MSG,
-			status);
-	size = status.Get_count (type_);
+	MPI_Recv (data,
+		  SPIKE_BUFFER_MAX,
+		  type_,
+		  remoteRank_,
+		  SPIKE_MSG,
+		  intercomm,
+		  &status);
+	MPI_Get_count (&status, type_, &size);
 	Event* ev = (Event*) data;
 	/* remedius
 	 * since the message can be of size 0 and contains garbage=FLUSH_MARK,
@@ -567,12 +579,12 @@ namespace MUSIC {
    ********************************************************************/
 
   MessageOutputSubconnector::MessageOutputSubconnector (//Synchronizer* synch_,
-							MPI::Intercomm intercomm,
+							MPI_Comm intercomm,
 							int remoteLeader,
 							int remoteRank,
 							int receiverPortCode,
 							FIBO* buffer)
-    : Subconnector (MPI::BYTE,
+    : Subconnector (MPI_BYTE,
 		    intercomm,
 		    remoteLeader,
 		    remoteRank,
@@ -601,15 +613,16 @@ namespace MUSIC {
     char* buffer = static_cast <char*> (data);
     while (size >= MESSAGE_BUFFER_MAX)
       {
-	intercomm.Ssend (buffer,
-			 MESSAGE_BUFFER_MAX,
-			 type_,
-			 remoteRank_,
-			 MESSAGE_MSG);
+	MPI_Ssend (buffer,
+		   MESSAGE_BUFFER_MAX,
+		   type_,
+		   remoteRank_,
+		   MESSAGE_MSG,
+		   intercomm);
 	buffer += MESSAGE_BUFFER_MAX;
 	size -= MESSAGE_BUFFER_MAX;
       }
-    intercomm.Ssend (buffer, size, type_, remoteRank_, MESSAGE_MSG);
+    MPI_Ssend (buffer, size, type_, remoteRank_, MESSAGE_MSG, intercomm);
   }
 
 
@@ -627,20 +640,20 @@ namespace MUSIC {
 	else
 	  {
 	    char dummy;
-	    intercomm.Ssend (&dummy, 0, type_, remoteRank_, FLUSH_MSG);
+	    MPI_Ssend (&dummy, 0, type_, remoteRank_, FLUSH_MSG, intercomm);
 	  }
       }
   }
 
 
   MessageInputSubconnector::MessageInputSubconnector (//Synchronizer* synch_,
-						      MPI::Intercomm intercomm,
+						      MPI_Comm intercomm,
 						      int remoteLeader,
 						      int remoteRank,
 						      int receiverRank,
 						      int receiverPortCode,
 						      MessageHandler* mh)
-    : Subconnector (MPI::BYTE,
+    : Subconnector (MPI_BYTE,
 		    intercomm,
 		    remoteLeader,
 		    remoteRank,
@@ -667,23 +680,24 @@ namespace MUSIC {
   MessageInputSubconnector::receive ()
   {
     char data[MESSAGE_BUFFER_MAX];
-    MPI::Status status;
+    MPI_Status status;
     int size;
     do
       {
-	intercomm.Recv (data,
-			MESSAGE_BUFFER_MAX,
-			type_,
-			remoteRank_,
-			MPI::ANY_TAG,
-			status);
-	if (status.Get_tag () == FLUSH_MSG)
+	MPI_Recv (data,
+		  MESSAGE_BUFFER_MAX,
+		  type_,
+		  remoteRank_,
+		  MPI_ANY_TAG,
+		  intercomm,
+		  &status);
+	if (status.MPI_TAG == FLUSH_MSG)
 	  {
 	    flushed = true;
 	    MUSIC_LOGRE ("received flush message");
 	    return;
 	  }
-	size = status.Get_count (type_);
+	MPI_Get_count (&status, type_, &size);
 	int current = 0;
 	while (current < size)
 	  {
@@ -719,7 +733,7 @@ namespace MUSIC {
    *
    ********************************************************************/
 
-  CollectiveSubconnector::CollectiveSubconnector (MPI::Intracomm intracomm)
+  CollectiveSubconnector::CollectiveSubconnector (MPI_Comm intracomm)
     : intracomm_ (intracomm)
   {
   }
@@ -733,7 +747,7 @@ namespace MUSIC {
   void
   CollectiveSubconnector::allocAllgathervArrays ()
   {
-    nProcesses = intracomm_.Get_size ();
+    nProcesses = mpi_get_comm_size (intracomm_);
     ppBytes = new int[nProcesses];
     displ = new int[nProcesses];
   }
@@ -760,7 +774,7 @@ namespace MUSIC {
   {
     int dsize;
     //distributing the size of the buffer
-    intracomm_.Allgather (&local_data_size, 1, MPI_INT, ppBytes, 1, MPI_INT);
+    MPI_Allgather (&local_data_size, 1, MPI_INT, ppBytes, 1, MPI_INT, intracomm_);
     //could it be that dsize is more then unsigned int?
     dsize = 0;
     for(int i=0; i < nProcesses; ++i){
@@ -785,15 +799,16 @@ namespace MUSIC {
     unsigned int dsize;
     char *recv_buff;
     std::vector<char> commData;
-    recv_buff=NULL;
+    recv_buff = NULL;
 
-    dsize = calcCommDataSize(size);
+    dsize = calcCommDataSize (size);
 
     if(dsize > 0){
       //distributing the data
       recv_buff = new char[dsize];
-      intracomm_.Allgatherv(cur_buff, size, MPI::BYTE, recv_buff, ppBytes, displ, MPI::BYTE );
-      std::copy(recv_buff,recv_buff+dsize,std::back_inserter(commData));
+      MPI_Allgatherv (cur_buff, size, MPI_BYTE, recv_buff, ppBytes, displ, MPI_BYTE,
+		      intracomm_);
+      std::copy (recv_buff, recv_buff + dsize, std::back_inserter (commData));
       delete[] recv_buff;
     }
     return commData;

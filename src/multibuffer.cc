@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2012 INCF
+ *  Copyright (C) 2012, 2022 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -38,23 +38,25 @@ namespace MUSIC {
    *
    ********************************************************************/
 
-  MultiBuffer::MultiBuffer (MPI::Intracomm comm,
+  MultiBuffer::MultiBuffer (MPI_Comm comm,
 			    int localLeader,
 			    std::vector<Connector*>& connectors)
     : localLeader_ (localLeader)
   {
     //bool hang = true;
     //while (hang) ;
-    MPI::Group worldGroup = MPI::COMM_WORLD.Get_group ();
-    MPI::Group localGroup = comm.Get_group ();
-    int localSize = localGroup.Get_size ();
+    MPI_Group worldGroup;
+    MPI_Comm_group (MPI_COMM_WORLD, &worldGroup);
+    MPI_Group localGroup;
+    MPI_Comm_group (comm, &localGroup);
+    int localSize = mpi_get_group_size (localGroup);
 
     // maps leaders to vectors mapping local ranks to COMM_WORLD ranks
     RankMap* rankMap = new RankMap ();
-    setupRankMap (comm.Get_rank (), rankMap);
+    setupRankMap (mpi_get_rank (comm), rankMap);
 #if 0
     std::ostringstream ostr;
-    ostr << "Rank " << MPI::COMM_WORLD.Get_rank () << ": rankMap ";
+    ostr << "Rank " << mpi_get_rank (MPI_COMM_WORLD) << ": rankMap ";
     for (RankMap::iterator i = rankMap->begin ();
 	 i != rankMap->end ();
 	 ++i)
@@ -119,7 +121,7 @@ namespace MUSIC {
 	    // create OutputSubconnectorInfo
 	    OutputSubconnector* s
 	      = dynamic_cast<OutputSubconnector*> (connector->subconnector ());
-	    BufferInfo* bi = &*(isi.begin () + comm.Get_rank ());
+	    BufferInfo* bi = &*(isi.begin () + mpi_get_rank (comm));
 	    outputConnectorMap_.insert
 	      (OutputConnectorMap::value_type (connector,
 					       OutputSubconnectorInfo (s, bi)));
@@ -188,7 +190,7 @@ namespace MUSIC {
 #if 0
     {
       std::ostringstream ostr;
-      ostr << "Rank " << MPI::COMM_WORLD.Get_rank () << ": block_ ranks ";
+      ostr << "Rank " << mpi_get_rank (MPI_COMM_WORLD) << ": block_ ranks ";
       for (Blocks::iterator b = block_.begin (); b != block_.end (); ++b)
 	ostr << b->rank () << ' ';
       std::cout << ostr.str () << std::endl;
@@ -205,8 +207,7 @@ namespace MUSIC {
     for (Blocks::iterator b = block_.begin (); b != block_.end (); ++b)
       start = std::max (start, b->headerSize ());
 
-    MPI::COMM_WORLD.Allreduce (MPI::IN_PLACE, &start, 1, MPI::UNSIGNED,
-			       MPI::MAX);
+    MPI_Allreduce (MPI_IN_PLACE, &start, 1, MPI_UNSIGNED, MPI_MAX, MPI_COMM_WORLD);
 
     errorBlockSize_ = start;
 
@@ -249,14 +250,15 @@ namespace MUSIC {
   void
   MultiBuffer::setupRankMap (int localRank, RankMap* rankMap)
   {
-    int worldRank = MPI::COMM_WORLD.Get_rank ();
-    int worldSize = MPI::COMM_WORLD.Get_size ();
+    int worldSize = mpi_get_comm_size (MPI_COMM_WORLD);
+    int worldRank = mpi_get_rank (MPI_COMM_WORLD);
     std::vector<RankInfo> rankInfos (worldSize);
     rankInfos[worldRank] = RankInfo (localLeader_, localRank);
-    MPI::COMM_WORLD.Allgather (MPI::IN_PLACE, 0, MPI::DATATYPE_NULL,
-			       &rankInfos.front (),
-			       sizeof (RankInfo) / sizeof (int),
-			       MPI::INT);
+    MPI_Allgather (MPI_IN_PLACE, 0, MPI_DATATYPE_NULL,
+		   &rankInfos.front (),
+		   sizeof (RankInfo) / sizeof (int),
+		   MPI_INT,
+		   MPI_COMM_WORLD);
     for (int wr = 0; wr < worldSize; ++wr)
       {
 	RankInfo& ri = rankInfos[wr];
@@ -298,7 +300,7 @@ namespace MUSIC {
     // compute required total size
     unsigned int summedSize = 0;
     unsigned int thisRankSize = 0;
-    int thisRank = MPI::COMM_WORLD.Get_rank ();
+    int thisRank = mpi_get_rank (MPI_COMM_WORLD);
     for (Blocks::iterator b = block_.begin (); b != block_.end (); ++b)
       {
 	unsigned int size;
@@ -386,7 +388,7 @@ namespace MUSIC {
 		// current rank => error staging area is used for
 		// requested buffer sizes and buffer contains output
 		// data
-		if (b->rank () == MPI::COMM_WORLD.Get_rank ()
+		if (b->rank () == mpi_get_rank (MPI_COMM_WORLD)
 		    && newStart > oldPos)
 		  memmove (buffer_ + newStart,
 			   buffer_ + oldPos,
@@ -552,7 +554,7 @@ namespace MUSIC {
     {
 #ifdef MUSIC_DEBUG
       std::ostringstream ostr;
-      ostr << "Rank " << MPI::COMM_WORLD.Get_rank () << ": Create ";
+      ostr << "Rank " << mpi_get_rank (MPI_COMM_WORLD) << ": Create ";
 #endif
       int nRanges = 0;
       for (GroupMap::iterator g = groupMap_->begin ();
@@ -592,7 +594,9 @@ namespace MUSIC {
       ostr << std::endl;
       std::cout << ostr.str () << std::flush;
 #endif
-      group_ = MPI::COMM_WORLD.Get_group ().Range_incl (nRanges, range);
+      MPI_Group worldGroup;
+      MPI_Comm_group (MPI_COMM_WORLD, &worldGroup);
+      MPI_Group_range_incl (worldGroup, nRanges, range, &group_);
       delete[] range;
     }
 
@@ -605,18 +609,19 @@ namespace MUSIC {
       idstr_ << ':' << cid->first << cid->second;
     id_ = "mc" + idstr_.str ();
 
-    if (!isContiguous || group_.Get_size () < MPI::COMM_WORLD.Get_size ())
-      comm_ = MPI::COMM_WORLD.Create (group_);
+    if (!isContiguous
+	|| mpi_get_group_size (group_) < mpi_get_comm_size (MPI_COMM_WORLD))
+      MPI_Comm_create (MPI_COMM_WORLD, group_, &comm_);
     else
-      comm_ = MPI::COMM_WORLD;
-    MPI::COMM_WORLD.Barrier ();
+      comm_ = MPI_COMM_WORLD;
+    MPI_Barrier (MPI_COMM_WORLD);
 
     std::vector<int> ranks (size ());
     std::vector<int> indices (size ());
     for (int rank = 0; rank < size (); ++rank)
       ranks[rank] = rank;
-    MPI::Group::Translate_ranks (group_, size (), &ranks[0],
-				 MPI::COMM_WORLD.Get_group (), &indices[0]);
+    MPI_Group_translate_ranks (group_, size (), &ranks[0],
+			       mpi_get_group (MPI_COMM_WORLD), &indices[0]);
 #ifdef MUSIC_TWOSTAGE_ALLGATHER
     twostage_ = true;
 #endif
@@ -624,7 +629,7 @@ namespace MUSIC {
       {
 	Blocks::iterator b = multiBuffer_->getBlock (indices[rank]);
 #ifdef MUSIC_DEBUG
-	if (b == multiBuffer_->blockEnd () && MPI::COMM_WORLD.Get_rank () == 0)
+	if (b == multiBuffer_->blockEnd () && mpi_get_rank (MPI_COMM_WORLD) == 0)
 	  {
 	    std::cout << "asked for rank " << indices[rank] << " among:" << std::endl;
 	    multiBuffer_->dumpBlocks ();
@@ -861,12 +866,12 @@ namespace MUSIC {
   {
     std::ostringstream ostr;
 #if 1
-    ostr << "Rank " << MPI::COMM_WORLD.Get_rank () << ": "
+    ostr << "Rank " << mpi_get_rank (MPI_COMM_WORLD) << ": "
 	 << id << ": Allgather " << *recvc;
     for (int i = 1; i < n; ++i)
       ostr << ", " << recvc[i];
 #else
-    ostr << "Rank " << MPI::COMM_WORLD.Get_rank () << ": "
+    ostr << "Rank " << mpi_get_rank (MPI_COMM_WORLD) << ": "
 	 << id << ": Allgather "
 	 << *displs << ':' << *recvc;
     for (int i = 1; i < n; ++i)
@@ -893,8 +898,9 @@ namespace MUSIC {
 	if (block_[rank ()]->finalizeFlag (buffer_))
 	  recvc |= TWOSTAGE_FINALIZE_FLAG;
 	recvcounts_[rank ()] = recvc;
-	comm_.Allgather (MPI::IN_PLACE, 0, MPI::DATATYPE_NULL,
-			 recvcounts_, 1, MPI::INT);
+	MPI_Allgather (MPI_IN_PLACE, 0, MPI_DATATYPE_NULL,
+		       recvcounts_, 1, MPI_INT,
+		       comm_);
 	checkRestructure (); // sets doAllgather_
 	if (doAllgather_)
 	  {
@@ -902,8 +908,9 @@ namespace MUSIC {
 #ifdef MUSIC_DEBUG
 	    dumprecvc (id_, recvcounts_, displs_, comm_.Get_size ());
 #endif
-	    comm_.Allgatherv (MPI::IN_PLACE, 0, MPI::DATATYPE_NULL,
-			      buffer_, recvcounts_, displs_, MPI::BYTE);
+	    MPI_Allgatherv (MPI_IN_PLACE, 0, MPI_DATATYPE_NULL,
+			    buffer_, recvcounts_, displs_, MPI_BYTE,
+			    comm_);
 	    processReceived ();
 	  }
       }
@@ -916,8 +923,9 @@ namespace MUSIC {
 #ifdef MUSIC_DEBUG
 	dumprecvc (id_, recvcounts_, displs_, comm_.Get_size ());
 #endif
-	comm_.Allgatherv (MPI::IN_PLACE, 0, MPI::DATATYPE_NULL,
-			  buffer_, recvcounts_, displs_, MPI::BYTE);
+	MPI_Allgatherv (MPI_IN_PLACE, 0, MPI_DATATYPE_NULL,
+			buffer_, recvcounts_, displs_, MPI_BYTE,
+			comm_);
 	for (BlockPtrs::iterator b = block_.begin ();
 	     b != block_.end ();
 	     ++b)
@@ -931,8 +939,9 @@ namespace MUSIC {
 #ifdef MUSIC_DEBUG
 	      dumprecvc (id_, recvcounts_, displs_, comm_.Get_size ());
 #endif
-	      comm_.Allgatherv (MPI::IN_PLACE, 0, MPI::DATATYPE_NULL,
-				buffer_, recvcounts_, displs_, MPI::BYTE);
+	      MPI_Allgatherv (MPI_IN_PLACE, 0, MPI_DATATYPE_NULL,
+			      buffer_, recvcounts_, displs_, MPI_BYTE,
+			      comm_);
 	      break;
 	    }
 	processInput ();

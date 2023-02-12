@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2007, 2008, 2009 INCF
+ *  Copyright (C) 2007, 2008, 2009, 2022 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -58,7 +58,7 @@ extern "C" {
 #endif
 
 /*
- * Predict the local MPI process rank before having called MPI::Init
+ * Predict the local MPI process rank before having called MPI_Init
  *
  * MPI implementations typically passes meta information either through
  * argc and argv (MPICH) or through the environment (OpenMPI).

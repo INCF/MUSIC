@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2007, 2008, 2009 INCF
+ *  Copyright (C) 2007, 2008, 2009, 2022 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -44,7 +44,7 @@ namespace MUSIC
     Runtime (Setup* s, double h);
     ~Runtime ();
 
-    MPI::Intracomm
+    MPI_Comm
     communicator ();
 
     void
@@ -60,7 +60,7 @@ namespace MUSIC
     std::string app_name;
     int leader_;
     std::vector<std::pair<double, Connector *> > schedule;
-    MPI::Intracomm comm;
+    MPI_Comm comm;
     std::vector<Port*> ports;
     std::vector<TickingPort*> tickingPorts;
     std::vector<Connector*> connectors;

@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2008, 2009 INCF
+ *  Copyright (C) 2008, 2009, 2022 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -118,8 +118,8 @@ namespace MUSIC {
 
   class SpatialNegotiator {
   protected:
-    MPI::Intracomm comm;
-    MPI::Intercomm intercomm;
+    MPI_Comm comm;
+    MPI_Comm intercomm;
     IndexMap* indices;
     Index::Type type;
     std::vector<NegotiationIntervals> remote;
@@ -131,7 +131,7 @@ namespace MUSIC {
   public:
     SpatialNegotiator (IndexMap* indices,
     		Index::Type type,
-    		MPI::Intracomm c);
+    		MPI_Comm c);
     virtual ~SpatialNegotiator (){};
 
     int getWidth(){return width;}
@@ -140,9 +140,9 @@ namespace MUSIC {
 				       IndexMap::iterator end,
 				       Index::Type type,
 				       int rank);
-    void send (MPI::Comm& comm, int destRank,
+    void send (MPI_Comm& comm, int destRank,
 	       NegotiationIntervals& intervals);
-    void receive (MPI::Comm& comm, int sourceRank,
+    void receive (MPI_Comm& comm, int sourceRank,
 		  NegotiationIntervals& intervals);
     void allToAll (std::vector<NegotiationIntervals>& out,
 		   std::vector<NegotiationIntervals>& in);
@@ -169,8 +169,8 @@ namespace MUSIC {
     std::vector<NegotiationIntervals> results;
   public:
     SpatialOutputNegotiator (IndexMap* indices,
-		    Index::Type type, MPI::Intracomm c,
-		    MPI::Intercomm intercomm);
+		    Index::Type type, MPI_Comm c,
+		    MPI_Comm intercomm);
     NegotiationIterator negotiate ( int remoteNProc,  Connector* connector);
   private:
     void negotiateWidth ();
@@ -181,8 +181,8 @@ namespace MUSIC {
   class SpatialInputNegotiator : public SpatialNegotiator {
   public:
     SpatialInputNegotiator (IndexMap* indices,
-		    Index::Type type, MPI::Intracomm c,
-		    MPI::Intercomm intercomm);
+		    Index::Type type, MPI_Comm c,
+		    MPI_Comm intercomm);
     NegotiationIterator negotiate (int remoteNProc,  Connector* connector);
   private:
     void negotiateWidth ();

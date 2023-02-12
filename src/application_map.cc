@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2008, 2009 INCF
+ *  Copyright (C) 2008, 2009, 2022 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 
 #include "music/application_map.hh"
 #if MUSIC_USE_MPI
-  #include <mpi.h>
+#include "music/mpi_utils.hh"
 #endif
 #include "music/ioutils.hh"
 #include <iostream>
@@ -120,11 +120,11 @@ namespace MUSIC {
   {
     std::map<int, int> leaders;
 
-    int size = MPI::COMM_WORLD.Get_size ();
-    int my_rank = MPI::COMM_WORLD.Get_rank ();
+    int size = mpi_get_comm_size (MPI_COMM_WORLD);
+    int rank = mpi_get_rank (MPI_COMM_WORLD);
     int *colors = new int[size];
-    colors[my_rank] = lookup (my_app_label)->color ();
-    MPI::COMM_WORLD.Allgather (MPI::IN_PLACE, 0, MPI::INT, colors, 1, MPI::INT);
+    colors[rank] = lookup (my_app_label)->color ();
+    MPI_Allgather (MPI_IN_PLACE, 0, MPI_INT, colors, 1, MPI_INT, MPI_COMM_WORLD);
 
     int prev_color = -1;
     for (int i = 0; i < size; ++i)

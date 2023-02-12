@@ -5,7 +5,7 @@
 
 #define TIMESTEP 0.001
 
-MPI::Intracomm comm;
+MPI_Comm comm;
 double* data;
 
 int
@@ -19,8 +19,10 @@ main (int argc, char* argv[])
     setup->publishContOutput ("wavedata");
 
   comm = setup->communicator ();
-  int nProcesses = comm.Get_size (); // how many processes are there?
-  int rank = comm.Get_rank ();       // which process am I?
+  int nProcesses;
+  MPI_Comm_size (comm, &nProcesses); // how many processes are there?
+  int rank;
+  MPI_Comm_rank (comm, &rank);       // which process am I?
 
   // For clarity, assume that width is a multiple of n_processes
   int nLocalVars = width / nProcesses;
@@ -30,7 +32,7 @@ main (int argc, char* argv[])
     
   // Declare what data we have to export
   MUSIC::ArrayData dmap (data,
-			 MPI::DOUBLE,
+			 MPI_DOUBLE,
 			 rank * nLocalVars,
 			 nLocalVars);
   wavedata->map (&dmap);
@@ -53,7 +55,7 @@ main (int argc, char* argv[])
 	}
 
       // Broadcast these data out to all nodes
-      comm.Bcast (data, nLocalVars, MPI::DOUBLE, 0);
+      MPI_Bcast (data, nLocalVars, MPI_DOUBLE, 0, comm);
     }
 
   runtime->finalize ();

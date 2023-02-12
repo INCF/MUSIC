@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2008, 2009 INCF
+ *  Copyright (C) 2008, 2009, 2022 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -106,8 +106,9 @@ main (int argc, char *argv[])
 {
   MUSIC::Setup* setup = new MUSIC::Setup (argc, argv);
   
-  MPI::Intracomm comm = setup->communicator ();
-  int rank = comm.Get_rank ();
+  MPI_Comm comm = setup->communicator ();
+  int rank;
+  MPI_Comm_rank (comm, &rank);
   
   getargs (rank, argc, argv);
 
@@ -116,12 +117,12 @@ main (int argc, char *argv[])
     {
       if (rank == 0)
 	std::cerr << "clocksource port is not connected" << std::endl;
-      comm.Abort (1);
+      MPI_Abort (comm, 1);
     }
 
 
   MUSIC::ArrayData dmap (dataarray,
-			 MPI::DOUBLE,
+			 MPI_DOUBLE,
 			 0,
 			 1);
 

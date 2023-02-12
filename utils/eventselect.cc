@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2008, 2009 INCF
+ *  Copyright (C) 2008, 2009, 2022 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -188,9 +188,11 @@ main (int argc, char *argv[])
 {
   MUSIC::Setup* setup = new MUSIC::Setup (argc, argv);
   
-  MPI::Intracomm comm = setup->communicator ();
-  int nProcesses = comm.Get_size ();
-  int rank = comm.Get_rank ();
+  MPI_Comm comm = setup->communicator ();
+  int nProcesses;
+  MPI_Comm_size (comm, &nProcesses);
+  int rank;
+  MPI_Comm_rank (comm, &rank);
   
   getargs (rank, argc, argv);
 
@@ -199,7 +201,7 @@ main (int argc, char *argv[])
     {
       if (rank == 0)
 	std::cerr << "eventselect port in is not connected" << std::endl;
-      comm.Abort (1);
+      MPI_Abort (comm, 1);
     }
 
   MUSIC::EventOutputPort* out = setup->publishEventOutput ("out");
@@ -207,7 +209,7 @@ main (int argc, char *argv[])
     {
       if (rank == 0)
 	std::cerr << "eventselect port out is not connected" << std::endl;
-      comm.Abort (1);
+      MPI_Abort (comm, 1);
     }
 
   mapOutput (out, nProcesses, rank, units);

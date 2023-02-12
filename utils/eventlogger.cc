@@ -10,7 +10,7 @@ extern "C" {
 
 const double DEFAULT_TIMESTEP = 0.01;
 
-MPI::Intracomm comm;
+MPI_Comm comm;
 
 void
 usage (int rank)
@@ -90,8 +90,10 @@ main (int argc, char* argv[])
 {
   MUSIC::Setup* setup = new MUSIC::Setup (argc, argv);
   comm = setup->communicator ();
-  int nProcesses = comm.Get_size (); // how many processes are there?
-  int rank = comm.Get_rank ();        // which process am I?
+  int nProcesses;
+  MPI_Comm_size (comm, &nProcesses); // how many processes are there?
+  int rank;
+  MPI_Comm_rank (comm, &rank); // which process am I?
 
   enum { IN, MESSAGE_IN };
   opterr = 0; // handle errors ourselves
@@ -177,7 +179,7 @@ main (int argc, char* argv[])
     {
       if (rank == 0)
 	std::cerr << "eventlogger: no connected input ports" << std::endl;
-      comm.Abort (1);
+      MPI_Abort (comm, 1);
     }
 
   // Port mapping
@@ -195,7 +197,7 @@ main (int argc, char* argv[])
 	{
 	  std::cerr << "port width not specified in Configuration file"
 		    << std::endl;
-	  comm.Abort (1);
+	  MPI_Abort (comm, 1);
 	}
 
       if (imaptype == "linear")
@@ -258,7 +260,7 @@ main (int argc, char* argv[])
   setup->config ("stoptime", &stoptime);
 
   if (useBarrier)
-    MPI::COMM_WORLD.Barrier();
+    MPI_Barrier (MPI_COMM_WORLD);
 
   // Run
   MUSIC::Runtime* runtime = new MUSIC::Runtime (setup, timestep);

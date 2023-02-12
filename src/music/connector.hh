@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2007, 2008, 2009, 2012 INCF
+ *  Copyright (C) 2007, 2008, 2009, 2012, 2022 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -64,8 +64,8 @@ namespace MUSIC {
     ConnectorInfo info;
     IndexMap* indices_;
     Index::Type type_;
-    MPI::Intracomm comm;
-    MPI::Intercomm intercomm;
+    MPI_Comm comm;
+    MPI_Comm intercomm;
     std::vector<Subconnector*> rsubconn;
     ClockState latency_;
     // interpolate rather than picking value closest in time
@@ -79,12 +79,12 @@ namespace MUSIC {
     Connector (ConnectorInfo info_,
 	       IndexMap* indices,
 	       Index::Type type,
-	       MPI::Intracomm c);
+	       MPI_Comm c);
     Connector (ConnectorInfo info_,
 	       IndexMap* indices,
 	       Index::Type type,
-	       MPI::Intracomm c,
-	       MPI::Intercomm ic);
+	       MPI_Comm c,
+	       MPI_Comm ic);
 
     static unsigned int makeFlag (Connector* connector)
     {
@@ -260,16 +260,16 @@ namespace MUSIC {
   class ContConnector : virtual public Connector {
   protected:
     Sampler& sampler_;
-    MPI::Datatype  data_type_;
+    MPI_Datatype  data_type_;
 
     Clock *localTime_;
     Clock remoteTime_;
 
   public:
-    ContConnector (Sampler& sampler, MPI::Datatype type)
+    ContConnector (Sampler& sampler, MPI_Datatype type)
       : sampler_ (sampler),  data_type_ (type),localTime_(NULL) { }
     ClockState remoteTickInterval (ClockState tickInterval);
-    MPI::Datatype getDataType(){return  data_type_;}
+    MPI_Datatype getDataType(){return  data_type_;}
     virtual void initialize ();
   protected:
     virtual void initialCommunication()=0;
@@ -280,14 +280,14 @@ namespace MUSIC {
   protected:
     Distributor distributor_;
     PreCommunicationConnector* connector; //specialized connector
-    ContOutputConnector(Sampler& sampler, MPI::Datatype type);
+    ContOutputConnector(Sampler& sampler, MPI_Datatype type);
   public:
     ContOutputConnector (ConnectorInfo connInfo,
 			 IndexMap* indices,
 			 Index::Type type,
-			 MPI::Intracomm comm,
+			 MPI_Comm comm,
 			 Sampler& sampler,
-			 MPI::Datatype data_type);
+			 MPI_Datatype data_type);
     ~ContOutputConnector();
     //MUSIC_ISENDWAITALL is not supported temporarily for cont. ports
 #if MUSIC_ISENDWAITALL
@@ -310,14 +310,14 @@ namespace MUSIC {
     double delay_;
     PostCommunicationConnector* connector;
     bool divisibleDelay (Clock& localTime);
-    ContInputConnector(Sampler& sampler,MPI::Datatype type,	double delay);
+    ContInputConnector(Sampler& sampler,MPI_Datatype type,	double delay);
   public:
     ContInputConnector (ConnectorInfo connInfo,
 			IndexMap* indices,
 			Index::Type type,
-			MPI::Intracomm comm,
+			MPI_Comm comm,
 			Sampler& sampler,
-			MPI::Datatype data_type,
+			MPI_Datatype data_type,
 			double delay);
     ~ContInputConnector();
     void specialize (Clock& localTime);
@@ -344,7 +344,7 @@ namespace MUSIC {
     EventOutputConnector (ConnectorInfo connInfo,
 			  IndexMap* indices,
 			  Index::Type type,
-			  MPI::Intracomm comm,
+			  MPI_Comm comm,
 			  EventRoutingMap<FIBO*>* routingMap): Connector(connInfo, indices, type ,comm),
 							       routingMap_(routingMap){
     };
@@ -367,7 +367,7 @@ namespace MUSIC {
     EventInputConnector (ConnectorInfo connInfo,
 			 IndexMap* indices,
 			 Index::Type type,
-			 MPI::Intracomm comm,
+			 MPI_Comm comm,
 			 EventHandlerPtr handleEvent):Connector(connInfo, indices, type ,comm),
 						      handleEvent_(handleEvent),flushes(0){};
     ~EventInputConnector(){}
@@ -403,7 +403,7 @@ namespace MUSIC {
     MessageOutputConnector (ConnectorInfo connInfo,
 			    IndexMap* indices,
 			    Index::Type type,
-			    MPI::Intracomm comm,
+			    MPI_Comm comm,
 			    std::vector<FIBO*>& buffers);
 
     void postCommunication ();
@@ -426,7 +426,7 @@ namespace MUSIC {
 			   IndexMap* indices,
 			   Index::Type type,
 			   MessageHandler* handleMessage,
-			   MPI::Intracomm comm);
+			   MPI_Comm comm);
     //MUSIC_ANYSOURCE is not supported temporarily for message ports
 /*
 #ifdef MUSIC_ANYSOURCE
@@ -448,7 +448,7 @@ namespace MUSIC {
   class CollectiveConnector: virtual public Connector {
     bool high_;
   protected:
-    MPI::Intracomm intracomm_;
+    MPI_Comm intracomm_;
     Subconnector* subconnector_;
   public:
     CollectiveConnector (bool high);
@@ -460,9 +460,9 @@ namespace MUSIC {
   };
 
   class ContCollectiveConnector: public CollectiveConnector {
-    MPI::Datatype data_type;
+    MPI_Datatype data_type;
   protected:
-    ContCollectiveConnector( MPI::Datatype type, bool high);
+    ContCollectiveConnector( MPI_Datatype type, bool high);
     using Connector::makeSubconnector;
     Subconnector* makeSubconnector (void *param);
   };
@@ -482,7 +482,7 @@ namespace MUSIC {
     EventInputCollectiveConnector(ConnectorInfo connInfo,
 				  IndexMap* indices,
 				  Index::Type type,
-				  MPI::Intracomm comm,
+				  MPI_Comm comm,
 				  EventHandlerPtr handleEvent);
     ~EventInputCollectiveConnector();
 #if MUSIC_ANYSOURCE
@@ -506,7 +506,7 @@ namespace MUSIC {
     EventOutputCollectiveConnector(ConnectorInfo connInfo,
 				   IndexMap* indices,
 				   Index::Type type,
-				   MPI::Intracomm comm,
+				   MPI_Comm comm,
 				   DirectRouter* router);
     ~EventOutputCollectiveConnector();
 #if MUSIC_ISENDWAITALL
@@ -525,9 +525,9 @@ namespace MUSIC {
     ContInputCollectiveConnector(ConnectorInfo connInfo,
 				 IndexMap* indices,
 				 Index::Type type,
-				 MPI::Intracomm comm,
+				 MPI_Comm comm,
 				 Sampler& sampler,
-				 MPI::Datatype data_type,
+				 MPI_Datatype data_type,
 				 double delay);
 #if MUSIC_ANYSOURCE
   virtual void tick() {Connector::tick();};
@@ -545,9 +545,9 @@ namespace MUSIC {
     ContOutputCollectiveConnector(ConnectorInfo connInfo,
 				  IndexMap* indices,
 				  Index::Type type,
-				  MPI::Intracomm comm,
+				  MPI_Comm comm,
 				  Sampler& sampler,
-				  MPI::Datatype data_type);
+				  MPI_Datatype data_type);
 #if MUSIC_ISENDWAITALL
     void tick (){Connector::tick();};
 #endif

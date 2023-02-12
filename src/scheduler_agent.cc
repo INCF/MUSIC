@@ -1,3 +1,21 @@
+/*
+ *  This file is part of MUSIC.
+ *  Copyright (C) 2012, 2022 INCF
+ *
+ *  MUSIC is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  MUSIC is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include <music/scheduler_agent.hh>
 
 //#define MUSIC_DEBUG
@@ -139,7 +157,7 @@ namespace MUSIC
 
 #if 0
   void
-  MulticommAgent::createMultiConnectors (Clock& localTime, MPI::Intracomm comm,
+  MulticommAgent::createMultiConnectors (Clock& localTime, MPI_Comm comm,
       int leader, std::vector<Connector*>& connectors)
   {
     multiBuffer_ = new MultiBuffer (comm, leader, connectors);
@@ -220,10 +238,11 @@ namespace MUSIC
                 unsigned int proxyId = (*comm).proxyId ();
                 if (proxyId != 0 && ! (*multiProxies)[proxyId])
                   {
-                    //  std::cout << "Rank " << MPI::COMM_WORLD.Get_rank ()
+                    //  std::cout << "Rank " << mpi_get_rank (MPI_COMM_WORLD)
                     //      << ": Proxy " << proxyId << std::endl;
-                    MPI::COMM_WORLD.Create (MPI::GROUP_EMPTY);
-                    MPI::COMM_WORLD.Barrier ();
+		    MPI_Comm newcomm;
+                    MPI_Comm_create (MPI_COMM_WORLD, MPI_GROUP_EMPTY, &newcomm);
+                    MPI_Barrier (MPI_COMM_WORLD);
                     (*multiProxies)[proxyId] = true;
                   }
               }
@@ -260,8 +279,9 @@ namespace MUSIC
               }// if we do not participate in the multicommunication and the multiconnector was not yet created
             else if (multiId == 0 && !((*multiProxies)[proxyId]))
               {
-                MPI::COMM_WORLD.Create (MPI::GROUP_EMPTY);
-                MPI::COMM_WORLD.Barrier ();
+		MPI_Comm newcomm;
+                MPI_Comm_create (MPI_COMM_WORLD, MPI_GROUP_EMPTY, &newcomm);
+                MPI_Barrier (MPI_COMM_WORLD);
                 (*multiProxies)[proxyId] = true;
               }
 
@@ -404,9 +424,9 @@ namespace MUSIC
               } // if we do not participate in the multicommunication and the multiconnector was not yet created
             else if (multiId == 0 && ! ( (*multiProxies)[proxyId]))
               {
-
-                MPI::COMM_WORLD.Create (MPI::GROUP_EMPTY);
-                MPI::COMM_WORLD.Barrier ();
+		MPI_Comm newcomm;
+                MPI_Comm_create (MPI_COMM_WORLD, MPI_GROUP_EMPTY, &newcomm);
+                MPI_Barrier (MPI_COMM_WORLD);
                 (*multiProxies)[proxyId] = true;
 
               }

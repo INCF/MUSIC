@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2007, 2008, 2009 INCF
+ *  Copyright (C) 2007, 2008, 2009, 2022 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -25,7 +25,7 @@
 
 namespace MUSIC {
   
-  ArrayData::ArrayData (void* buffer, MPI::Datatype type, IndexMap* map)
+  ArrayData::ArrayData (void* buffer, MPI_Datatype type, IndexMap* map)
     : DataMap (buffer), type_ (type), indexMap_ (map->copy ())
   {
   }
@@ -36,7 +36,7 @@ namespace MUSIC {
   }
   
   ArrayData::ArrayData (void* buffer,
-			MPI::Datatype type,
+			MPI_Datatype type,
 			int baseIndex,
 			int size)
     : DataMap (buffer)

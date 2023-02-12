@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2011, 2012 INCF
+ *  Copyright (C) 2011, 2012, 2022 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -128,10 +128,10 @@ namespace MUSIC
 
     int color_;
     int leader_;
-    MPI::Intracomm comm_;
+    MPI_Comm comm_;
   public:
 
-    Scheduler (MPI::Intracomm comm, int leader);
+    Scheduler (MPI_Comm comm, int leader);
     ~Scheduler ();
 
     void initialize (TemporalNegotiatorGraph *appl_graph,
@@ -206,7 +206,7 @@ namespace MUSIC
       return leader_;
     }
 
-    MPI::Intracomm
+    MPI_Comm
     comm ()
     {
       return comm_;

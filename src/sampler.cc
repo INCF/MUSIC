@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2009 INCF
+ *  Copyright (C) 2009, 2022 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -28,6 +28,7 @@
 #include "music/array_data.hh"
 #include "music/index_map_factory.hh"
 #include "music/error.hh"
+#include "music/mpi_utils.hh"
 
 #include <cstring>
 
@@ -63,7 +64,7 @@ namespace MUSIC {
   void
   Sampler::initialize ()
   {
-    elementSize = dataMap_->type ().Get_size ();
+    elementSize = mpi_get_type_size (dataMap_->type ());
     
     size = 0;
     IndexMap* indices = dataMap_->indexMap ();
@@ -187,10 +188,10 @@ namespace MUSIC {
       {
 	int localIndex = i->begin () - i->local ();
 	int iSize = i->end () - i->begin ();
-	if (dataMap->type () == MPI::DOUBLE)
+	if (dataMap->type () == MPI_DOUBLE)
 	  interpolate (pos, iSize, interpolationCoefficient,
 		       static_cast<double*> (dataMap->base ()) + localIndex);
-	else if (dataMap->type () == MPI::FLOAT)
+	else if (dataMap->type () == MPI_FLOAT)
 	  interpolate (pos, iSize, interpolationCoefficient,
 		       static_cast<float*> (dataMap->base ()) + localIndex);
 	else

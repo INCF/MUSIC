@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2008, 2009 INCF
+ *  Copyright (C) 2008, 2009, 2022 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -24,19 +24,19 @@
 #define MUSIC_LOG(X) (std::cerr << X << std::endl << std::flush)
 #if MUSIC_USE_MPI
 #define MUSIC_LOGN(N, X) \
-  { if (MPI::COMM_WORLD.Get_rank () == N) MUSIC_LOG (X); }
+  { if (mpi_get_rank (MPI_COMM_WORLD) == N) MUSIC_LOG (X); }
 
 #define MUSIC_LOG0(X) MUSIC_LOGN (0, X)
 
 #define MUSIC_LOGR(X)					\
   {							\
-    std::cerr << MPI::COMM_WORLD.Get_rank () << ": "	\
+    std::cerr << mpi_get_rank (MPI_COMM_WORLD) << ": "	\
               << X << std::endl << std::flush;		\
   }
 
 #define MUSIC_LOGRE(X)					\
   {							\
-    int _r = MPI::COMM_WORLD.Get_rank ();		\
+    int _r = mpi_get_rank (MPI_COMM_WORLD);		\
     char* _e = getenv ("MUSIC_DEBUG_RANK");		\
     if (_e != NULL && atoi (_e) == _r)			\
       {							\
@@ -47,11 +47,13 @@
 
 #define MUSIC_LOGBR(C, X)			\
   {						\
-    int _r = (C).Get_rank ();			\
-    int _n = (C).Get_size ();			\
+    int _r;                                     \
+    MPI_Comm_rank ((C), &_r);			\
+    int _n;                                     \
+    MPI_Comm_size ((C), &_n);			\
     for (int _i = 0; _i < _n; ++_i)		\
       {						\
-	(C).Barrier ();				\
+	MPI_Barrier ((C));			\
 	if (_i == _r)				\
 	  MUSIC_LOGR (X);			\
       }						\

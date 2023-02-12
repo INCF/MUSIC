@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2007, 2008, 2009, 2017 INCF
+ *  Copyright (C) 2007, 2008, 2009, 2017, 2022 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -167,7 +167,7 @@ launch (MUSIC::Configuration* config, char** argv)
 int
 main (int argc, char *argv[])
 {
-  // predict the rank MPI::Init will give us using
+  // predict the rank MPI_Init will give us using
   // mpi implementation dependent code from ../mpidep
   int rank = -1;
 #if MUSIC_USE_MPI

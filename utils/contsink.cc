@@ -93,9 +93,11 @@ main (int argc, char* argv[])
 
   MUSIC::ContInputPort* contdata = setup->publishContInput ("contdata");
 
-  MPI::Intracomm comm = setup->communicator ();
-  int nProcesses = comm.Get_size ();
-  int rank = comm.Get_rank ();
+  MPI_Comm comm = setup->communicator ();
+  int nProcesses;
+  MPI_Comm_size (comm, &nProcesses);
+  int rank;
+  MPI_Comm_rank (comm, &rank);
 
   getargs (rank, argc, argv);
 
@@ -109,7 +111,7 @@ main (int argc, char* argv[])
 
   // Declare where in memory to put data
   MUSIC::ArrayData dmap (data,
-			 MPI::DOUBLE,
+			 MPI_DOUBLE,
 			 rank * localWidth,
 			 myWidth);
   contdata->map (&dmap, delay, interpolate);

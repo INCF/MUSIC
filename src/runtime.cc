@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2007-2012 INCF
+ *  Copyright (C) 2007-2012, 2022 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -112,7 +112,7 @@ namespace MUSIC
 
     delete s;
 #ifdef MUSIC_AFTER_RUNTIME_CONSTRUCTOR_REPORT
-    if (MPI::COMM_WORLD.Get_rank () == 0)
+    if (mpi_get_rank (MPI_COMM_WORLD) == 0)
     reportMem ();
 #if 0
     // Code used for debugging and analysis
@@ -279,7 +279,7 @@ namespace MUSIC
   }
 
 
-  MPI::Intracomm
+  MPI_Comm
   Runtime::communicator ()
   {
     return comm;
@@ -408,7 +408,7 @@ namespace MUSIC
 
             if (multiConnectors[multiId] == NULL)
               {
-                std::cout << "Rank " << MPI::COMM_WORLD.Get_rank ()
+                std::cout << "Rank " << mpi_get_rank (MPI_COMM_WORLD)
                 << " aborting on multiId " << multiId
                 << " remote leader = " << connector->remoteLeader ()
                 << std::endl;
@@ -433,13 +433,13 @@ namespace MUSIC
 #if defined (OPEN_MPI) && MPI_VERSION <= 2
     // This is needed in OpenMPI version <= 1.2 for the freeing of the
     // intercommunicators to go well
-    MPI::COMM_WORLD.Barrier ();
+    MPI_Barrier (MPI_COMM_WORLD);
 #endif
     for (std::vector<Connector*>::iterator connector = connectors.begin ();
         connector != connectors.end (); ++connector)
       (*connector)->freeIntercomm ();
 
-    MPI::Finalize ();
+    MPI_Finalize ();
   }
 
 
@@ -504,7 +504,7 @@ namespace MUSIC
                   }
               }
 
-            //if (MPI::COMM_WORLD.Get_rank () == 2)
+            //if (mpi_get_rank (MPI_COMM_WORLD) == 2)
             //  std::cout << "multiId = " << multiId << std::endl;
             if (multiConnectors[multiId] == NULL)
               {

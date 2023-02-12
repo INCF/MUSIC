@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2009 INCF
+ *  Copyright (C) 2009, 2022 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -30,6 +30,7 @@
 #include <cstring>
 
 #include "music/event.hh"
+#include "music/mpi_utils.hh"
 
 namespace MUSIC {
 
@@ -103,7 +104,7 @@ namespace MUSIC {
 	BIFO* buffer = b->first;
 	Intervals& intervals = b->second;
 	sort (intervals.begin (), intervals.end ());
-	int elementSize = dataMap->type ().Get_size ();
+	int elementSize = mpi_get_type_size (dataMap->type ());
 	int size = 0;
 	for (Intervals::iterator i = intervals.begin ();
 	     i != intervals.end ();

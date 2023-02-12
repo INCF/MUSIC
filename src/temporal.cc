@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2008, 2009 INCF
+ *  Copyright (C) 2008, 2009, 2022 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -42,11 +42,11 @@ namespace MUSIC
     freeNegotiationData (negotiationBuffer);
 
     // Free negotiation communicator in application leaders
-    if (negotiationComm != MPI::COMM_NULL)
-      negotiationComm.Free ();
+    if (negotiationComm != MPI_COMM_NULL)
+      MPI_Comm_free (&negotiationComm);
 
-    applicationLeaders.Free ();
-    groupWorld.Free ();
+    MPI_Group_free (&applicationLeaders);
+    MPI_Group_free (&groupWorld);
   }
 
 
@@ -75,14 +75,14 @@ namespace MUSIC
   bool
   TemporalNegotiator::isLeader ()
   {
-    return setup_->communicator ().Get_rank () == 0;
+    return mpi_get_rank (setup_->communicator ()) == 0;
   }
 
 
   bool
   TemporalNegotiator::hasPeers ()
   {
-    return setup_->communicator ().Get_size () > 1;
+    return mpi_get_comm_size (setup_->communicator ()) > 1;
   }
 
 
@@ -95,10 +95,10 @@ namespace MUSIC
     for (int i = 0; i < nApplications_; ++i)
       ranks[i] = (*applicationMap)[i].leader ();
 
-    groupWorld = MPI::COMM_WORLD.Get_group ();
-    applicationLeaders = groupWorld.Incl (nApplications_, ranks);
+    MPI_Comm_group  (MPI_COMM_WORLD, &groupWorld);
+    MPI_Group_incl (groupWorld, nApplications_, ranks, &applicationLeaders);
     delete[] ranks;
-    negotiationComm = MPI::COMM_WORLD.Create (applicationLeaders);
+    MPI_Comm_create (MPI_COMM_WORLD, applicationLeaders, &negotiationComm);
   }
 
 
@@ -261,8 +261,8 @@ namespace MUSIC
   {
     // First talk to others about how many connections each node has
     int* nConnections = new int[nApplications_];
-    negotiationComm.Allgather (&nLocalConnections, 1, MPI::INT, nConnections, 1,
-        MPI::INT);
+    MPI_Allgather (&nLocalConnections, 1, MPI_INT, nConnections, 1,
+		   MPI_INT, negotiationComm);
     for (int i = 0; i < nApplications_; ++i)
       nAllConnections += nConnections[i];
     negotiationBuffer = allocNegotiationData (nApplications_, nAllConnections);
@@ -279,8 +279,9 @@ namespace MUSIC
       }
     delete[] nConnections;
     int sendSize = negotiationDataSize (nLocalConnections);
-    negotiationComm.Allgatherv (negotiationData, sendSize, MPI::BYTE,
-        negotiationBuffer, receiveSizes, displacements, MPI::BYTE);
+    MPI_Allgatherv (negotiationData, sendSize, MPI_BYTE,
+		    negotiationBuffer, receiveSizes, displacements, MPI_BYTE,
+		    negotiationComm);
     delete[] displacements;
     delete[] receiveSizes;
     freeNegotiationData (negotiationData);
@@ -390,16 +391,15 @@ namespace MUSIC
   void
   TemporalNegotiator::broadcastNegotiationData ()
   {
-    MPI::Intracomm comm = setup_->communicator ();
+    MPI_Comm comm = setup_->communicator ();
 
     if (hasPeers ())
       {
-        comm.Bcast (&nAllConnections, 1, MPI::INT, 0);
+        MPI_Bcast (&nAllConnections, 1, MPI_INT, 0, comm);
         char* memory =
             static_cast<char*> (static_cast<void*> (negotiationBuffer));
-        comm.Bcast (memory,
-            negotiationDataSize (nApplications_, nAllConnections), MPI::BYTE,
-            0);
+        MPI_Bcast (memory, negotiationDataSize (nApplications_, nAllConnections), MPI_BYTE,
+		   0, comm);
       }
   }
 
@@ -407,12 +407,13 @@ namespace MUSIC
   void
   TemporalNegotiator::receiveNegotiationData ()
   {
-    MPI::Intracomm comm = setup_->communicator ();
-    comm.Bcast (&nAllConnections, 1, MPI::INT, 0);
+    MPI_Comm comm = setup_->communicator ();
+    MPI_Bcast (&nAllConnections, 1, MPI_INT, 0, comm);
     negotiationBuffer = allocNegotiationData (nApplications_, nAllConnections);
     char* memory = static_cast<char*> (static_cast<void*> (negotiationBuffer));
-    comm.Bcast (memory, negotiationDataSize (nApplications_, nAllConnections),
-        MPI::BYTE, 0);
+    MPI_Bcast (memory, negotiationDataSize (nApplications_, nAllConnections),
+	       MPI_BYTE, 0,
+	       comm);
     fillTemporalNegotiatorGraph ();
   }
 

@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2009 INCF
+ *  Copyright (C) 2009, 2022 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -107,8 +107,8 @@ void VisualiseNeurons::run(int argc, char **argv) {
 
   // Init music
   setup_ = new MUSIC::Setup(argc, argv);
-  MPI::Intracomm comm = setup_->communicator();
-  rank_ = comm.Get_rank(); 
+  MPI_Comm comm = setup_->communicator();
+  MPI_Comm_rank (comm, &rank_);
 
   if(rank_ > 0) {
     std::cerr << argv[0] << " only supports one process currently!" 
@@ -135,7 +135,7 @@ void VisualiseNeurons::run(int argc, char **argv) {
   if (!evport->isConnected()) {
     if (rank_ == 0)
       std::cerr << "port `plot' is not connected" << std::endl;
-    comm.Abort (1);
+    MPI_Abort (comm, 1);
   }
 
   if(evport->width() != (int) coords_.size()) {

@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2007, 2008, 2009 INCF
+ *  Copyright (C) 2007, 2008, 2009, 2022 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -17,8 +17,7 @@
  */
 #include "music/setup.hh"
 #if MUSIC_USE_MPI
-#include <mpi.h>
-
+#include "music/mpi_utils.hh"
 #include "music/runtime.hh"
 #include "music/parse.hh"
 #include "music/error.hh"
@@ -38,10 +37,10 @@ namespace MUSIC {
     : argc_ (argc), argv_ (argv)
   {
     checkInstantiatedOnce (isInstantiated_, "Setup");
-    if (MPI::Is_initialized ())
+    if (mpi_is_initialized ())
       errorRank (err_MPI_Init);
     maybeProcessMusicArgv (argc, argv);
-    MPI::Init (argc, argv);
+    MPI_Init (&argc, &argv);
 
     init (argc, argv);
 
@@ -52,15 +51,10 @@ namespace MUSIC {
     : argc_ (argc), argv_ (argv)
   {
     checkInstantiatedOnce (isInstantiated_, "Setup");
-    if (MPI::Is_initialized ())
+    if (mpi_is_initialized ())
       errorRank (err_MPI_Init);
     maybeProcessMusicArgv (argc, argv);
-#ifdef HAVE_CXX_MPI_INIT_THREAD
-    *provided = MPI::Init_thread (argc, argv, required);
-#else
-    // Only C version provided in libmpich
     MPI_Init_thread (&argc, &argv, required, provided);
-#endif
     init (argc, argv);
   }
 
@@ -92,7 +86,7 @@ namespace MUSIC {
   void
   Setup::init (int& argc, char**& argv)
   {
-    int myRank = MPI::COMM_WORLD.Get_rank ();
+    int myRank = mpi_get_rank (MPI_COMM_WORLD);
     std::string config = "";
     launchedByMusic_ = false;
     postponeSetup_ = false;
@@ -151,12 +145,12 @@ namespace MUSIC {
             argc = argc_;
             argv = argv_;
           }
-        comm = MPI::COMM_WORLD.Split (postponeSetup_ ? color_ : config_->Color (), myRank);
+        MPI_Comm_split (MPI_COMM_WORLD, postponeSetup_ ? color_ : config_->Color (), myRank, &comm);
       }
     else
       {
         // launched with mpirun
-        comm = MPI::COMM_WORLD;
+        comm = MPI_COMM_WORLD;
         timebase_ = MUSIC_DEFAULT_TIMEBASE;
       }
   }
@@ -208,7 +202,7 @@ namespace MUSIC {
     std::ifstream config;
     char* buffer;
     int size = 0;
-    int myRank = MPI::COMM_WORLD.Get_rank ();
+    int myRank = mpi_get_rank (MPI_COMM_WORLD);
     // Rank #0 is reading a file and broadcast it to each rank in the launch
     if (myRank == 0)
       {
@@ -227,13 +221,13 @@ namespace MUSIC {
         config.seekg (0, std::ios_base::beg);
       }
     // first broadcast the size of the file
-    MPI::COMM_WORLD.Bcast (&size, 1, MPI::INT, 0);
+    MPI_Bcast (&size, 1, MPI_INT, 0, MPI_COMM_WORLD);
     buffer = new char[size];
 
     if (myRank == 0)
       config.read (buffer, size);
     // then broadcast the file but itself
-    MPI::COMM_WORLD.Bcast (buffer, size, MPI::BYTE, 0);
+    MPI_Bcast (buffer, size, MPI_BYTE, 0, MPI_COMM_WORLD);
     // parseMapFile (app_name, std::string (buffer, size), result);
     if (myRank == 0)
       config.close ();
@@ -286,7 +280,7 @@ namespace MUSIC {
   {
     ApplicationMap* apps = applicationMap ();
     int nRequestedProc = apps->nProcesses ();
-    int nMPIProc = MPI::COMM_WORLD.Get_size ();
+    int nMPIProc = mpi_get_comm_size (MPI_COMM_WORLD);
     if (nMPIProc != nRequestedProc)
       {
 	std::ostringstream msg;
@@ -320,7 +314,7 @@ namespace MUSIC {
   }
 
   
-  MPI::Intracomm
+  MPI_Comm
   Setup::communicator ()
   {
     return comm;
@@ -365,7 +359,7 @@ namespace MUSIC {
   int
   Setup::nProcs ()
   {
-    return comm.Get_size ();
+    return mpi_get_comm_size (comm);
   }
 
 

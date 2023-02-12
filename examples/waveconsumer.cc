@@ -5,7 +5,7 @@
 
 #define TIMESTEP 0.0005
 
-MPI::Intracomm comm;
+MPI_Comm comm;
 double* data;
 
 int
@@ -17,13 +17,15 @@ main (int args, char* argv[])
     setup->publishContInput ("wavedata");
 
   comm = setup->communicator ();
-  int nProcesses = comm.Get_size (); // how many processes are there?
-  int rank = comm.Get_rank ();       // which process am I?
+  int nProcesses;
+  MPI_Comm_size (comm, &nProcesses); // how many processes are there?
+  int rank;
+  MPI_Comm_rank (comm, &rank);       // which process am I?
   int width = 0;
   if (wavedata->hasWidth ())
     width = wavedata->width ();
   else
-    comm.Abort (1);
+    MPI_Abort (comm, 1);
 
   // For clarity, assume that width is a multiple of n_processes
   int nLocalVars = width / nProcesses;
@@ -34,7 +36,7 @@ main (int args, char* argv[])
     
   // Declare where in memory to put data
   MUSIC::ArrayData dmap (data,
-			 MPI::DOUBLE,
+			 MPI_DOUBLE,
 			 rank * nLocalVars,
 			 nLocalVars);
   wavedata->map (&dmap);

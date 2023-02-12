@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2007, 2008, 2009 INCF
+ *  Copyright (C) 2007, 2008, 2009, 2022 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -32,7 +32,7 @@
 #include "rudeconfig/src/config.h"
 
 #if MUSIC_USE_MPI
-  #include <mpi.h>
+  #include "music/mpi_utils.hh"
 #endif
 
 #if HAVE_SYS_STAT_H
@@ -87,9 +87,8 @@ namespace MUSIC {
       }
     else
       {
-
-        int my_rank = MPI::COMM_WORLD.Get_rank ();
-        int nRanks = MPI::COMM_WORLD.Get_size ();
+        int nRanks = mpi_get_comm_size (MPI_COMM_WORLD);
+        int my_rank = mpi_get_rank (MPI_COMM_WORLD);
 
 #if HAVE_SYS_STAT_H
 
@@ -97,8 +96,8 @@ namespace MUSIC {
         // communicate st.st_ino
         long *inos = new long[nRanks];
         inos[my_rank] = my_ino;
-        MPI::COMM_WORLD.Allgather (MPI::IN_PLACE, 0, MPI::LONG, inos, 1,
-            MPI::LONG);
+        MPI_Allgather (MPI_IN_PLACE, 0, MPI_LONG, inos, 1,
+		       MPI_LONG, MPI_COMM_WORLD);
 
         int index = 0;
         int i = 0;
@@ -132,7 +131,7 @@ void
         bool leader_avail = false;
         mapApplications ();
 #if MUSIC_USE_MPI
-        if (MPI::Is_initialized ())
+        if (mpi_is_initialized ())
           {
             applications_->assignLeaders (config_->Name ());
             leader_avail = true;

@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2008, 2009, 2019 INCF
+ *  Copyright (C) 2008, 2009, 2019, 2022 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -95,17 +95,17 @@ public:
     port_ = setup_->publishEventOutput (name_);
     if (!port_->isConnected ())
       {
-	if (setup_->communicator ().Get_rank () == 0)
+	if (MUSIC::mpi_get_rank (setup_->communicator ()) == 0)
 	  std::cerr << "multiport port is not connected" << std::endl;
-	setup_->communicator ().Abort (1);
+	MPI_Abort (setup_->communicator (), 1);
       }
   }
 
   void map (int maxbuffered, std::string imaptype, std::string indextype)
   {
-    MPI::Intracomm comm = setup_->communicator ();
-    int rank = comm.Get_rank ();
-    int nProcesses = comm.Get_size ();
+    MPI_Comm comm = setup_->communicator ();
+    int rank = MUSIC::mpi_get_rank (comm);
+    int nProcesses = MUSIC::mpi_get_comm_size (comm);
 
     if (indextype == "global")
       type = MUSIC::Index::GLOBAL;
@@ -208,17 +208,17 @@ public:
     port_ = setup_->publishEventInput (name_);
     if (!port_->isConnected ())
       {
-	if (setup_->communicator ().Get_rank () == 0)
+	if (MUSIC::mpi_get_rank (setup_->communicator ()) == 0)
 	  std::cerr << "multiport port is not connected" << std::endl;
-	setup_->communicator ().Abort (1);
+	MPI_Abort (setup_->communicator (), 1);
       }
   }
 
   void map (std::string imaptype, std::string indextype)
   {
-    MPI::Intracomm comm = setup_->communicator ();
-    int rank = comm.Get_rank ();
-    int nProcesses = comm.Get_size ();
+    MPI_Comm comm = setup_->communicator ();
+    int rank = MUSIC::mpi_get_rank (comm);
+    int nProcesses = MUSIC::mpi_get_comm_size (comm);
 
     if (imaptype == "linear")
       {
@@ -289,7 +289,7 @@ parsePort (MUSIC::Setup* setup,
 void
 getargs (MUSIC::Setup* setup, int argc, char* argv[])
 {
-  int rank = setup->communicator ().Get_rank ();
+  int rank = MUSIC::mpi_get_rank (setup->communicator ());
 
   enum { OUT, IN };
   opterr = 0; // handle errors ourselves
@@ -384,8 +384,8 @@ main (int argc, char *argv[])
 #endif
   MPI_Comm_set_errhandler (MPI_COMM_WORLD, errh);
   
-  MPI::Intracomm comm = setup->communicator ();
-  int rank = comm.Get_rank ();
+  MPI_Comm comm = setup->communicator ();
+  int rank = MUSIC::mpi_get_rank (comm);
   
   getargs (setup, argc, argv);
 

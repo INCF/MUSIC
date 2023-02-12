@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2007, 2008, 2009 INCF
+ *  Copyright (C) 2007, 2008, 2009, 2022 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -43,7 +43,7 @@ namespace MUSIC {
     DataMap (void* base) : base_ (base) { };
     virtual DataMap* copy () = 0;
     void* base () const { return base_; }
-    virtual MPI::Datatype type () = 0;
+    virtual MPI_Datatype type () = 0;
     virtual IndexMap* indexMap () = 0;
   };
 

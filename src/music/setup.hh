@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2007, 2008, 2009, 2021 INCF
+ *  Copyright (C) 2007, 2008, 2009, 2021, 2022 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -59,7 +59,7 @@ namespace MUSIC {
 
     ~Setup ();
 
-    MPI::Intracomm communicator ();
+    MPI_Comm communicator ();
 
     bool config (string var, string* result);
 
@@ -82,7 +82,7 @@ namespace MUSIC {
     MessageOutputPort* publishMessageOutput (string identifier);
 
   private:
-    MPI::Intracomm comm;
+    MPI_Comm comm;
     Configuration* config_;
     std::vector<Port*> ports_;
     std::vector<Connection*>* connections_;

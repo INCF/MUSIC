@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2008, 2009 INCF
+ *  Copyright (C) 2008, 2009, 2022 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -40,7 +40,7 @@ namespace MUSIC {
   Connector::Connector (ConnectorInfo info_,
 			IndexMap* indices,
 			Index::Type type,
-			MPI::Intracomm c)
+			MPI_Comm c)
     : info (info_),
       indices_ (indices->copy()),
       type_ (type),
@@ -54,8 +54,8 @@ namespace MUSIC {
   Connector::Connector (ConnectorInfo info_,
 			IndexMap* indices,
 			Index::Type type,
-			MPI::Intracomm c,
-			MPI::Intercomm ic)
+			MPI_Comm c,
+			MPI_Comm ic)
     : info (info_),
       indices_ (indices->copy()),
       type_ (type),
@@ -70,7 +70,7 @@ namespace MUSIC {
   bool
   Connector::isLeader ()
   {
-    return comm.Get_rank () == 0;
+    return mpi_get_rank (comm) == 0;
   }
 
   
@@ -78,17 +78,19 @@ namespace MUSIC {
   Connector::createIntercomm ()
   {
 
-    intercomm = comm.Create_intercomm (0,
-				       MPI::COMM_WORLD,
-				       info.remoteLeader (),
-				       CREATE_INTERCOMM_MSG);
+    MPI_Intercomm_create (comm,
+			  0,
+			  MPI_COMM_WORLD,
+			  info.remoteLeader (),
+			  CREATE_INTERCOMM_MSG,
+			  &intercomm);
   }
 
 
   void
   Connector::freeIntercomm ()
   {
-    intercomm.Free ();
+    MPI_Comm_free (&intercomm);
   }
 
 
@@ -129,7 +131,7 @@ namespace MUSIC {
   	    rsubconn.push_back (subconn);
 
   	  }
-  	MUSIC_LOG (MPI::COMM_WORLD.Get_rank ()
+  	MUSIC_LOG (mpi_get_rank (MPI_COMM_WORLD)
   		   << ": ("
   		   << i->begin () << ", "
   		   << i->end () << ", "
@@ -211,13 +213,15 @@ namespace MUSIC {
   void
   OutputConnector::tick ()
   {
-	  std::vector<MPI::Request>requests;
-	  for (std::vector<Subconnector*>::iterator s = rsubconn.begin ();	 s != rsubconn.end ();
-			  ++s){
-		  (*s)->maybeCommunicate(requests);
-	  }
+	  std::vector<MPI_Request> requests;
+	  for (std::vector<Subconnector*>::iterator s = rsubconn.begin ();
+	       s != rsubconn.end ();
+	       ++s)
+	    {
+	      (*s)->maybeCommunicate (requests);
+	    }
 	  //The spec  guarantees vectors store their elements contiguously:
-	  MPI::Request::Waitall(requests.size(),  (MPI::Request *)&requests[0]);
+	  MPI_Waitall(requests.size(), (MPI_Request *)&requests[0], MPI_STATUSES_IGNORE);
   }
 #endif //MUSIC_ISENDWAITALL
 
@@ -250,12 +254,14 @@ namespace MUSIC {
       {
 	// exchange tickInterval with peer leader
 	sRemoteTickInterval = tickInterval.serialize ();
-	intercomm.Sendrecv_replace (&sRemoteTickInterval, 2, MPI::UNSIGNED_LONG,
-				    0, TICKINTERVAL_MSG,
-				    0, TICKINTERVAL_MSG);
+	MPI_Sendrecv_replace (&sRemoteTickInterval, 2, MPI_UNSIGNED_LONG,
+			      0, TICKINTERVAL_MSG,
+			      0, TICKINTERVAL_MSG,
+			      intercomm,
+			      MPI_STATUS_IGNORE);
       }
     // broadcast to peers
-    comm.Bcast (&sRemoteTickInterval, 2, MPI::UNSIGNED_LONG, 0);
+    MPI_Bcast (&sRemoteTickInterval, 2, MPI_UNSIGNED_LONG, 0, comm);
     return sRemoteTickInterval.deserialize ();
   }
 
@@ -263,16 +269,16 @@ namespace MUSIC {
   ContOutputConnector::ContOutputConnector (ConnectorInfo connInfo,
 					    IndexMap* indices,
 					    Index::Type type,
-					    MPI::Intracomm comm,
+					    MPI_Comm comm,
 					    Sampler& sampler,
-					    MPI::Datatype data_type)
+					    MPI_Datatype data_type)
     : Connector (connInfo, indices, type, comm),
       ContConnector (sampler, data_type),
       connector(nullptr)
   {
   }
 
-  ContOutputConnector::ContOutputConnector (   Sampler& sampler,  MPI::Datatype type)
+  ContOutputConnector::ContOutputConnector (   Sampler& sampler,  MPI_Datatype type)
     :  ContConnector (sampler, type),
        connector(nullptr)
   {
@@ -457,9 +463,9 @@ namespace MUSIC {
   ContInputConnector::ContInputConnector (ConnectorInfo connInfo,
 		  	  	  	  IndexMap* indices,
 		  	  	  	  Index::Type type,
-					  MPI::Intracomm comm,
+					  MPI_Comm comm,
 					  Sampler& sampler,
-					  MPI::Datatype data_type,
+					  MPI_Datatype data_type,
 					  double delay)
     : Connector (connInfo, indices, type, comm),
       ContConnector (sampler, data_type),
@@ -469,7 +475,7 @@ namespace MUSIC {
   }
 
 
-  ContInputConnector::ContInputConnector ( Sampler& sampler, MPI::Datatype type,  double delay)
+  ContInputConnector::ContInputConnector ( Sampler& sampler, MPI_Datatype type,  double delay)
     : ContConnector (sampler, type),
       delay_ (delay),
       connector(nullptr)
@@ -487,7 +493,7 @@ namespace MUSIC {
   Subconnector*
   ContInputConnector::makeSubconnector (int remoteRank)
   {
-    int receiverRank = intercomm.Get_rank ();
+    int receiverRank = mpi_get_rank (intercomm);
     return new ContInputSubconnector (//synchronizer (),
 				      intercomm,
 				      remoteLeader (),
@@ -677,8 +683,8 @@ namespace MUSIC {
   EventOutputConnector::makeSubconnector (int remoteRank)
   {
     //////
-/*                int world_size = MPI::COMM_WORLD.Get_size();
-                if (MPI::COMM_WORLD.Get_rank() < world_size/2)
+/*              int world_size = mpi_get_comm_size (MPI_COMM_WORLD);
+                if (mpi_get_rank (MPI_COMM_WORLD) < world_size/2)
                   std::cout << remoteRank << std::flush << std::endl;*/
     return new EventOutputSubconnector (//&synch,
 					intercomm,
@@ -699,7 +705,7 @@ namespace MUSIC {
   Subconnector*
   EventInputConnector::makeSubconnector (int remoteRank)
   {
-    int receiverRank = intercomm.Get_rank ();
+    int receiverRank = mpi_get_rank (intercomm);
     if (type_ == Index::GLOBAL){
     	EventInputSubconnectorGlobal *subcc =
     	 new EventInputSubconnectorGlobal (//&synch,
@@ -741,22 +747,24 @@ error( "LOCAL Indices are not supported with MUSIC_ANYSOURCE");
  EventInputConnector::tick ()
    {
 	  //SPIKE_BUFFER_MAX size
-	  //MPI::BYTE type
+	  //MPI_BYTE type
 	  //SPIKE_MSG tag
 	  int size = rsubconn.size();
 	  char data[SPIKE_BUFFER_MAX];
-	  MPI::Status status;
+	  MPI_Status status;
 	  while(size > 0 && flushes > 0){
-	  intercomm.Recv (data,
-	  				SPIKE_BUFFER_MAX,
-	  				MPI::BYTE,
-	  				MPI_ANY_SOURCE,
-	  				SPIKE_MSG,
-	  				status);
+	  MPI_Recv (data,
+		    SPIKE_BUFFER_MAX,
+		    MPI_BYTE,
+		    MPI_ANY_SOURCE,
+		    SPIKE_MSG,
+		    intercomm,
+		    &status);
 
-	  int msize = status.Get_count(MPI::BYTE);
-	  if (rRank2Subconnector[status.Get_source()]->receive(data, msize))
-		  flushes--;
+	  int msize;
+	  MPI_Get_count (&status, MPI_BYTE, &msize);
+	  if (rRank2Subconnector[status.MPI_SOURCE]->receive (data, msize))
+	    flushes--;
 	  if( msize < SPIKE_BUFFER_MAX)
 		 size--;
 	  }
@@ -773,7 +781,7 @@ error( "LOCAL Indices are not supported with MUSIC_ANYSOURCE");
   MessageOutputConnector::MessageOutputConnector (ConnectorInfo connInfo,
 		  	  	  	  	  IndexMap* indices,
 		  	  	  	  	  Index::Type type,
-						  MPI::Intracomm comm,
+						  MPI_Comm comm,
 						  std::vector<FIBO*>& buffers)
     : Connector (connInfo, indices, type, comm),
       buffer (1),
@@ -820,7 +828,7 @@ error( "LOCAL Indices are not supported with MUSIC_ANYSOURCE");
 						IndexMap* indices,
 						Index::Type type,
 						MessageHandler* handleMessage,
-						MPI::Intracomm comm)
+						MPI_Comm comm)
     : Connector (connInfo, indices, type, comm),
       handleMessage_ (handleMessage)
   {
@@ -832,7 +840,7 @@ error( "LOCAL Indices are not supported with MUSIC_ANYSOURCE");
   Subconnector*
   MessageInputConnector::makeSubconnector (int remoteRank)
   {
-    int receiverRank = intercomm.Get_rank ();
+    int receiverRank = mpi_get_rank (intercomm);
     return new MessageInputSubconnector (//&synch,
 					 intercomm,
 					 remoteLeader (),
@@ -859,19 +867,19 @@ error( "LOCAL Indices are not supported with MUSIC_ANYSOURCE");
   CollectiveConnector::createIntercomm ()
   {
     Connector::createIntercomm ();
-    intracomm_ = intercomm.Merge (high_);
+    MPI_Intercomm_merge (intercomm, high_, &intracomm_);
   }
 
 
   void
   CollectiveConnector::freeIntercomm ()
   {
-    intracomm_.Free ();
+    MPI_Comm_free (&intracomm_);
     Connector::freeIntercomm ();
   }
 
 
-  ContCollectiveConnector::ContCollectiveConnector (MPI::Datatype type,
+  ContCollectiveConnector::ContCollectiveConnector (MPI_Datatype type,
 						    bool high):
     CollectiveConnector (high),
     data_type (type)
@@ -916,7 +924,7 @@ error( "LOCAL Indices are not supported with MUSIC_ANYSOURCE");
   (ConnectorInfo connInfo,
    IndexMap* indices,
    Index::Type type,
-   MPI::Intracomm comm,
+   MPI_Comm comm,
    EventHandlerPtr handleEvent)
     : Connector (connInfo, indices, type, comm),
       EventInputConnector (handleEvent),
@@ -970,7 +978,7 @@ error( "LOCAL Indices are not supported with MUSIC_ANYSOURCE");
   (ConnectorInfo connInfo,
    IndexMap* indices,
    Index::Type type,
-   MPI::Intracomm comm,
+   MPI_Comm comm,
    DirectRouter* router)
     : Connector (connInfo, indices, type, comm),
       EventOutputConnector (nullptr),
@@ -1011,9 +1019,9 @@ error( "LOCAL Indices are not supported with MUSIC_ANYSOURCE");
   (ConnectorInfo connInfo,
    IndexMap* indices,
    Index::Type type,
-   MPI::Intracomm comm,
+   MPI_Comm comm,
    Sampler& sampler,
-   MPI::Datatype data_type,
+   MPI_Datatype data_type,
    double delay)
     : Connector(connInfo, indices,type, comm),
       ContInputConnector(sampler, data_type, delay),
@@ -1033,9 +1041,9 @@ error( "LOCAL Indices are not supported with MUSIC_ANYSOURCE");
 
     for (NegotiationIterator i  = spatialNegotiator_->negotiate (info.nProcesses (), this);  !i.end (); ++i)
       {
-	int begin = (i->displ())*data_type_.Get_size();
+	int begin = (i->displ()) * mpi_get_type_size (data_type_);
 	// length field is stored overlapping the end field
-	int end = (i->end() - i->begin()) * data_type_.Get_size();
+	int end = (i->end() - i->begin()) * mpi_get_type_size (data_type_);
 	receiver_intrvs.insert (std::make_pair ( remoteToCollectiveRankMap[i->rank ()], Interval(begin, end)));
 	intrvs.push_back(i->interval());
       }
@@ -1051,15 +1059,17 @@ error( "LOCAL Indices are not supported with MUSIC_ANYSOURCE");
   ContInputCollectiveConnector::receiveRemoteCommRankID(std::map<int,int> &remoteToCollectiveRankMap)
   {
     int nProcesses, intra_rank;
-    nProcesses = intercomm.Get_remote_size();
+    MPI_Comm_remote_size (intercomm, &nProcesses);
 
     for (int i =0; i < nProcesses; ++i)
       {
-	intercomm.Recv (&intra_rank,
-			1,
-			MPI::INT,
-			i,
-			SPATIAL_NEGOTIATION_MSG);
+	MPI_Recv (&intra_rank,
+		  1,
+		  MPI_INT,
+		  i,
+		  SPATIAL_NEGOTIATION_MSG,
+		  intercomm,
+		  MPI_STATUS_IGNORE);
 	remoteToCollectiveRankMap.insert(std::make_pair(i,intra_rank));
 	MUSIC_LOG0( "Remote Communication Rank:" << i << "is mapped to Collective Communication Rank:" << intra_rank );
       }
@@ -1070,9 +1080,9 @@ error( "LOCAL Indices are not supported with MUSIC_ANYSOURCE");
   ContOutputCollectiveConnector::ContOutputCollectiveConnector(ConnectorInfo connInfo,
 							       IndexMap* indices,
 							       Index::Type type,
-							       MPI::Intracomm comm,
+							       MPI_Comm comm,
 							       Sampler& sampler,
-							       MPI::Datatype data_type):
+							       MPI_Datatype data_type):
     Connector(connInfo, indices,type, comm),
     ContOutputConnector( sampler, data_type),
     ContCollectiveConnector(data_type, false)
@@ -1098,15 +1108,16 @@ error( "LOCAL Indices are not supported with MUSIC_ANYSOURCE");
   ContOutputCollectiveConnector::sendLocalCommRankID()
   {
     int nProcesses, intra_rank;
-    nProcesses = intercomm.Get_remote_size();
-    intra_rank = intracomm_.Get_rank();
+    MPI_Comm_remote_size (intercomm, &nProcesses);
+    intra_rank = mpi_get_rank (intracomm_);
     std::map<int,int> rCommToCollCommRankMap;
     for (int i =0; i < nProcesses; ++i){
-      intercomm.Ssend(&intra_rank,
-		      1,
-		      MPI::INT,
-		      i,
-		      SPATIAL_NEGOTIATION_MSG);
+      MPI_Ssend (&intra_rank,
+		 1,
+		 MPI_INT,
+		 i,
+		 SPATIAL_NEGOTIATION_MSG,
+		 intercomm);
     }
   }
 }
