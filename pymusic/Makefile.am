@@ -61,8 +61,8 @@ else
 install-exec-hook:
 	$(PYTHON) setup.py build \
 	  --build-base=$(abs_builddir)/build install \
-	  --prefix=$(DESTDIR)$(prefix)
-	  --install-lib=$(DESTDIR)$(pyexecdir) \
+	  --prefix=$(DESTDIR)$(prefix) \
+	  --install-lib=$(DESTDIR)$(PYTHON_EXECDIR) \
 	  --install-scripts=$(DESTDIR)$(bindir) \
 	  --install-data=$(DESTDIR)$(pkgdatadir)
 endif

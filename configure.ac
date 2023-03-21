@@ -329,6 +329,9 @@ AS_IF([test "x$have_python" = "xyes"], [
     AC_CHECK_FILE(["${PYTHON_INC}/Python.h"],
     		  [PYMUSIC_CPPFLAGS="-I${PYTHON_INC}"; PYBUFFER_CPPFLAGS="-I${PYTHON_INC}"],
                   [have_python=no])
+    # This replaces pyexecdir since Automake 1.16 has a bug which concatenates
+    # the prefix (which might be local) and the platlib (might might start with local)
+    PYTHON_EXECDIR=`$PYTHON -c 'import sys; import sysconfig; sys.stdout.write(sysconfig.get_path("platlib"))'`
 ])
 
 AC_MSG_CHECKING([whether to build PyMUSIC])
@@ -361,9 +364,12 @@ AC_ARG_ENABLE([deb],
 	       esac],[deb_package=false])
 AM_CONDITIONAL([DEB_PACKAGE], [test x$deb_package = xtrue])
 if test x$deb_package = xtrue; then
-  pythondir="\${exec_prefix}/lib/python3/dist-packages"
-  pyexecdir="\${exec_prefix}/lib/python3/dist-packages"
+  PYTHON_EXECDIR="\${exec_prefix}/lib/python3/dist-packages"
 fi
+# Have files install in the same location as was retried from Python:
+# (Standard place is site-packages but Debian uses dist-packages.)
+pythondir=${PYTHON_EXECDIR}
+pyexecdir=${PYTHON_EXECDIR}
 
 # if Python is found, configure and compile PyMUSIC
 if test "x$have_python" = "xyes" ; then
@@ -400,7 +406,7 @@ AC_SUBST([HAVE_PYTHON])
 AC_SUBST([MUSICCONFIGDIR])
 AC_SUBST([PYMUSIC_SUBDIR])
 AC_SUBST([ROS_SUBDIR])
-AC_SUBST([PYEXECDIR], ${pyexecdir})
+AC_SUBST([PYTHON_EXECDIR])
 
 AC_SUBST([PYTHON])
 AC_SUBST([PYTHON_VERSION])
