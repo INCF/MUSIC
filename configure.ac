@@ -325,7 +325,7 @@ AS_IF([test "x$with_python" != "xno"],
       [have_python=no])
 
 AS_IF([test "x$have_python" = "xyes"], [
-    PYTHON_INC=`$PYTHON -c 'import sys; from distutils import sysconfig; sys.stdout.write(sysconfig.get_python_inc())'`
+    PYTHON_INC=`$PYTHON -c 'import sys; import sysconfig; sys.stdout.write(sysconfig.get_path("include"))'`
     AC_CHECK_FILE(["${PYTHON_INC}/Python.h"],
     		  [PYMUSIC_CPPFLAGS="-I${PYTHON_INC}"; PYBUFFER_CPPFLAGS="-I${PYTHON_INC}"],
                   [have_python=no])

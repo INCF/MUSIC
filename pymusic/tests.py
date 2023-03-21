@@ -2,7 +2,7 @@
 
 # Test mpi4py version
 import mpi4py
-from distutils.version import LooseVersion
+from looseversion import LooseVersion
 is_v2 = LooseVersion(mpi4py.__version__) > LooseVersion("1.3.1")
 
 # Write configuration file 
