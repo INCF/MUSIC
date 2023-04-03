@@ -4,6 +4,24 @@ Copyright (C) 2009, 2010, 2019, 2020, 2021, 2023 INCF
 Please send MUSIC bug reports to music-bugs@incf.org.
 
 
+Changes in 1.2.1:
+
+* python support
+
+** Remove reliance on deprecated distutils
+
+Don't rely on distutils which is deprecated and will disappear in
+Python 3.12.
+
+** Fix problems with Automake putting python files in wrong places
+
+On Debian systems, the autotools build system 1) placed python modules
+in the site-packages directory when they should have been placed in
+the dist-packages directory. Also, 2) if prefix was /usr/local, an
+extra local was added for library installation due to a buggy
+autotools aclocal macro. These problems have now been circumvented.
+
+
 Changes in 1.2.0:
 
 * music library
