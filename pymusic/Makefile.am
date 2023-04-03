@@ -55,12 +55,14 @@ if DEB_PACKAGE
 install-exec-hook:
 	$(PYTHON) setup.py build \
 	  --build-base=$(abs_builddir)/build install \
+	  --old-and-unmanageable \
 	  --install-layout=deb \
 	  --prefix=$(DESTDIR)$(prefix)
 else
 install-exec-hook:
 	$(PYTHON) setup.py build \
 	  --build-base=$(abs_builddir)/build install \
+	  --old-and-unmanageable \
 	  --prefix=$(DESTDIR)$(prefix) \
 	  --install-lib=$(DESTDIR)$(PYTHON_EXECDIR) \
 	  --install-scripts=$(DESTDIR)$(bindir) \
