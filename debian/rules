@@ -3,8 +3,12 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
+export PYTHONPATH=$(CURDIR)/debian/tmp/usr/lib/python3/dist-packages
+
+include /usr/share/dpkg/default.mk
+
 %:
-	dh $@ --parallel --with python3
+	dh $@ --parallel --without autoreconf --with python3
 
 override_dh_auto_configure:
 	dh_auto_configure -- --enable-deb --with-python=python3
@@ -13,7 +17,7 @@ override_dh_auto_install:
 	$(MAKE) DESTDIR=$(CURDIR)/debian/tmp install
 
 # Remove rpaths in libraries and binaries
-	( cd $(CURDIR)/debian/tmp/usr/lib/$(DEB_TARGET_GNU_TYPE); chrpath -d libmusic.so libmusic-c.so )
+	( cd $(CURDIR)/debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH); chrpath -d libmusic.so libmusic-c.so )
 	( cd $(CURDIR)/debian/tmp/usr/bin; chrpath -d contsink eventcounter eventgenerator eventlogger eventselect eventsink eventsource messagesource music viewevents )
 
 # Build manual

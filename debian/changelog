@@ -1,3 +1,24 @@
+music (1.2.1-1) unstable; urgency=medium
+
+  * Upstream release 1.2.1.
+  * Updated compatibility level from 9 to 11.
+  * Build-depend on python3-setuptools.
+  * Set PYTHONPATH as temporary kludge to make setuptools check work.
+  * Give --without autoreconf to dh since dh_autoreconf gets confused by
+	conditionals in configure.ac.
+
+-- Mikael Djurfeldt <mdj@debian.org>  Mon, 03 Apr 2023 20:40:10 +0100
+
+music (1.1.16-1.1) unstable; urgency=high
+
+  * Non-maintainer upload.
+  * Source-only upload to allow testing migration.
+  * debian/rules: Use DEB_HOST_MULTIARCH to look up multiarch
+    directories. (Closes: #946541)
+  * debian/control: Mark package music-doc as Multi-Arch: foreign.
+
+ -- Boyuan Yang <byang@debian.org>  Tue, 17 Dec 2019 16:45:14 -0500
+
 music (1.1.16-1) unstable; urgency=medium
 
   * Upstream release 1.1.16.
@@ -39,7 +60,7 @@ music (1.0.7-1.3) unstable; urgency=medium
 music (1.0.7-1.2) unstable; urgency=low
 
   * Non-maintainer upload.
-  * Fix ftbfs with GCC-4.7: add "#include <unistd.h>" to 
+  * Fix ftbfs with GCC-4.7: add "#include <unistd.h>" to
     utils/VisualiseNeurons.cpp (Closes: #667291).
 
  -- Mònica Ramírez Arceda <monica@debian.org>  Thu, 10 May 2012 13:40:31 +0200
