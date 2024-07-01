@@ -1,0 +1,55 @@
+{
+    "@context": "https://w3id.org/codemeta/3.0",
+    "type": "SoftwareSourceCode",
+    "applicationCategory": "Computational neuroscience",
+    "author": [
+        {
+            "id": " https://orcid.org/0000-0003-2155-7820",
+            "type": "Person",
+            "affiliation": {
+                "type": "Organization",
+                "name": "PDC/KTH"
+            },
+            "email": "mdj@kth.se",
+            "familyName": "Djurfeldt",
+            "givenName": "Mikael"
+        },
+        {
+            "id": "https://orcid.org/0000-0002-2792-1622",
+            "type": "Person",
+            "affiliation": {
+                "type": "Organization",
+                "name": "KTH"
+            },
+            "email": "ekeberg@kth.se",
+            "familyName": "Ekeberg",
+            "givenName": "Örjan"
+        }
+    ],
+    "codeRepository": "https://github.com/INCF/MUSIC",
+    "dateCreated": "2007-09-13",
+    "dateModified": "2023-04-03",
+    "datePublished": "2009-03-03",
+    "downloadUrl": "https://github.com/INCF/MUSIC/releases/download/1.2.1/music-1.2.1.tar.gz",
+    "funder": {
+        "type": "Organization",
+        "name": "INCF, FACETS, The Human Brain Project"
+    },
+    "keywords": "co-simulation",
+    "license": "https://spdx.org/licenses/GPL-3.0-or-later",
+    "name": "MUSIC",
+    "operatingSystem": [
+        "Linix",
+        "MacOS"
+    ],
+    "releaseNotes": "MUSIC 1.2.1 has updates to the Python installation infrastructure. Among other things, it fixes a problem where Python-related files were installed in the wrong location under certain circumstances.",
+    "softwareRequirements": [
+        "Python 3",
+        "MPI",
+        "/"
+    ],
+    "version": "1.2.1",
+    "funding": "FP6-2004-IST-FETPI-015879, FP7/2007-2013/604102 (HBP)",
+    "issueTracker": "https://github.com/INCF/MUSIC/issues",
+    "referencePublication": "https://doi.org/10.1007/s12021-010-9064-z"
+}
