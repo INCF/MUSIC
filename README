@@ -11,7 +11,7 @@ different time steps and different data allocation strategies.
 This is the MUSIC pilot implementation.
 
 The two most important components built from this software
-distribution is the music library `libmusic.a' and the music utility
+distribution are the music library `libmusic.a' and the music utility
 `music'.  A MUSIC-aware simulator links against the C++ library and
 can be launched using mpirun together with the music utility as
 described below.  MUSIC can also be used from a C program using the
