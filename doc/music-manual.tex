@@ -265,7 +265,7 @@ they relate to MUSIC.
 PyNN is a Python package for simulator-independent specification of
 neuronal network models.  It provides a low-level procedural API and a
 high-level object-oriented API.  Neuronal network models which are
-specified using these API:s can be simulated on simulators supporting
+specified using these APIs can be simulated on simulators supporting
 PyNN, such as Neuron\index{Neuron} and NEST\index{NEST}.
 
 PyNN could be extended to support multi-simulations using the MUSIC
@@ -283,15 +283,15 @@ have to address the same problems which MUSIC provides a solution to.
 The Neurospaces project promotes inter-operability and re-usability
 through the development of independent software components, some of
 which, together, will provide one of two alternative cores of the
-Genesis 3 simulator.  One of the components, the Neurospaces Model
-Container abstracts model description from the solver.  Another
-component, the Discrete Event System can handle distribution and
+Genesis 3 simulator.  One of the components, the "Neurospaces Model
+Container" abstracts model description from the solver.  Another
+component, the "Discrete Event System" can handle distribution and
 queuing of spikes.  Components adhere to the CBI simulator
 architecture.
 
 It is possible to develop a MUSIC adapter consistent with the CBI
 simulator architecture.  This would allow the Neurospaces framework,
-and Genesis 3, to interface to independently running applications in a
+and Genesis 3 to interface with independently running applications in a
 cluster environment.
 
 \begin{metatext}
@@ -313,7 +313,7 @@ applications, is executed in three distinct phases:
   binaries on the set of MPI processes allocated to the MUSIC job.
   Since MPI can be initialized first when the applications have been
   launched, most of this work needs to be performed outside of MPI.
-  In particular, the tasks of accessing the command line argument of
+  In particular, the tasks of accessing the command line arguments of
   the MUSIC launch utility and of determining the ranks of processes
   before MPI initialization therefore has to be handled separately for
   different MPI implementations.
@@ -323,7 +323,7 @@ applications, is executed in three distinct phases:
   returns.  (See further description below.)
 
 \item[\textbf{Setup}]\index{setup phase} is the phase when all
-  applications can publish what ports they are prepared to handle
+  applications can publish the ports they are prepared to handle
   along with the time step they will use and where data will be
   present (where in memory and/or on what processor).  During the
   setup phase, applications can read configuration parameters
@@ -345,7 +345,7 @@ applications, is executed in three distinct phases:
 From the application programmers point of view, these phases are
 clearly separated through the use of two main components of the
 MUSIC interface: the \emph{Setup} and the \emph{Runtime} object.  The
-launch phase is not visible for the application since it handles the
+launch phase is not visible to the application since it handles the
 situation before the application starts.
 
 When the application initializes MUSIC at the beginning of execution
