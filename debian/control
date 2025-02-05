@@ -51,7 +51,7 @@ Description: Multi-Simulation Coordinator for MPI -- Runtime library
 
 Package: python3-music
 Architecture: any
-Depends: python3-mpi4py, python3-six, ${python3:Depends}, ${shlibs:Depends}, ${misc:Depends}
+Depends: python3-mpi4py, ${python3:Depends}, ${shlibs:Depends}, ${misc:Depends}
 Description: Multi-Simulation Coordinator for MPI -- Runtime library
  MUSIC allows spike events and continuous time series to be
  communicated between parallel applications within the same MPI job in
