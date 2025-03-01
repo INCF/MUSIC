@@ -182,11 +182,16 @@ void
         // NOTE: default configuration is preserved
         config->resetDict();
       }
+
+    if (n_selections != 1)
+      {
+        std::ostringstream msg;
+	msg << "no configuration found for one rank. This is most likely caused by launching MUSIC with too many processes. " << std::endl;
+	error0 (msg.str ());
+      }
+
     delete config;
     assert(config_->getDict().size() != 0);
-
-    // NOTE: given rank -1 causes an assertion failure
-    assert(n_selections == 1);
   }
 
 
