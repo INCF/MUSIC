@@ -131,7 +131,7 @@ namespace MUSIC {
     applications_->read (env);
     env.ignore ();
     std::map<int, int> leaders = applications_->assignLeaders( Name ());
-    connectivityMap_->read (env, leaders);
+    connectivityMap_->read (env, leaders, applications_);
     // parse config string
     while (!env.eof ())
       {

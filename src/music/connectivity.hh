@@ -23,6 +23,7 @@
 #include <map>
 
 namespace MUSIC {
+  class ApplicationMap;
 /*
  * Communication Type (<COLLECTIVE, POINTTOPOINT>)
  * Processing Method (<TREE, TABLE>)
@@ -229,7 +230,7 @@ namespace MUSIC {
 
     void write (std::ostringstream& out);
 
-    void read (std::istringstream& in, std::map<int, int> leaders);
+    void read (std::istringstream& in, std::map<int, int> leaders, ApplicationMap* applications);
   };
 
 }
