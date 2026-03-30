@@ -19,6 +19,22 @@ API in music-c.h.
 
 MUSIC is distributed under the GNU General Public License v3.
 
+## Quick Start
+
+### Build Instructions
+
+MUSIC uses Autotools (not CMake).
+
+Steps to build:
+
+    ./autogen.sh
+    ./configure
+    make
+
+### Dependencies (Ubuntu)
+
+    sudo apt update
+    sudo apt install build-essential autoconf automake libtool libopenmpi-dev
 
 * Required external packages
 
