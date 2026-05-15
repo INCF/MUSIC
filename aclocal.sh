@@ -1,10 +1,7 @@
 #!/bin/sh
 
 if test -z "$ACLOCAL" ; then
- for each in aclocal-1.10 aclocal-1.9 aclocal-1.8 aclocal-1.7 aclocal-1.6 aclocal ; do
-   ACLOCAL=$each
-   if test -n "`which $each 2>/dev/null`" ; then break ; fi
- done
+ ACLOCAL=aclocal
 fi
 
 ACDIR=`which $ACLOCAL`
