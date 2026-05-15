@@ -6,10 +6,7 @@
 }
 
 if test -z "$AUTOMAKE" ; then
- for each in automake-1.10 automake-1.9 automake-1.8 automake-1.7 automake-1.6 automake ; do
-   AUTOMAKE=$each
-   if test -n "`which $each 2>/dev/null`" ; then break ; fi
- done
+ AUTOMAKE=automake
 fi
 
 if [ `uname -s` = Darwin ] ; then
