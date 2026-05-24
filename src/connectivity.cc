@@ -23,6 +23,7 @@
 #include "music/debug.hh"
 
 #include "music/connectivity.hh"
+#include "music/application_map.hh"
 #include "music/ioutils.hh"
 #include "music/error.hh"
 
@@ -175,7 +176,7 @@ namespace MUSIC {
   
 
   void
-  Connectivity::read (std::istringstream& in, std::map<int, int> leaders)
+  Connectivity::read (std::istringstream& in, std::map<int, int> leaders, ApplicationMap* applications)
   {
     int nPorts;
     in >> nPorts;
@@ -198,6 +199,8 @@ namespace MUSIC {
 	  {
 	    in.ignore ();
 	    std::string recApp = IOUtils::read (in);
+	    if (applications->lookup(recApp) == NULL)
+	      error ("Connection to non-existent application: " + recApp);
 	    in.ignore ();
 	    std::string recPort = IOUtils::read (in);
 	    in.ignore ();

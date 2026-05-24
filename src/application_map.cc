@@ -22,6 +22,7 @@
 #include "music/mpi_utils.hh"
 #endif
 #include "music/ioutils.hh"
+#include "music/error.hh"
 #include <iostream>
 #include <fstream>
 namespace MUSIC {
@@ -55,6 +56,8 @@ namespace MUSIC {
   void
   ApplicationMap::add (std::string name, int n, int c)
   {
+    if (lookup(name) != NULL)
+      error ("Application label " + name + " is already used");
     push_back (ApplicationInfo (name, n, c));
   }
 

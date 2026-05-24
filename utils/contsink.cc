@@ -117,7 +117,8 @@ main (int argc, char* argv[])
   contdata->map (&dmap, delay, interpolate);
 
   double stoptime;
-  setup->config ("stoptime", &stoptime);
+  if (!setup->config ("stoptime", &stoptime))
+    stoptime = 1.0;
 
   MUSIC::Runtime* runtime = new MUSIC::Runtime (setup, timestep);
 
