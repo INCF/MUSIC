@@ -297,6 +297,10 @@ namespace MUSIC {
   {
     if (defaultConfig_ == NULL)
       defaultConfig_ = new Configuration();
+
+    // set default values here
+    defaultConfig_->insert ("np", "1");
+
     return defaultConfig_;
   }
 
